@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "imutils", "numpy", "opencv-python"]
 build-backend = "hatchling.build"
 
 [project]
-name = "2d-plotter-art-gcode"
-version = "0.0.1"
+name = "gcode2dplotterart"
+version = "0.0.3"
 authors = [
   { name="Travis Bumgarner", email="travis@sillysideprojects.com" },
 ]
