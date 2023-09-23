@@ -31,7 +31,6 @@ class Layer:
         self.setup_instructions = []
         self.plotting_instructions = []
         self.teardown_instructions = []
-        self.has_plotted_first_point = False
         self.use_for_preview_only = use_for_preview_only
         self.use_for_border_only = use_for_border_only
         self.plotter = plotter
