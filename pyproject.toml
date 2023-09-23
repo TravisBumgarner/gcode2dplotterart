@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "2d-plotter-art-gcode"
+version = "0.0.1"
+authors = [
+  { name="Travis Bumgarner", email="travis@sillysideprojects.com" },
+]
+description = "GCode Abstraction for creating 2D Plotter Art"
+readme = "README.md"
+requires-python = ">=3.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/TravisBumgarner/2d-plotter-art-gcode"
+"Bug Tracker" = "https://github.com/TravisBumgarner/2d-plotter-art-gcode/issues"
