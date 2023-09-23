@@ -26,7 +26,7 @@ class SpecialInstruction(Enum):
     PROGRAM_END = "M2"
 
 
-class Instructions:
+class Layer:
     def __init__(self, plotter, use_for_preview_only=False, use_for_border_only=False):
         self.setup_instructions = []
         self.plotting_instructions = []
@@ -137,11 +137,11 @@ class Instructions:
         elif type == "teardown":
             self.teardown_instructions.append(f";{comment}")
 
-    def print_to_file(self, filename: str):
+    def save(self, file_path: str):
         if self.use_for_preview_only or self.use_for_border_only:
             self.outline_print()
 
-        with open(filename, "w") as file:
+        with open(file_path, "w") as file:
             file.write("\n".join([str(instruction) for instruction in self.setup_instructions]))
             file.write("\n")
               

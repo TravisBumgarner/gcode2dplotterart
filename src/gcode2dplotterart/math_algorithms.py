@@ -1,21 +1,18 @@
 """
 Algorithms more heavily based in plotting points, lines, curves, etc. with mathematical equations.
 """
-from Instructions import Instructions
+from src.gcode2dplotterart import Layer
 from Plotter import Plotter
 from random import random, randint
 from math import sin
-
-"""
-"""
-
+from constants import OUTPUT_DIRECTORY
 
 def wander(plotter: Plotter, filename_prefix, output_colors, x_offset, y_offset):
     """
     Take in 4 colors, wander outward from the center. Each color will wander towards a different quadrant of the X and Y axis.
     """
-    border_preview = Instructions(plotter, use_for_preview_only=True)
-    border = Instructions(plotter, use_for_border_only=True)
+    border_preview = Layer(plotter, use_for_preview_only=True)
+    border = Layer(plotter, use_for_border_only=True)
 
 
     if len(output_colors) != 4:
@@ -30,7 +27,7 @@ def wander(plotter: Plotter, filename_prefix, output_colors, x_offset, y_offset)
     ]
 
     for i in range(len(output_colors)):
-        instructions = Instructions(plotter)
+        layer = Layer(plotter)
 
         current_point_x = plotter.x_max / 2
         current_point_y = plotter.y_min / 2
@@ -67,11 +64,11 @@ def wander(plotter: Plotter, filename_prefix, output_colors, x_offset, y_offset)
             ):
                 break
             
-            instructions.add_line(previous_point_x, previous_point_y, current_point_x, current_point_y)
+            layer.add_line(previous_point_x, previous_point_y, current_point_x, current_point_y)
             border_preview.add_line(previous_point_x, previous_point_y, current_point_x, current_point_y)
             border.add_line(previous_point_x, previous_point_y, current_point_x, current_point_y)
 
-        instructions.print_to_file(f'./output/{filename_prefix}_{i}_{output_colors[i]}.gcode')
+        layer.print_to_file(f'./output/{filename_prefix}_{i}_{output_colors[i]}.gcode')
     border_preview.print_to_file(f'./output/preview.gcode')
     border.print_to_file(f'./output/border.gcode')
 
@@ -79,9 +76,9 @@ def bunch_of_lines(plotter: Plotter, filename_prefix, output_colors, hypotenuse)
     """
     Take in a color. Plot a bunch of lines in a grid with a fixed length and a variable slope.
     """
-    border_preview = Instructions(plotter, use_for_preview_only=True)
-    border = Instructions(plotter, use_for_border_only=True)
-    instruction_sets = [Instructions(plotter) for i in range(len(output_colors))]
+    border_preview = Layer(plotter, use_for_preview_only=True)
+    border = Layer(plotter, use_for_border_only=True)
+    instruction_sets = [Layer(plotter) for i in range(len(output_colors))]
 
     for x0 in range(plotter.x_min, plotter.x_max, 10):
         for y0 in range(plotter.y_min, plotter.y_max, 10):
@@ -111,10 +108,10 @@ def bunch_of_lines(plotter: Plotter, filename_prefix, output_colors, hypotenuse)
                     continue
     
     for i in range(len(output_colors)):
-        instruction_sets[i].print_to_file(f'./output/{filename_prefix}_{i}_{output_colors[i]}.gcode')
+        instruction_sets[i].print_to_file(f'{filename_prefix}_{i}_{output_colors[i]}.gcode')
 
-    border_preview.print_to_file(f'./output/preview.gcode')
-    border.print_to_file(f'./output/border.gcode')
+    border_preview.print_to_file(f'preview.gcode')
+    border.print_to_file(f'border.gcode')
 
 
 
