@@ -18,5 +18,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/TravisBumgarner/2d-plotter-art-gcode"
-"Bug Tracker" = "https://github.com/TravisBumgarner/2d-plotter-art-gcode/issues"
+"Homepage" = "https://github.com/TravisBumgarner/gcode2dplotterart"
+"Bug Tracker" = "https://github.com/TravisBumgarner/gcode2dplotterart/issues"
