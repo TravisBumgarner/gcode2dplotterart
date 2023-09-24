@@ -27,19 +27,18 @@ class SpecialInstruction(Enum):
 
 
 class Layer:
-    def __init__(self, plotter, use_for_preview_only=False, use_for_border_only=False):
+    def __init__(self, plotter, preview_only=False):
         self.setup_instructions = []
         self.plotting_instructions = []
         self.teardown_instructions = []
-        self.use_for_preview_only = use_for_preview_only
-        self.use_for_border_only = use_for_border_only
+        self.preview_only = preview_only
         self.plotter = plotter
-        
+
         # For drawing a bounding box before printing.
-        self.image_x_min = self.plotter.x_max
-        self.image_x_max = self.plotter.x_min
-        self.image_y_min = self.plotter.y_max
-        self.image_y_max = self.plotter.y_min
+        self.image_x_min = self.plotter._x_max
+        self.image_x_max = self.plotter._x_min
+        self.image_y_min = self.plotter._y_max
+        self.image_y_max = self.plotter._y_min
 
         for i in range(3):
             self.add_comment('Setup Instructions', 'setup')
@@ -51,27 +50,11 @@ class Layer:
         if self.plotter.units == 'inches':
             self.setup_instructions.append('G20')
 
-        self.setup_instructions.append(f"F{self.plotter.feed_rate}")
+        self.setup_instructions.append(f"F{self.plotter._feed_rate}")
 
         self.teardown_instructions.append(SpecialInstruction.PROGRAM_END.value)
 
-    def outline_print(self):
-        if(self.use_for_preview_only):
-            self.add_comment('Showing Preview', 'setup')
-        
-        if(self.use_for_border_only):
-            self.add_comment('Drawing Outline', 'setup')
-
-        self.add_special(SpecialInstruction.PEN_UP, 'setup')        
-        self.add_point(self.image_x_max, self.image_y_min, 'setup')
-        if(self.use_for_border_only):
-            self.add_special(SpecialInstruction.PEN_DOWN, 'setup')
-        self.add_point(self.image_x_max, self.image_y_max, 'setup')
-        self.add_point(self.image_x_min, self.image_y_max, 'setup')
-        self.add_point(self.image_x_min, self.image_y_min, 'setup')
-        self.add_point(self.image_x_max, self.image_y_min, 'setup')
-
-    def add_pen_down_point(self, x, y):
+    def _add_pen_down_point(self, x, y):
         self.add_special(SpecialInstruction.PEN_UP)
         self.add_special(SpecialInstruction.PAUSE)
         self.add_point(x, y)
@@ -79,10 +62,10 @@ class Layer:
         self.add_special(SpecialInstruction.PAUSE)
 
     def add_line(self, x1, y1, x2, y2):
-        self.add_pen_down_point(x1, y1)
+        self._add_pen_down_point(x1, y1)
         self.add_point(x2, y2)
 
-    def update_max_and_min(self, x, y):
+    def _update_max_and_min(self, x, y):
         if x < self.image_x_min:
             self.image_x_min = x
         if x > self.image_x_max:
@@ -92,18 +75,21 @@ class Layer:
         if y > self.image_y_max:
             self.image_y_max = y
 
+    def get_max_and_min(self) -> dict[str, float]:
+        return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
+
     def add_point(self, x, y, type="plotting"):
-        self.update_max_and_min(x,y)
+        self._update_max_and_min(x,y)
 
         if (
-            x > self.plotter.x_max
-            or y > self.plotter.y_max
-            or x < self.plotter.x_min
-            or y < self.plotter.y_min
+            x > self.plotter._x_max
+            or y > self.plotter._y_max
+            or x < self.plotter._x_min
+            or y < self.plotter._y_min
         ):
             raise ValueError("Failed to add point, outside dimensions of plotter", self.x, self.y)
 
-        point = Point(self.plotter.feed_rate, x, y)
+        point = Point(self.plotter._feed_rate, x, y)
         
         if type == "setup":
             self.setup_instructions.append(point)
@@ -111,14 +97,6 @@ class Layer:
             self.plotting_instructions.append(point)
         elif type == "teardown":
             self.teardown_instructions.append(point)
-
-    def add_circle(self, x, y, radius, type="plotting"):
-        self.update_max_and_min(x,y) # need to properly define the bounding box for a circle.
-        pass
-
-    def add_rectangle(self, x, y, width, height, type="plotting"):
-        self.update_max_and_min(x,y) # need to properly define the bounding box for a rectangle.
-        pass
         
     def add_special(self, special_instruction: SpecialInstruction, type='plotting'):
         if type == "setup":
@@ -137,16 +115,9 @@ class Layer:
             self.teardown_instructions.append(f";{comment}")
 
     def save(self, file_path: str):
-        if self.use_for_preview_only or self.use_for_border_only:
-            self.outline_print()
-
         with open(file_path, "w") as file:
             file.write("\n".join([str(instruction) for instruction in self.setup_instructions]))
             file.write("\n")
-              
-            if self.use_for_border_only or self.use_for_preview_only:
-                return
-
             file.write("\n".join([str(instruction) for instruction in self.plotting_instructions]))
             file.write("\n")
             file.write("\n".join([str(instruction) for instruction in self.teardown_instructions]))

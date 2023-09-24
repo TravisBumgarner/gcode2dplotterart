@@ -29,8 +29,8 @@ def wander(plotter: Plotter, filename_prefix, output_colors, x_offset, y_offset)
     for i in range(len(output_colors)):
         layer = Layer(plotter)
 
-        current_point_x = plotter.x_max / 2
-        current_point_y = plotter.y_min / 2
+        current_point_x = plotter._x_max / 2
+        current_point_y = plotter._y_min / 2
         
         while True:
             previous_point_x = current_point_x
@@ -57,10 +57,10 @@ def wander(plotter: Plotter, filename_prefix, output_colors, x_offset, y_offset)
 
             # Keep walking until collision with the wall.
             if (
-                current_point_x > plotter.x_max
-                or current_point_x < plotter.x_min
-                or current_point_y > plotter.y_max
-                or current_point_y < plotter.y_min
+                current_point_x > plotter._x_max
+                or current_point_x < plotter._x_min
+                or current_point_y > plotter._y_max
+                or current_point_y < plotter._y_min
             ):
                 break
             
@@ -80,10 +80,10 @@ def bunch_of_lines(plotter: Plotter, filename_prefix, output_colors, hypotenuse)
     border = Layer(plotter, use_for_border_only=True)
     instruction_sets = [Layer(plotter) for i in range(len(output_colors))]
 
-    for x0 in range(plotter.x_min, plotter.x_max, 10):
-        for y0 in range(plotter.y_min, plotter.y_max, 10):
+    for x0 in range(plotter._x_min, plotter._x_max, 10):
+        for y0 in range(plotter._y_min, plotter._y_max, 10):
                 # Should experiment with the slope calculation.
-                slope = sin((x0 ** 2 + y0 ** 2) / (plotter.x_max ** 2 + plotter.y_max ** 2))
+                slope = sin((x0 ** 2 + y0 ** 2) / (plotter._x_max ** 2 + plotter._y_max ** 2))
 
                 delta_x = hypotenuse * (1 / (1 + slope ** 2)) ** 0.5
                 delta_y = delta_x * slope

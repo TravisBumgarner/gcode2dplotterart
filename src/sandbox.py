@@ -12,10 +12,8 @@ def four_squares():
   plotter.add_layer(GREEN_LAYER)
   plotter.add_layer(BLUE_LAYER)
 
-  plotter.layers[RED_LAYER].add_line(0,-100,100,-100)
-  plotter.layers[GREEN_LAYER].add_line(100,0,100,-100)
-  plotter.layers[BLUE_LAYER].add_line(0,0,0,-100)
 
+  plotter.update_layer(RED_LAYER).add_line(0,0,100,0)
   plotter.save()
 
 if __name__ == "__main__":
