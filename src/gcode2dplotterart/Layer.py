@@ -1,4 +1,5 @@
 from enum import Enum
+import math
 
 class Point:
     def __init__(self, feed_rate: float, x: float | None = None, y: float | None = None):
@@ -56,7 +57,7 @@ class Layer:
 
         self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
 
-    def _add_pen_down_point(self, x, y):
+    def add_pen_down_point(self, x, y):
         self.add_special(SpecialInstruction.PEN_UP)
         self.add_special(SpecialInstruction.PAUSE)
         self.add_point(x, y)
@@ -67,7 +68,7 @@ class Layer:
         if self.preview_only:
           self.add_point(x1, y1) 
         else:    
-          self._add_pen_down_point(x1, y1)
+          self.add_pen_down_point(x1, y1)
         self.add_point(x2, y2)
 
     def _update_max_and_min(self, x, y):
@@ -96,13 +97,36 @@ class Layer:
 
         point = Point(self.plotter._feed_rate, x, y)
         self.instructions[type].append(point)
-        
+
     def add_special(self, special_instruction: SpecialInstruction, type='plotting'):
         self.instructions[type].append(special_instruction.value)
         
     def add_comment(self, comment: str, type='plotting'):
         self.instructions[type].append(f";{comment}")
 
+    def add_rectangle(self, x_min, y_min, x_max, y_max):
+        self.add_line(x_min, y_max, x_min, y_min)
+        self.add_line(x_min, y_min, x_max, y_min)
+        self.add_line(x_max, y_min, x_max, y_max)
+        self.add_line(x_max, y_max, x_min, y_max)
+
+    def add_circle(self, x_center, y_center, radius, num_points=36):
+        # Calculate angle step between points to approximate the circle
+        angle_step = 360.0 / num_points
+
+        self.add_special(SpecialInstruction.PEN_UP)
+        self.add_special(SpecialInstruction.PAUSE)
+
+        for i in range(num_points):
+            angle = math.radians(i * angle_step)
+            x = x_center + radius * math.cos(angle)
+            y = y_center + radius * math.sin(angle)
+
+            if i == 0:
+                self.add_pen_down_point(x, y) # This could use a refactor
+                continue
+            self.add_point(x, y)
+        
     def save(self, file_path: str):
         with open(file_path, "w") as file:
             file.write("\n".join([str(instruction) for instruction in self.instructions['setup']]))

@@ -48,11 +48,8 @@ class Plotter:
       overall_y_max = max(y_max_values)
 
       border_layer = Layer(self, preview_only=as_preview)
-      border_layer.add_line(overall_x_min, overall_y_min, overall_x_max, overall_y_min)
-      border_layer.add_line(overall_x_max, overall_y_min, overall_x_max, overall_y_max)
-      border_layer.add_line(overall_x_max, overall_y_max, overall_x_min, overall_y_max)
-      border_layer.add_line(overall_x_min, overall_y_max, overall_x_min, overall_y_min)
-
+      border_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
+      
       self._layers['preview' if as_preview else 'border'] = border_layer
 
 
