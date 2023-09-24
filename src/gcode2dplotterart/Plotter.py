@@ -36,7 +36,7 @@ class Plotter:
 
     def draw_border(self, as_preview):
       bounds = [layer.get_max_and_min() for layer in self._layers.values()]
-      print(bounds)
+      
       x_min_values = [t['x_min'] for t in bounds]
       x_max_values = [t['x_max'] for t in bounds]
       y_min_values = [t['y_min'] for t in bounds]

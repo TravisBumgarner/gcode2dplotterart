@@ -28,9 +28,11 @@ class SpecialInstruction(Enum):
 
 class Layer:
     def __init__(self, plotter, preview_only=False):
-        self.setup_instructions = []
-        self.plotting_instructions = []
-        self.teardown_instructions = []
+        self.instructions = {
+            "setup": [],
+            "plotting": [],
+            "teardown": []
+        }
         self.preview_only = preview_only
         self.plotter = plotter
 
@@ -46,13 +48,13 @@ class Layer:
             self.add_comment('Teardown Instructions', 'teardown')
 
         if self.plotter.units == 'mm':
-            self.setup_instructions.append('G21')
+            self.instructions['setup'].append('G21')
         if self.plotter.units == 'inches':
-            self.setup_instructions.append('G20')
+            self.instructions['setup'].append('G20')
 
-        self.setup_instructions.append(f"F{self.plotter._feed_rate}")
+        self.instructions['setup'].append(f"F{self.plotter._feed_rate}")
 
-        self.teardown_instructions.append(SpecialInstruction.PROGRAM_END.value)
+        self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
 
     def _add_pen_down_point(self, x, y):
         self.add_special(SpecialInstruction.PEN_UP)
@@ -62,7 +64,10 @@ class Layer:
         self.add_special(SpecialInstruction.PAUSE)
 
     def add_line(self, x1, y1, x2, y2):
-        self._add_pen_down_point(x1, y1)
+        if self.preview_only:
+          self.add_point(x1, y1) 
+        else:    
+          self._add_pen_down_point(x1, y1)
         self.add_point(x2, y2)
 
     def _update_max_and_min(self, x, y):
@@ -90,37 +95,21 @@ class Layer:
             raise ValueError("Failed to add point, outside dimensions of plotter", self.x, self.y)
 
         point = Point(self.plotter._feed_rate, x, y)
-        
-        if type == "setup":
-            self.setup_instructions.append(point)
-        elif type == "plotting":
-            self.plotting_instructions.append(point)
-        elif type == "teardown":
-            self.teardown_instructions.append(point)
+        self.instructions[type].append(point)
         
     def add_special(self, special_instruction: SpecialInstruction, type='plotting'):
-        if type == "setup":
-            self.setup_instructions.append(special_instruction.value)
-        elif type == 'plotting':
-            self.plotting_instructions.append(special_instruction.value)
-        elif type == "teardown":
-            self.teardown_instructions.append(special_instruction.value)
+        self.instructions[type].append(special_instruction.value)
         
     def add_comment(self, comment: str, type='plotting'):
-        if type == "setup":
-            self.setup_instructions.append(f";{comment}")
-        elif type == 'plotting':
-            self.plotting_instructions.append(f";{comment}")
-        elif type == "teardown":
-            self.teardown_instructions.append(f";{comment}")
+        self.instructions[type].append(f";{comment}")
 
     def save(self, file_path: str):
         with open(file_path, "w") as file:
-            file.write("\n".join([str(instruction) for instruction in self.setup_instructions]))
+            file.write("\n".join([str(instruction) for instruction in self.instructions['setup']]))
             file.write("\n")
-            file.write("\n".join([str(instruction) for instruction in self.plotting_instructions]))
+            file.write("\n".join([str(instruction) for instruction in self.instructions['plotting']]))
             file.write("\n")
-            file.write("\n".join([str(instruction) for instruction in self.teardown_instructions]))
+            file.write("\n".join([str(instruction) for instruction in self.instructions['teardown']]))
 
     def get(self):
         return self.plotting_instructions

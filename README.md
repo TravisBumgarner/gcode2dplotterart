@@ -58,5 +58,7 @@ if __name__ == "__main__":
 
 ### Preview GCode
 
-https://marlinfw.org/meta/gcode/ maybe start here
-TODO - add an intro of GCode instructions
+Browse the output directory to find the collection of files.
+
+To understand the GCode, you can read more about the instructions here:
+https://marlinfw.org/meta/gcode/
