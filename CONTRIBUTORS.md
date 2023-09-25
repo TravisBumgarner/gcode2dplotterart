@@ -14,3 +14,7 @@
 4. Make changes to code.
 5. Experiment within `src/sandbox.py` to test updated functionality.
 6. Create a pull request with changes. 
+
+## `examples` and `sandbox` Directories
+
+To work work with these examples locally, run `pip install --editable .` from the project root directory first. This will install the `gcode2dplotterart` package in editable mode, allowing you to make changes to the package and see them reflected in the examples.

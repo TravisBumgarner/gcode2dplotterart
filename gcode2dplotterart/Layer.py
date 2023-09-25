@@ -71,7 +71,7 @@ class Layer:
           self.add_pen_down_point(x1, y1)
         self.add_point(x2, y2)
 
-    def _update_max_and_min(self, x, y):
+    def update_max_and_min(self, x, y):
         if x < self.image_x_min:
             self.image_x_min = x
         if x > self.image_x_max:
