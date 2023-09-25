@@ -38,10 +38,10 @@ class Layer:
         self.plotter = plotter
 
         # For drawing a bounding box before printing.
-        self.image_x_min = self.plotter._x_max
-        self.image_x_max = self.plotter._x_min
-        self.image_y_min = self.plotter._y_max
-        self.image_y_max = self.plotter._y_min
+        self.image_x_min = self.plotter.x_max
+        self.image_x_max = self.plotter.x_min
+        self.image_y_min = self.plotter.y_max
+        self.image_y_max = self.plotter.y_min
 
         for i in range(3):
             self.add_comment('Setup Instructions', 'setup')
@@ -53,7 +53,7 @@ class Layer:
         if self.plotter.units == 'inches':
             self.instructions['setup'].append('G20')
 
-        self.instructions['setup'].append(f"F{self.plotter._feed_rate}")
+        self.instructions['setup'].append(f"F{self.plotter.feed_rate}")
 
         self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
 
@@ -85,17 +85,17 @@ class Layer:
         return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
 
     def add_point(self, x, y, type="plotting"):
-        self._update_max_and_min(x,y)
+        self.update_max_and_min(x,y)
 
         if (
-            x > self.plotter._x_max
-            or y > self.plotter._y_max
-            or x < self.plotter._x_min
-            or y < self.plotter._y_min
+            x > self.plotter.x_max
+            or y > self.plotter.y_max
+            or x < self.plotter.x_min
+            or y < self.plotter.y_min
         ):
             raise ValueError("Failed to add point, outside dimensions of plotter", self.x, self.y)
 
-        point = Point(self.plotter._feed_rate, x, y)
+        point = Point(self.plotter.feed_rate, x, y)
         self.instructions[type].append(point)
 
     def add_special(self, special_instruction: SpecialInstruction, type='plotting'):

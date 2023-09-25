@@ -1,14 +1,19 @@
-# 2d-plotter-art-gcode
+![https://pypi.org/project/gcode2dplotterart/](https://img.shields.io/pypi/dm/gcode2dplotterart.svg)
+![PyPI - Downloads](https://img.shields.io/pypi/dw/gcode2dplotterart)
+![GitHub](https://img.shields.io/github/license/TravisBumgarner/gcode2dplotterart?logo=github)
 
-## Resource
+# Introduction
 
-[GitHub](https://github.com/TravisBumgarner/gcode2dplotterart)
-## Setup
+[GCode](https://marlinfw.org/meta/gcode/) wrapper to generate GCode for 2D plotter art. Add points, lines, circles, and more and get GCode instructions to send to your 2D Plotter or converted 3D Printer.
 
-`pip install -i https://test.pypi.org/simple/ 2d-plotter-art-gcode==0.0.3`
+# Installation
+
+`pip install gcode2dplotterart`
 
 
-### Setup `plotter`
+
+# Getting Started
+## Setup `plotter`
 
 The `plotter` stores parameters about the plotter you'll be using.
 
@@ -58,7 +63,7 @@ if __name__ == "__main__":
 
 ### Preview GCode
 
-Browse the output directory to find the collection of files.
+Browse the output (defaults to `./output`) directory to find the collection of files.
 
 To understand the GCode, you can read more about the instructions here:
 https://marlinfw.org/meta/gcode/

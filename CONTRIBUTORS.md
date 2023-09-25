@@ -11,3 +11,6 @@
 1. Setup virtual environment `python3 -m venv gcode2dplotterart-venv`
 2. Active virtual environment `source ./gcode2dplotterart-venv/bin/activate`
 3. Install requirements `pip install -r requirements.txt`
+4. Make changes to code.
+5. Experiment within `src/sandbox.py` to test updated functionality.
+6. Create a pull request with changes. 

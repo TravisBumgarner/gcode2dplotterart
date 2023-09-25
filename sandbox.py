@@ -1,6 +1,5 @@
 from gcode2dplotterart.Plotter import Plotter
 
-
 def test_circles_and_rectangles():
   RED_LAYER = 'red'
 
@@ -17,8 +16,8 @@ def test_circles_and_rectangles():
   )
   
   plotter.add_layer(RED_LAYER)
-  plotter.update_layer(RED_LAYER).add_rectangle(0, 0, 50, -50)
-  plotter.update_layer(RED_LAYER).add_circle(50,-50,10)
+  plotter.layers[RED_LAYER].add_rectangle(0, 0, 50, -50)
+  plotter.layers[RED_LAYER].add_circle(50,-50,10)
   plotter.save()
 
 
