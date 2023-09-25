@@ -1,7 +1,10 @@
 import os
 import shutil
+from enum import Enum
 
-from .Layer import Layer
+from .Layer import Layer, HandleOutOfBounds
+
+
 
 class Plotter:
     x_min: int
@@ -13,8 +16,9 @@ class Plotter:
     output_dir: str
     include_border_layer: bool
     include_preview_layer: bool
+    handle_out_of_bounds: HandleOutOfBounds
 
-    def __init__(self, units, x_min, x_max, y_min, y_max, feed_rate, output_dir="./output", include_border_layer=True, include_preview_layer=True):
+    def __init__(self, units, x_min, x_max, y_min, y_max, feed_rate,handle_out_of_bounds, output_dir="./output", include_border_layer=True, include_preview_layer=True):
         self.units = units
         if units not in ['mm', 'inches']:
             raise ValueError("Units must be mm or inches")  
@@ -27,6 +31,7 @@ class Plotter:
         self.output_dir=output_dir
         self.include_border_layer = include_border_layer
         self.include_preview_layer = include_preview_layer
+        self.handle_out_of_bounds = HandleOutOfBounds[handle_out_of_bounds]
 
     def add_layer(self, name: str):
         self.layers[name] = Layer(self)

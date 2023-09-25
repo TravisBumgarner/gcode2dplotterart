@@ -1,4 +1,4 @@
-from gcode2dplotterart.Plotter import Plotter
+from gcode2dplotterart import Plotter
 
 def test_circles_and_rectangles():
   RED_LAYER = 'red'
@@ -12,7 +12,8 @@ def test_circles_and_rectangles():
     feed_rate=10000,
     output_dir="./output",
     include_border_layer=True,
-    include_preview_layer=True
+    include_preview_layer=True,
+    handle_out_of_bounds='Error'
   )
   
   plotter.add_layer(RED_LAYER)
