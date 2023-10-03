@@ -3,3 +3,5 @@ gcode2dplotterart-venv
 .env
 *.pyc
 output/
+.DS_Store
+Sphinx-docs/

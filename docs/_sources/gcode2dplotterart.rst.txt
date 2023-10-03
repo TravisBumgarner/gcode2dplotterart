@@ -1,0 +1,42 @@
+gcode2dplotterart package
+=========================
+
+.. automodule:: gcode2dplotterart
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+gcode2dplotterart.Image module
+------------------------------
+
+.. automodule:: gcode2dplotterart.Image
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+gcode2dplotterart.Layer module
+------------------------------
+
+.. automodule:: gcode2dplotterart.Layer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+gcode2dplotterart.Plotter module
+--------------------------------
+
+.. automodule:: gcode2dplotterart.Plotter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+gcode2dplotterart.main module
+-----------------------------
+
+.. automodule:: gcode2dplotterart.main
+   :members:
+   :undoc-members:
+   :show-inheritance:

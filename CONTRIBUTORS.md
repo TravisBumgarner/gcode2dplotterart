@@ -13,7 +13,8 @@
 3. Install requirements `pip install -r requirements.txt`
 4. Make changes to code.
 5. Experiment within `src/sandbox.py` to test updated functionality.
-6. Create a pull request with changes. 
+6. Generate docs with `./docstrings2md.py`
+7. Create a pull request with changes. 
 
 ## `examples` and `sandbox` Directories
 
