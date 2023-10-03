@@ -19,6 +19,7 @@ def test_circles_and_rectangles():
   plotter.add_layer(RED_LAYER)
   plotter.layers[RED_LAYER].add_rectangle(0, 0, 50, -50)
   plotter.layers[RED_LAYER].add_circle(50,-50,10)
+  plotter.layers[RED_LAYER].add_circle(50,-50,20).add_circle(50,-50,30)
   plotter.save()
 
 

@@ -64,24 +64,6 @@ class Layer:
 
     self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
 
-  
-  def lower_print_head(self, type='plotting'):
-    """Lower the pen. Should be used when starting a segment."""
-    self.add_special(SpecialInstruction.PEN_DOWN)
-    self.add_special(SpecialInstruction.PAUSE)
-
-  def raise_print_head(self, type='plotting'):
-    """Raise the pen. Should be used once printing a segment is complete before moving on to next segment."""
-    self.add_special(SpecialInstruction.PEN_UP, type)
-    self.add_special(SpecialInstruction.PAUSE, type)
-
-  def add_line(self, x1, y1, x2, y2, type='plotting'):
-    points = [
-      tuple(x1, y1),
-      tuple(x2, y2)
-    ]
-    self.add_path(points, type)
-
   def update_max_and_min(self, x, y):
     if x < self.image_x_min:
       self.image_x_min = x
@@ -94,6 +76,18 @@ class Layer:
 
   def get_max_and_min(self) -> dict[str, float]:
     return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
+  
+  def lower_print_head(self, type='plotting'):
+    """Lower the pen. Should be used when starting a segment."""
+    self.add_special(SpecialInstruction.PEN_DOWN)
+    self.add_special(SpecialInstruction.PAUSE)
+    return self
+
+  def raise_print_head(self, type='plotting'):
+    """Raise the pen. Should be used once printing a segment is complete before moving on to next segment."""
+    self.add_special(SpecialInstruction.PEN_UP, type)
+    self.add_special(SpecialInstruction.PAUSE, type)
+    return self
 
   def add_point(self, x, y, type="plotting"):
     self.add_comment(f"Point: {x}, {y}", type)
@@ -115,6 +109,15 @@ class Layer:
 
     point = Point(self.plotter.feed_rate, x, y)
     self.instructions[type].append(point)
+    return self
+  
+  def add_line(self, x1, y1, x2, y2, type='plotting'):
+    points = [
+      tuple(x1, y1),
+      tuple(x2, y2)
+    ]
+    self.add_path(points, type)
+    return self
 
   def add_path(self, points: List[Tuple[float, float]], type="plotting"):
     self.add_comment(f"Path: {points}", type)
@@ -124,14 +127,17 @@ class Layer:
       if index == 0 and not self.preview_only:
           self.lower_print_head()
     self.raise_print_head()
+    return self
 
   def add_special(self, special_instruction: SpecialInstruction, type='plotting'):
     self.add_comment(special_instruction, type)
 
     self.instructions[type].append(special_instruction.value)
+    return self
       
   def add_comment(self, comment: str, type='plotting'):
     self.instructions[type].append(f";{comment}")
+    return self
 
   def add_rectangle(self, x_min, y_min, x_max, y_max, type='plotting'):
     self.add_comment(f"Rectangle: {x_min}, {y_min}, {x_max}, {y_max}", type)
@@ -143,6 +149,7 @@ class Layer:
       tuple(x_max, y_max)
     ]
     self.add_path(points, type)
+    return self
 
   def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36, type='plotting'):
     self.add_comment(f"Circle: {x_center}, {y_center}, {radius}, {num_points}", type)
@@ -160,6 +167,7 @@ class Layer:
       y = y_center + radius * math.sin(angle)
       points.append(tuple(x, y))
     self.add_path(points, type)
+    return self
       
   def save(self, file_path: str):
       with open(file_path, "w") as file:
