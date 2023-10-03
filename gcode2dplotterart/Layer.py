@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import List, Tuple
+
 import math
 
 class HandleOutOfBounds(Enum):
@@ -63,23 +65,22 @@ class Layer:
     self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
 
   
-  def lower_print_head(self):
+  def lower_print_head(self, type='plotting'):
     """Lower the pen. Should be used when starting a segment."""
     self.add_special(SpecialInstruction.PEN_DOWN)
     self.add_special(SpecialInstruction.PAUSE)
 
-  def raise_print_head(self):
+  def raise_print_head(self, type='plotting'):
     """Raise the pen. Should be used once printing a segment is complete before moving on to next segment."""
-    self.add_special(SpecialInstruction.PEN_UP)
-    self.add_special(SpecialInstruction.PAUSE)
+    self.add_special(SpecialInstruction.PEN_UP, type)
+    self.add_special(SpecialInstruction.PAUSE, type)
 
-  def add_line(self, x1, y1, x2, y2):
-    self.add_point(x1, y1) 
-    if not self.preview_only:
-      self.lower_print_head()
-    self.add_point(x2, y2)
-    if not self.preview_only:
-      self.raise_print_head()
+  def add_line(self, x1, y1, x2, y2, type='plotting'):
+    points = [
+      tuple(x1, y1),
+      tuple(x2, y2)
+    ]
+    self.add_path(points, type)
 
   def update_max_and_min(self, x, y):
     if x < self.image_x_min:
@@ -95,6 +96,8 @@ class Layer:
     return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
 
   def add_point(self, x, y, type="plotting"):
+    self.add_comment(f"Point: {x}, {y}", type)
+
     if (
       x > self.plotter.x_max
       or y > self.plotter.y_max
@@ -113,36 +116,50 @@ class Layer:
     point = Point(self.plotter.feed_rate, x, y)
     self.instructions[type].append(point)
 
+  def add_path(self, points: List[Tuple[float, float]], type="plotting"):
+    self.add_comment(f"Path: {points}", type)
+
+    for index, [x,y] in enumerate(range(points)):
+      self.add_point(x, y, type)
+      if index == 0 and not self.preview_only:
+          self.lower_print_head()
+    self.raise_print_head()
+
   def add_special(self, special_instruction: SpecialInstruction, type='plotting'):
+    self.add_comment(special_instruction, type)
+
     self.instructions[type].append(special_instruction.value)
       
   def add_comment(self, comment: str, type='plotting'):
     self.instructions[type].append(f";{comment}")
 
-  def add_rectangle(self, x_min, y_min, x_max, y_max):
-    self.add_line(x_min, y_max, x_min, y_min)
-    self.add_line(x_min, y_min, x_max, y_min)
-    self.add_line(x_max, y_min, x_max, y_max)
-    self.add_line(x_max, y_max, x_min, y_max)
+  def add_rectangle(self, x_min, y_min, x_max, y_max, type='plotting'):
+    self.add_comment(f"Rectangle: {x_min}, {y_min}, {x_max}, {y_max}", type)
 
-  def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36):
+    points = [
+      tuple(x_min, y_max),
+      tuple(x_min, y_min),
+      tuple(x_max, y_min),
+      tuple(x_max, y_max)
+    ]
+    self.add_path(points, type)
+
+  def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36, type='plotting'):
+    self.add_comment(f"Circle: {x_center}, {y_center}, {radius}, {num_points}", type)
+    
     # Calculate angle step between points to approximate the circle
     angle_step = 360.0 / num_points
 
-    self.add_special(SpecialInstruction.PEN_UP)
-    self.add_special(SpecialInstruction.PAUSE)
+    self.add_special(SpecialInstruction.PEN_UP, type)
+    self.add_special(SpecialInstruction.PAUSE, type)
 
-    for index, point in enumerate(range(num_points)):
+    points: List[Tuple[float, float]] = []
+    for point in range(num_points):
       angle = math.radians(point * angle_step)
       x = x_center + radius * math.cos(angle)
       y = y_center + radius * math.sin(angle)
-
-      self.add_point(x, y)
-      if index == 0:
-          self.lower_print_head()
-
-    self.raise_print_head()
-
+      points.append(tuple(x, y))
+    self.add_path(points, type)
       
   def save(self, file_path: str):
       with open(file_path, "w") as file:
