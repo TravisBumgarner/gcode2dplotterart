@@ -54,6 +54,11 @@ class Plotter:
       
       self.layers['preview' if as_preview else 'border'] = border_layer
 
+    def get_plotted_points(self):
+      points = {}
+      for layer_name, layer in self.layers.items():
+        points[layer_name] = layer.get_plotted_points()
+      print(points)
 
     def save(self):
       if os.path.exists(self.output_dir):
