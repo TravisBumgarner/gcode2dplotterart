@@ -1,10 +1,8 @@
 import os
 import shutil
-from enum import Enum
+import matplotlib.pyplot as plt
 
 from .Layer import Layer, HandleOutOfBounds
-
-
 
 class Plotter:
     x_min: int
@@ -28,13 +26,15 @@ class Plotter:
         self.y_max = y_max
         self.feed_rate = feed_rate
         self.layers = {}
+        self.colors = {}
         self.output_dir=output_dir
         self.include_border_layer = include_border_layer
         self.include_preview_layer = include_preview_layer
         self.handle_out_of_bounds = HandleOutOfBounds[handle_out_of_bounds]
 
-    def add_layer(self, name: str):
+    def add_layer(self, name: str, color: str):
         self.layers[name] = Layer(self)
+        self.colors[name] = color
 
     def draw_border(self, as_preview):
       bounds = [layer.get_max_and_min() for layer in self.layers.values()]
@@ -58,7 +58,26 @@ class Plotter:
       points = {}
       for layer_name, layer in self.layers.items():
         points[layer_name] = layer.get_plotted_points()
-      print(points)
+      return points
+    
+    def preview(self):
+      points = self.get_plotted_points()
+      plt.figure()
+
+      # Iterate through the dictionary
+      for layer, coordinates in points.items():
+          # Separate x and y coordinates
+          x_values, y_values = zip(*coordinates)
+          # Plot the points with the specified color
+          plt.scatter(x_values, y_values, c=self.colors[layer])
+
+      # Add labels and legend
+      plt.xlabel('X-axis')
+      plt.ylabel('Y-axis')
+      plt.legend()
+
+      # Display the plot
+      plt.show()
 
     def save(self):
       if os.path.exists(self.output_dir):

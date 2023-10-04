@@ -16,13 +16,12 @@ def test_circles_and_rectangles():
     handle_out_of_bounds='Error'
   )
   
-  plotter.add_layer(RED_LAYER)
+  plotter.add_layer(RED_LAYER, '#FF00FF')
   plotter.layers[RED_LAYER].add_rectangle(0, 0, 50, -50)
   plotter.layers[RED_LAYER].add_circle(50,-50,10)
   plotter.layers[RED_LAYER].add_circle(50,-50,20)
-  print(plotter.layers[RED_LAYER].instructions)
   plotter.get_plotted_points()
-  plotter.save()
+  plotter.preview()
 
 
 

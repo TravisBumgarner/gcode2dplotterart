@@ -1,10 +1,5 @@
 import math
 
-from gcode2dplotterart import Layer, Plotter
-
-# Plot a column of sine waves that have increasing amplitude.
-# Each sine wave is vertically offset from the previous and grow in amplitude relative to the vertical offset.
-
 from gcode2dplotterart import Plotter
 
 BASE_LAYER = 'base_layer'
