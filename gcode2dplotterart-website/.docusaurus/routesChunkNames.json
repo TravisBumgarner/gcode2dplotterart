@@ -1,204 +1,110 @@
 {
-  "/gcode2dplotterart/blog-e2b": {
-    "__comp": "a6aa9e1f",
+  "/gcode2dplotterart/__docusaurus/debug-9ae": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "7661071f"
-      },
-      {
-        "content": "f4f34a3a"
-      },
-      {
-        "content": "8717b14a"
-      },
-      {
-        "content": "925b3f96"
-      }
-    ],
-    "metadata": "aa42e51d"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
-  "/gcode2dplotterart/blog/archive-24f": {
-    "__comp": "9e4087bc",
+  "/gcode2dplotterart/__docusaurus/debug/config-de2": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "archive": "9234eaa0"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
-  "/gcode2dplotterart/blog/first-blog-post-3a7": {
-    "__comp": "ccc49370",
+  "/gcode2dplotterart/__docusaurus/debug/content-1e6": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
     "__context": {
-      "plugin": "b2275d07"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
     },
-    "sidebar": "814f3328",
-    "content": "e273c56f"
+    "allContent": "allContent---gcode-2-dplotterart-docusaurus-debug-content-246-ee4"
   },
-  "/gcode2dplotterart/blog/long-blog-post-d83": {
-    "__comp": "ccc49370",
+  "/gcode2dplotterart/__docusaurus/debug/globalData-b06": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "content": "73664a40"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
-  "/gcode2dplotterart/blog/mdx-blog-post-886": {
-    "__comp": "ccc49370",
+  "/gcode2dplotterart/__docusaurus/debug/metadata-32b": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "content": "59362658"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
-  "/gcode2dplotterart/blog/tags-98f": {
-    "__comp": "01a85c17",
+  "/gcode2dplotterart/__docusaurus/debug/registry-2e1": {
+    "__comp": "__comp---theme-debug-registry-679-501",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "tags": "0d93e96e"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
-  "/gcode2dplotterart/blog/tags/docusaurus-543": {
-    "__comp": "6875c492",
+  "/gcode2dplotterart/__docusaurus/debug/routes-7fe": {
+    "__comp": "__comp---theme-debug-routes-946-699",
     "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "7661071f"
-      },
-      {
-        "content": "f4f34a3a"
-      },
-      {
-        "content": "8717b14a"
-      },
-      {
-        "content": "925b3f96"
-      }
-    ],
-    "tag": "b5e79c65",
-    "listMetadata": "8a491370"
-  },
-  "/gcode2dplotterart/blog/tags/facebook-1db": {
-    "__comp": "6875c492",
-    "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "7661071f"
-      }
-    ],
-    "tag": "6fa2e94a",
-    "listMetadata": "496512a5"
-  },
-  "/gcode2dplotterart/blog/tags/hello-24b": {
-    "__comp": "6875c492",
-    "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "7661071f"
-      },
-      {
-        "content": "8717b14a"
-      }
-    ],
-    "tag": "dd1f9399",
-    "listMetadata": "e3717fc4"
-  },
-  "/gcode2dplotterart/blog/tags/hola-e5d": {
-    "__comp": "6875c492",
-    "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "items": [
-      {
-        "content": "925b3f96"
-      }
-    ],
-    "tag": "e9d309a5",
-    "listMetadata": "06556ec8"
-  },
-  "/gcode2dplotterart/blog/welcome-501": {
-    "__comp": "ccc49370",
-    "__context": {
-      "plugin": "b2275d07"
-    },
-    "sidebar": "814f3328",
-    "content": "d9f32620"
+      "plugin": "plugin---gcode-2-dplotterart-docusaurus-debugeef-515"
+    }
   },
   "/gcode2dplotterart/markdown-page-213": {
-    "__comp": "1f391b9e",
+    "__comp": "__comp---theme-mdx-page-1-f-3-b90",
     "__context": {
-      "plugin": "7f887325"
+      "plugin": "plugin---gcode-2-dplotterart-markdown-page-7-f-8-017"
     },
-    "content": "393be207"
+    "content": "content---gcode-2-dplotterart-markdown-page-393-b13"
   },
   "/gcode2dplotterart/docs-54d": {
-    "__comp": "1be78505",
+    "__comp": "__comp---theme-doc-page-1-be-9be",
     "__context": {
-      "plugin": "d1d134fa"
+      "plugin": "plugin---gcode-2-dplotterart-docsd-1-d-12f"
     },
-    "versionMetadata": "935f2afb"
+    "versionMetadata": "versionMetadata---gcode-2-dplotterart-docs-935-2ad"
   },
   "/gcode2dplotterart/docs/category/tutorial---basics-07d": {
-    "__comp": "14eb3368",
-    "categoryGeneratedIndex": "88255a4b"
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "categoryGeneratedIndex": "categoryGeneratedIndex---gcode-2-dplotterart-docs-category-tutorial-basics-882-4e3"
   },
   "/gcode2dplotterart/docs/category/tutorial---extras-409": {
-    "__comp": "14eb3368",
-    "categoryGeneratedIndex": "436545a9"
+    "__comp": "__comp---theme-doc-category-generated-index-page-14-e-640",
+    "categoryGeneratedIndex": "categoryGeneratedIndex---gcode-2-dplotterart-docs-category-tutorial-extras-436-93b"
   },
   "/gcode2dplotterart/docs/intro-cdd": {
-    "__comp": "17896441",
-    "content": "0e384e19"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-intro-0-e-3-f32"
   },
   "/gcode2dplotterart/docs/tutorial-basics/congratulations-0ef": {
-    "__comp": "17896441",
-    "content": "822bd8ab"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-congratulations-822-2c3"
   },
   "/gcode2dplotterart/docs/tutorial-basics/create-a-blog-post-833": {
-    "__comp": "17896441",
-    "content": "533a09ca"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-create-a-blog-post-533-a6a"
   },
   "/gcode2dplotterart/docs/tutorial-basics/create-a-document-ad0": {
-    "__comp": "17896441",
-    "content": "1e4232ab"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-create-a-document-1-e-4-558"
   },
   "/gcode2dplotterart/docs/tutorial-basics/create-a-page-784": {
-    "__comp": "17896441",
-    "content": "5c868d36"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-create-a-page-5-c-8-760"
   },
   "/gcode2dplotterart/docs/tutorial-basics/deploy-your-site-f1e": {
-    "__comp": "17896441",
-    "content": "f55d3e7a"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-deploy-your-sitef-55-6c4"
   },
   "/gcode2dplotterart/docs/tutorial-basics/markdown-features-cfe": {
-    "__comp": "17896441",
-    "content": "18c41134"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-basics-markdown-features-18-c-5d0"
   },
   "/gcode2dplotterart/docs/tutorial-extras/manage-docs-versions-b78": {
-    "__comp": "17896441",
-    "content": "dff1c289"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-extras-manage-docs-versionsdff-7d8"
   },
   "/gcode2dplotterart/docs/tutorial-extras/translate-your-site-654": {
-    "__comp": "17896441",
-    "content": "e44a2883"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---gcode-2-dplotterart-docs-tutorial-extras-translate-your-sitee-44-ad2"
   },
   "/gcode2dplotterart/-5fe": {
-    "__comp": "1df93b7f",
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
     "__context": {
-      "plugin": "7f887325"
+      "plugin": "plugin---gcode-2-dplotterart-markdown-page-7-f-8-017"
     },
-    "config": "5e9f5e1a"
+    "config": "config---gcode-2-dplotterart-5-e-9-07c"
   }
 }

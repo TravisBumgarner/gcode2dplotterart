@@ -3,58 +3,38 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/gcode2dplotterart/blog',
-    component: ComponentCreator('/gcode2dplotterart/blog', 'e2b'),
+    path: '/gcode2dplotterart/__docusaurus/debug',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug', '9ae'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/archive',
-    component: ComponentCreator('/gcode2dplotterart/blog/archive', '24f'),
+    path: '/gcode2dplotterart/__docusaurus/debug/config',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/config', 'de2'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/first-blog-post',
-    component: ComponentCreator('/gcode2dplotterart/blog/first-blog-post', '3a7'),
+    path: '/gcode2dplotterart/__docusaurus/debug/content',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/content', '1e6'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/long-blog-post',
-    component: ComponentCreator('/gcode2dplotterart/blog/long-blog-post', 'd83'),
+    path: '/gcode2dplotterart/__docusaurus/debug/globalData',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/globalData', 'b06'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/mdx-blog-post',
-    component: ComponentCreator('/gcode2dplotterart/blog/mdx-blog-post', '886'),
+    path: '/gcode2dplotterart/__docusaurus/debug/metadata',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/metadata', '32b'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/tags',
-    component: ComponentCreator('/gcode2dplotterart/blog/tags', '98f'),
+    path: '/gcode2dplotterart/__docusaurus/debug/registry',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/registry', '2e1'),
     exact: true
   },
   {
-    path: '/gcode2dplotterart/blog/tags/docusaurus',
-    component: ComponentCreator('/gcode2dplotterart/blog/tags/docusaurus', '543'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/blog/tags/facebook',
-    component: ComponentCreator('/gcode2dplotterart/blog/tags/facebook', '1db'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/blog/tags/hello',
-    component: ComponentCreator('/gcode2dplotterart/blog/tags/hello', '24b'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/blog/tags/hola',
-    component: ComponentCreator('/gcode2dplotterart/blog/tags/hola', 'e5d'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/blog/welcome',
-    component: ComponentCreator('/gcode2dplotterart/blog/welcome', '501'),
+    path: '/gcode2dplotterart/__docusaurus/debug/routes',
+    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/routes', '7fe'),
     exact: true
   },
   {

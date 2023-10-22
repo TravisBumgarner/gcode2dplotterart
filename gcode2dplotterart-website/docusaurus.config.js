@@ -6,8 +6,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'gcode2dplotterart',
+  tagline: 'GCode Abstraction for creating 2D Plotter Art',
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here
@@ -66,9 +66,9 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'My Site',
+        title: 'gcode2dplotterart',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'Site logo',
           src: 'img/favicon.png',
         },
         items: [
@@ -76,11 +76,10 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Tutorials',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://github.com/TravisBumgarner/gcode2dplotterart',
             label: 'GitHub',
             position: 'right',
           },
@@ -93,43 +92,36 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Tutorial',
+                label: 'Tutorials',
                 to: '/docs/intro',
-              },
+              }
             ],
           },
           {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                label: 'GitHub Discussions',
+                href: 'https://github.com/TravisBumgarner/gcode2dplotterart/discussions',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
+                label: 'GitHub Issues',
+                href: 'https://github.com/TravisBumgarner/gcode2dplotterart/issues',
               },
             ],
           },
           {
             title: 'More',
             items: [
+            
               {
-                label: 'Blog',
-                to: '/blog',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: 'Silly Side Projects',
+                href: 'https://sillysideprojects.com',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Travis Bumgarner. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,

@@ -4,8 +4,8 @@
  * Modify the docusaurus.config.js file at your site's root instead.
  */
 export default {
-  "title": "My Site",
-  "tagline": "Dinosaurs are cool",
+  "title": "gcode2dplotterart",
+  "tagline": "GCode Abstraction for creating 2D Plotter Art",
   "favicon": "img/favicon.png",
   "url": "https://travisbumgarner.github.io",
   "baseUrl": "/gcode2dplotterart/",
@@ -44,9 +44,9 @@ export default {
   "themeConfig": {
     "image": "img/docusaurus-social-card.jpg",
     "navbar": {
-      "title": "My Site",
+      "title": "gcode2dplotterart",
       "logo": {
-        "alt": "My Site Logo",
+        "alt": "Site logo",
         "src": "img/favicon.png"
       },
       "items": [
@@ -54,15 +54,10 @@ export default {
           "type": "docSidebar",
           "sidebarId": "tutorialSidebar",
           "position": "left",
-          "label": "Tutorial"
+          "label": "Tutorials"
         },
         {
-          "to": "/blog",
-          "label": "Blog",
-          "position": "left"
-        },
-        {
-          "href": "https://github.com/facebook/docusaurus",
+          "href": "https://github.com/TravisBumgarner/gcode2dplotterart",
           "label": "GitHub",
           "position": "right"
         }
@@ -76,7 +71,7 @@ export default {
           "title": "Docs",
           "items": [
             {
-              "label": "Tutorial",
+              "label": "Tutorials",
               "to": "/docs/intro"
             }
           ]
@@ -85,16 +80,12 @@ export default {
           "title": "Community",
           "items": [
             {
-              "label": "Stack Overflow",
-              "href": "https://stackoverflow.com/questions/tagged/docusaurus"
+              "label": "GitHub Discussions",
+              "href": "https://github.com/TravisBumgarner/gcode2dplotterart/discussions"
             },
             {
-              "label": "Discord",
-              "href": "https://discordapp.com/invite/docusaurus"
-            },
-            {
-              "label": "Twitter",
-              "href": "https://twitter.com/docusaurus"
+              "label": "GitHub Issues",
+              "href": "https://github.com/TravisBumgarner/gcode2dplotterart/issues"
             }
           ]
         },
@@ -102,17 +93,13 @@ export default {
           "title": "More",
           "items": [
             {
-              "label": "Blog",
-              "to": "/blog"
-            },
-            {
-              "label": "GitHub",
-              "href": "https://github.com/facebook/docusaurus"
+              "label": "Silly Side Projects",
+              "href": "https://sillysideprojects.com"
             }
           ]
         }
       ],
-      "copyright": "Copyright © 2023 My Project, Inc. Built with Docusaurus."
+      "copyright": "Copyright © 2023 Travis Bumgarner. Built with Docusaurus."
     },
     "prism": {
       "theme": {
