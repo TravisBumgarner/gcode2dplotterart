@@ -1,0 +1,204 @@
+{
+  "/gcode2dplotterart/blog-e2b": {
+    "__comp": "a6aa9e1f",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "items": [
+      {
+        "content": "7661071f"
+      },
+      {
+        "content": "f4f34a3a"
+      },
+      {
+        "content": "8717b14a"
+      },
+      {
+        "content": "925b3f96"
+      }
+    ],
+    "metadata": "aa42e51d"
+  },
+  "/gcode2dplotterart/blog/archive-24f": {
+    "__comp": "9e4087bc",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "archive": "9234eaa0"
+  },
+  "/gcode2dplotterart/blog/first-blog-post-3a7": {
+    "__comp": "ccc49370",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "content": "e273c56f"
+  },
+  "/gcode2dplotterart/blog/long-blog-post-d83": {
+    "__comp": "ccc49370",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "content": "73664a40"
+  },
+  "/gcode2dplotterart/blog/mdx-blog-post-886": {
+    "__comp": "ccc49370",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "content": "59362658"
+  },
+  "/gcode2dplotterart/blog/tags-98f": {
+    "__comp": "01a85c17",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "tags": "0d93e96e"
+  },
+  "/gcode2dplotterart/blog/tags/docusaurus-543": {
+    "__comp": "6875c492",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "items": [
+      {
+        "content": "7661071f"
+      },
+      {
+        "content": "f4f34a3a"
+      },
+      {
+        "content": "8717b14a"
+      },
+      {
+        "content": "925b3f96"
+      }
+    ],
+    "tag": "b5e79c65",
+    "listMetadata": "8a491370"
+  },
+  "/gcode2dplotterart/blog/tags/facebook-1db": {
+    "__comp": "6875c492",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "items": [
+      {
+        "content": "7661071f"
+      }
+    ],
+    "tag": "6fa2e94a",
+    "listMetadata": "496512a5"
+  },
+  "/gcode2dplotterart/blog/tags/hello-24b": {
+    "__comp": "6875c492",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "items": [
+      {
+        "content": "7661071f"
+      },
+      {
+        "content": "8717b14a"
+      }
+    ],
+    "tag": "dd1f9399",
+    "listMetadata": "e3717fc4"
+  },
+  "/gcode2dplotterart/blog/tags/hola-e5d": {
+    "__comp": "6875c492",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "items": [
+      {
+        "content": "925b3f96"
+      }
+    ],
+    "tag": "e9d309a5",
+    "listMetadata": "06556ec8"
+  },
+  "/gcode2dplotterart/blog/welcome-501": {
+    "__comp": "ccc49370",
+    "__context": {
+      "plugin": "b2275d07"
+    },
+    "sidebar": "814f3328",
+    "content": "d9f32620"
+  },
+  "/gcode2dplotterart/markdown-page-213": {
+    "__comp": "1f391b9e",
+    "__context": {
+      "plugin": "7f887325"
+    },
+    "content": "393be207"
+  },
+  "/gcode2dplotterart/docs-54d": {
+    "__comp": "1be78505",
+    "__context": {
+      "plugin": "d1d134fa"
+    },
+    "versionMetadata": "935f2afb"
+  },
+  "/gcode2dplotterart/docs/category/tutorial---basics-07d": {
+    "__comp": "14eb3368",
+    "categoryGeneratedIndex": "88255a4b"
+  },
+  "/gcode2dplotterart/docs/category/tutorial---extras-409": {
+    "__comp": "14eb3368",
+    "categoryGeneratedIndex": "436545a9"
+  },
+  "/gcode2dplotterart/docs/intro-cdd": {
+    "__comp": "17896441",
+    "content": "0e384e19"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/congratulations-0ef": {
+    "__comp": "17896441",
+    "content": "822bd8ab"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/create-a-blog-post-833": {
+    "__comp": "17896441",
+    "content": "533a09ca"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/create-a-document-ad0": {
+    "__comp": "17896441",
+    "content": "1e4232ab"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/create-a-page-784": {
+    "__comp": "17896441",
+    "content": "5c868d36"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/deploy-your-site-f1e": {
+    "__comp": "17896441",
+    "content": "f55d3e7a"
+  },
+  "/gcode2dplotterart/docs/tutorial-basics/markdown-features-cfe": {
+    "__comp": "17896441",
+    "content": "18c41134"
+  },
+  "/gcode2dplotterart/docs/tutorial-extras/manage-docs-versions-b78": {
+    "__comp": "17896441",
+    "content": "dff1c289"
+  },
+  "/gcode2dplotterart/docs/tutorial-extras/translate-your-site-654": {
+    "__comp": "17896441",
+    "content": "e44a2883"
+  },
+  "/gcode2dplotterart/-5fe": {
+    "__comp": "1df93b7f",
+    "__context": {
+      "plugin": "7f887325"
+    },
+    "config": "5e9f5e1a"
+  }
+}
