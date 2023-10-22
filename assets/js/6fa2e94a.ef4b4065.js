@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[279],{5766:e=>{e.exports=JSON.parse('{"label":"facebook","permalink":"/gcode2dplotterart/blog/tags/facebook","allTagsPath":"/gcode2dplotterart/blog/tags","count":1}')}}]);
