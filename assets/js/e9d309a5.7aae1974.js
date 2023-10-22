@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[2669],{2931:e=>{e.exports=JSON.parse('{"label":"hola","permalink":"/gcode2dplotterart/blog/tags/hola","allTagsPath":"/gcode2dplotterart/blog/tags","count":1}')}}]);
