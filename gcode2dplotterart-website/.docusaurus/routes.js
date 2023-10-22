@@ -3,41 +3,6 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/gcode2dplotterart/__docusaurus/debug',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug', '9ae'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/config',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/config', 'de2'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/content',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/content', '1e6'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/globalData',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/globalData', 'b06'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/metadata',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/metadata', '32b'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/registry',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/registry', '2e1'),
-    exact: true
-  },
-  {
-    path: '/gcode2dplotterart/__docusaurus/debug/routes',
-    component: ComponentCreator('/gcode2dplotterart/__docusaurus/debug/routes', '7fe'),
-    exact: true
-  },
-  {
     path: '/gcode2dplotterart/markdown-page',
     component: ComponentCreator('/gcode2dplotterart/markdown-page', '213'),
     exact: true
