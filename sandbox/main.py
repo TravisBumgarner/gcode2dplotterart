@@ -12,14 +12,14 @@ plotter = Plotter(
   feed_rate=10000,
   output_dir="./output",
   include_border_layer=False,
-  include_preview_layer=False,
+  include_preview_layer=True,
   handle_out_of_bounds='Warning' # 
 )
 plotter.add_layer(LAYER_1, '#000000')
 
 start_point = [
-  (plotter.x_max - plotter.x_min)  / 2,
-  (plotter.y_max - plotter.y_min) / 2
+  (plotter.x_max + plotter.x_min)  / 2,
+  (plotter.y_max + plotter.y_min) / 2
 ]
 
 total_rectangles = 20
