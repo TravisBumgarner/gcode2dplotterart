@@ -4,7 +4,11 @@ import matplotlib.pyplot as plt
 
 from .Layer import Layer, HandleOutOfBounds
 
+
 class Plotter:
+    """
+    A class for configuring and controlling a plotter.
+    """
     x_min: int
     x_max: int
     y_min: int
@@ -17,6 +21,22 @@ class Plotter:
     handle_out_of_bounds: HandleOutOfBounds
 
     def __init__(self, units, x_min, x_max, y_min, y_max, feed_rate,handle_out_of_bounds, output_dir="./output", include_border_layer=True, include_preview_layer=True):
+        """
+        Initialize a new Plotter instance.
+
+        Args:
+            x_min (int): The minimum X-coordinate of the plotter.
+            x_max (int): The maximum X-coordinate of the plotter.
+            y_min (int): The minimum Y-coordinate of the plotter.
+            y_max (int): The maximum Y-coordinate of the plotter.
+            feed_rate (int): The feed rate for the plotter.
+            layers (dict[str, Layer]): A dictionary of plot layers.
+            output_dir (str): The directory where G-code files will be saved.
+            include_border_layer (bool): Whether to include a border layer, outlines the print area, drawing a border.
+            include_preview_layer (bool): Whether to include a preview layer, outlines the print area without drawing anything.
+            handle_out_of_bounds (HandleOutOfBounds): How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
+        """
+        
         self.units = units
         if units not in ['mm', 'inches']:
             raise ValueError("Units must be mm or inches")  

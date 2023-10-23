@@ -108,7 +108,6 @@ class Layer:
 
   def add_point(self, x, y, instruction_type="plotting"):
     """Add a point to the layer. If the print head is lowered, it will be plotted."""
-    self.add_comment(f"Point: {x}, {y}", instruction_type)
 
     if (
       x > self.plotter.x_max
@@ -122,6 +121,7 @@ class Layer:
         raise ValueError("Failed to add point, outside dimensions of plotter", x, y)
       else:
         raise ValueError("Invalid value for handle_out_of_bounds received", self.plotter.handle_out_of_bounds)
+    self.add_comment(f"Point: {x}, {y}", instruction_type)
     self.update_max_and_min(x, y)
     if self.is_print_head_lowered:
       self.plotted_points.append((x, y))
@@ -160,12 +160,12 @@ class Layer:
 
   def add_rectangle(self, x_min, y_min, x_max, y_max, instruction_type='plotting'):
     self.add_comment(f"Rectangle: {x_min}, {y_min}, {x_max}, {y_max}", instruction_type)
-
     points = [
-      (x_min, y_max),
       (x_min, y_min),
+      (x_min, y_max),
+      (x_max, y_max),
       (x_max, y_min),
-      (x_max, y_max)
+      (x_min, y_min),
     ]
     self.add_path(points, instruction_type)
     return self
