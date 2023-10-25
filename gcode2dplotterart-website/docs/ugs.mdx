@@ -92,12 +92,32 @@ Once you find your device, please share it [here](https://github.com/TravisBumga
 
 These instructions assume you've read the [UGS Features](#ugs-features) section above.
 
-1. Open the Jog Controller. Select the units (`)
+1. Open the Jog Controller. 
 2. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
 3. If you have a 3d printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down**
 4. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
 5. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down**
 6. If you have a 3d printer, you'll need move in the opposite direction you moved in step 3. **Write this number down**
+
+### Setting your plotting device to home
+
+An important step when turning on your plotting device is to teach it where the (0,0) (also known as "home" position) is. 
+
+Some devices have limit switches. These are little switches that when pressed down, will instruct the plotting device that it is at 0 in the X-direction or 0 in the Y-direction. TODO - Finish for 3d printers. If your plotting device has limit switches, this step is complete.
+
+If your device does not have limit switches, you'll need to do the following:
+
+1. Open the Jog Controller. 
+2. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
+3. Open Toolbox.
+4. Click `Reset to Zero`
+
+Now when you click the `Return to Zero` button, it'll return to this point.
+
+:::danger
+
+Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
+:::
 
 ### Open `.gcode` files
 

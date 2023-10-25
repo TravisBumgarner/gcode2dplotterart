@@ -1,11 +1,12 @@
 from random import randint, choice
 from gcode2dplotterart import Plotter
 
-LAYER_1 = 'blue'
-LAYER_2 = 'sea_green'
-LAYER_3 = 'light_blue'
+LAYER_1 = 'thick_red'
+LAYER_2 = 'thick_yellow'
+LAYER_3 = 'thick_blue'
+BLACK_LAYER = 'thin_black'
 
-LAYERS=[LAYER_1, LAYER_2, LAYER_3]
+COLOR_LAYERS=[LAYER_1, LAYER_2, LAYER_3]
 
 plotter = Plotter(
   units="mm",
@@ -20,8 +21,9 @@ plotter = Plotter(
   handle_out_of_bounds='Warning' # Some points will be out of bounds for this, that's ok.
 )
 
-for layer in LAYERS:
+for layer in COLOR_LAYERS:
   plotter.add_layer(layer)
+plotter.add_layer(BLACK_LAYER)
 
 # Min movement is 10% of the total width/height
 MIN_MOVEMENT_X = round((plotter.x_max - plotter.x_min) * 0.10)
@@ -75,16 +77,15 @@ end_point = [
 ]
 
 current_layer_index = 0
-plotter.layers[LAYERS[current_layer_index]].add_rectangle(start_point[0], start_point[1], end_point[0], end_point[1])
+plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(start_point[0], start_point[1], end_point[0], end_point[1])
+plotter.layers[BLACK_LAYER].add_rectangle(start_point[0], start_point[1], end_point[0], end_point[1])
 
-TOTAL_RECTANGLES = 20
+TOTAL_RECTANGLES = 100
 current_rectangle_count = 0
 
-
 while True:
-  print(start_point, end_point)
   # With 3 colors being plotted, the next rectangle plotted should not be the same color as the previous.
-  current_layer_index_choices = [index for [index, value] in enumerate(LAYERS) if index != current_layer_index]
+  current_layer_index_choices = [index for [index, value] in enumerate(COLOR_LAYERS) if index != current_layer_index]
   current_layer_index = choice(current_layer_index_choices)
 
   while True:
@@ -94,7 +95,8 @@ while True:
     if plotter.is_point_in_bounds(next_start_point[0], next_start_point[1]) and plotter.is_point_in_bounds(next_end_point[0], next_end_point[1]):
       break
 
-  plotter.layers[LAYERS[current_layer_index]].add_rectangle(next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1])
+  plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1])
+  plotter.layers[BLACK_LAYER].add_rectangle(next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1])
   start_point = next_start_point
   end_point = next_end_point
   
