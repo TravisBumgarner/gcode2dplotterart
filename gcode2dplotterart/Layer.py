@@ -29,7 +29,7 @@ class Point:
 
 class SpecialInstruction(Enum):
   PEN_UP = "M3 S0"
-  PAUSE = "G04 P0.25" # Might need to refine this number
+  PAUSE = "G4 P0.25" # Might need to refine this number
   PEN_DOWN = "M3 S1000"
   PROGRAM_END = "M2"
 

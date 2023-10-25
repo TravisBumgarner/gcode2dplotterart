@@ -1,0 +1,8 @@
+{
+  "label": "Gallery",
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "description": "Image gallery with sample code"
+  }
+}
