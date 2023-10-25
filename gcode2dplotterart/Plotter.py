@@ -98,6 +98,14 @@ class Plotter:
     #   # Display the plot
     #   plt.show()
 
+    @property
+    def width(self):
+      return self.x_max - self.x_min
+    
+    @property
+    def height(self):
+      return self.y_max - self.y_min
+
     def is_point_in_bounds(self, x,y):
       return x > self.x_min and x < self.x_max and y > self.y_min and y < self.y_max
 
