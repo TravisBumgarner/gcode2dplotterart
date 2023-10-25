@@ -98,6 +98,9 @@ class Plotter:
     #   # Display the plot
     #   plt.show()
 
+    def is_point_in_bounds(self, x,y):
+      return x > self.x_min and x < self.x_max and y > self.y_min and y < self.y_max
+
     def save(self):
       """
       Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
