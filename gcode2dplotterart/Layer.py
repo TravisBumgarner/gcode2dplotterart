@@ -117,6 +117,8 @@ class Layer:
     ):
       if(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Warning):
         print("Failed to add point, outside dimensions of plotter", x, y)
+        # Todo - Can this cause an error with pen up / pen down instructions?
+        return
       elif(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Error):
         raise ValueError("Failed to add point, outside dimensions of plotter", x, y)
       else:
