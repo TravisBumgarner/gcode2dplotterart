@@ -5,6 +5,8 @@ build==1.0.3
 certifi==2023.7.22
 charset-normalizer==3.2.0
 click==8.1.7
+contourpy==1.1.1
+cycler==0.12.0
 databind.core==4.4.1
 databind.json==4.4.1
 Deprecated==1.2.14
@@ -12,7 +14,8 @@ docspec==2.2.1
 docspec-python==2.2.1
 docstring-parser==0.11
 docutils==0.20.1
--e git+ssh://git@github.com/TravisBumgarner/2d-plotter-art-gcode.git@558c8054380a04edb5d8ec7d154d18409054a6cd#egg=gcode2dplotterart
+fonttools==4.43.0
+-e git+ssh://git@github.com/TravisBumgarner/2d-plotter-art-gcode.git@02288c8eeb157236d80c3035d18d65fd4222d2da#egg=gcode2dplotterart
 idna==3.4
 imagesize==1.4.1
 importlib-metadata==6.8.0
@@ -20,11 +23,15 @@ imutils==0.5.4
 jaraco.classes==3.3.0
 Jinja2==3.1.2
 keyring==24.2.0
+kiwisolver==1.4.5
 markdown-it-py==3.0.0
 MarkupSafe==2.1.3
+matplotlib==3.8.0
+mdit-py-plugins==0.4.0
 mdurl==0.1.2
 more-itertools==10.1.0
 mypy-extensions==1.0.0
+myst-parser==2.0.0
 nh3==0.2.14
 nr-date==2.1.0
 nr-stream==1.1.5
@@ -33,16 +40,20 @@ numpy==1.26.0
 opencv-python==4.8.0.76
 packaging==23.1
 pathspec==0.11.2
+Pillow==10.0.1
 pkginfo==1.9.6
 platformdirs==3.11.0
 Pygments==2.16.1
+pyparsing==3.1.1
 pyproject_hooks==1.0.0
+python-dateutil==2.8.2
 PyYAML==6.0.1
 readme-renderer==42.0
 requests==2.31.0
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.5.3
+six==1.16.0
 snowballstemmer==2.2.0
 Sphinx==7.2.6
 sphinx-autodoc-typehints==1.24.0

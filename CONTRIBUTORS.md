@@ -1,5 +1,6 @@
 # 2d-plotter-art-gcode
 
+
 ## Deploy to PyPi
 
 1. Build `python -m build`
@@ -10,10 +11,10 @@
 
 1. Setup virtual environment `python3 -m venv gcode2dplotterart-venv`
 2. Active virtual environment `source ./gcode2dplotterart-venv/bin/activate`
-3. Install requirements `pip install -r requirements.txt`
+3. Install requirements `python -m pip install .`
 4. Make changes to code.
 5. Experiment within `src/sandbox.py` to test updated functionality.
-6. Generate docs with `./docstrings2md.py`
+6. Generate docs with `./docstrings2md.sh`
 7. Create a pull request with changes. 
 
 ## `examples` and `sandbox` Directories
