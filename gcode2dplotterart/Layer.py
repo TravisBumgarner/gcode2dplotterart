@@ -143,7 +143,7 @@ class Layer:
     self.instructions[instruction_type].append(point)
     return self
   
-  def add_line(self, x1, y1, x2, y2, instruction_type='plotting'):
+  def add_line(self, x1: float, y1: float, x2: float, y2: float, instruction_type='plotting'):
     points = [
       tuple(x1, y1),
       tuple(x2, y2)
@@ -175,14 +175,14 @@ class Layer:
     
     return self
 
-  def add_rectangle(self, x_min, y_min, x_max, y_max, instruction_type='plotting'):
-    self.add_comment(f"Rectangle: {x_min}, {y_min}, {x_max}, {y_max}", instruction_type)
+  def add_rectangle(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type='plotting'):
+    self.add_comment(f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type)
     points = [
-      (x_min, y_min),
-      (x_min, y_max),
-      (x_max, y_max),
-      (x_max, y_min),
-      (x_min, y_min),
+      (x_start, y_start),
+      (x_start, y_end),
+      (x_end, y_end),
+      (x_end, y_start),
+      (x_start, y_start),
     ]
     self.add_path(points, instruction_type)
     return self
