@@ -7,6 +7,18 @@ class HandleOutOfBounds(Enum):
   Warning = "Warning"
   Error = "Error"
   
+SETUP_INSTRUCTIONS_DISPLAY = """######################################################################################################
+##############################            SETUP INSTRUCTIONS            ##############################
+######################################################################################################"""
+
+PLOTTING_INSTRUCTIONS_DISPLAY = """######################################################################################################
+##############################           PLOTTING INSTRUCTIONS          ##############################
+######################################################################################################"""
+
+TEARDOWN_INSTRUCTIONS_DISPLAY = """######################################################################################################
+##############################           TEARDOWN INSTRUCTIONS          ##############################
+######################################################################################################"""
+
 
 class Point:
   def __init__(self, feed_rate: float, x: float | None = None, y: float | None = None):
@@ -52,10 +64,9 @@ class Layer:
     self.image_y_min = self.plotter.y_max
     self.image_y_max = self.plotter.y_min
 
-    for i in range(3):
-      self.add_comment('Setup Instructions', 'setup')
-      self.add_comment('Plotting Instructions', 'plotting')
-      self.add_comment('Teardown Instructions', 'teardown')
+    self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, 'setup')
+    self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, 'plotting')
+    self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, 'teardown')
 
     if self.plotter.units == 'mm':
       self.add_comment('Setting units to mm', 'setup')
@@ -151,13 +162,17 @@ class Layer:
     return self
 
   def add_special(self, special_instruction: SpecialInstruction, instruction_type='plotting'):
-    self.add_comment(special_instruction, instruction_type)
+    self.add_comment(str(special_instruction), instruction_type)
 
     self.instructions[instruction_type].append(special_instruction.value)
     return self
       
   def add_comment(self, comment: str, instruction_type):
-    self.instructions[instruction_type].append(f";{comment}")
+    self.instructions[instruction_type].append(f"")
+    lines = comment.split("\n")
+    for line in lines:
+      self.instructions[instruction_type].append(f";{line}")
+    
     return self
 
   def add_rectangle(self, x_min, y_min, x_max, y_max, instruction_type='plotting'):

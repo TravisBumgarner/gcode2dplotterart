@@ -1,8 +1,7 @@
-from random import randint, choice
+import math
 from gcode2dplotterart import Plotter
 
-BLACK_LAYER = 'thin_black'
-COLOR_LAYERS=['thick_red', 'thick_yellow', 'thick_blue']
+LAYER_1 = 'black'
 
 plotter = Plotter(
   units="mm",
@@ -17,67 +16,30 @@ plotter = Plotter(
   handle_out_of_bounds='Warning' # Some points will be out of bounds for this, that's ok.
 )
 
-for layer in COLOR_LAYERS:
-  plotter.add_layer(layer)
-plotter.add_layer(BLACK_LAYER)
+def plot_sine_wave(y_offset, amplitude, wavelength):
+  path = []
 
-# Min movement is 10% of the total width/height
-MIN_MOVEMENT_X = round((plotter.x_max - plotter.x_min) * 0.10)
-MIN_MOVEMENT_Y = round((plotter.y_max - plotter.y_min) * 0.10)
+  # range() only takes integers. If want 10 points per mm, we need to scale up by 10, calculate the sin, then divide by 10.
+  scale_up = 10
+  scale_down = 1 / scale_up
 
-# Max movement is 20% of the total width/height
-MAX_MOVEMENT_X = round((plotter.x_max - plotter.x_min) * 0.20)
-MAX_MOVEMENT_Y = round((plotter.y_max - plotter.y_min) * 0.20)
-
-def calculate_next_move(start_point, end_point):
-  # Don't start the next rectangle where the current rectangle started, don't include (start_point[0], start_point[1])
-  next_point_start_options = [
-    (start_point[0], end_point[1]),
-    (end_point[0], start_point[1]),
-    (end_point[0], end_point[1]),
-  ]
-
-  next_point_start = choice(next_point_start_options)
-
-  # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't draw on top.
-  movement_x = randint(MIN_MOVEMENT_X, MAX_MOVEMENT_X) * choice([-1, 1])
-  movement_y = randint(MIN_MOVEMENT_Y, MAX_MOVEMENT_Y) * choice([-1, 1])
-
-  next_point_end = (next_point_start[0] + movement_x, next_point_start[1] + movement_y)
-
-  return [next_point_start, next_point_end]
-
-# Starting rectangle is a rectangle drawn around the center point.
-CENTER_POINT = [(plotter.x_max + plotter.x_min) / 2, (plotter.y_max + plotter.y_min) / 2]
-start_point = [CENTER_POINT[0] - plotter.width * 0.05, CENTER_POINT[1] - plotter.height * 0.05]
-end_point = [CENTER_POINT[0] + (plotter.x_max - plotter.x_min) * 0.05, CENTER_POINT[1] + (plotter.y_max - plotter.y_min) * 0.05 ]
-
-current_layer_index = 0
-plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(start_point[0], start_point[1], end_point[0], end_point[1])
-plotter.layers[BLACK_LAYER].add_rectangle(start_point[0], start_point[1], end_point[0], end_point[1])
-
-TOTAL_RECTANGLES = 100
-current_rectangle_count = 0
-
-while True:
-  # With 3 colors being plotted, the next rectangle plotted should not be the same color as the previous.
-  current_layer_index_choices = [index for [index, value] in enumerate(COLOR_LAYERS) if index != current_layer_index]
-  current_layer_index = choice(current_layer_index_choices)
-
-  while True:
-    # Lazy solution to prevent plotter from going out of bounds
-    [next_start_point, next_end_point] = calculate_next_move(start_point, end_point)
-    if plotter.is_point_in_bounds(next_start_point[0], next_start_point[1]) and plotter.is_point_in_bounds(next_end_point[0], next_end_point[1]):
-      break
-
-  plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1])
-  plotter.layers[BLACK_LAYER].add_rectangle(next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1])
-  start_point = next_start_point
-  end_point = next_end_point
+  for step in range(plotter.x_min * scale_up, plotter.x_max * scale_up):
+    x = step * scale_down
+    y = amplitude * math.sin((2 * math.pi * x) / wavelength)
+    y += y_offset
+    path.append((x, y))
   
-  current_rectangle_count += 1
-  if current_rectangle_count == TOTAL_RECTANGLES:
-    break
+  return path
+
+plotter.add_layer(LAYER_1)
+
+TOTAL_WAVES = 10
+
+for i in range(1, TOTAL_WAVES + 1): # Wavelengths of 0 cause a divide by 0 error so I start at 1.
+  # To experiment - change all the numbers here.
+  # My plotter goes from 0 to -150, so I need to offset in the negative direction.
+  path = plot_sine_wave(y_offset=-(i**2.1), amplitude=1 * i, wavelength = 10) 
+  plotter.layers[LAYER_1].add_path(path)
 
 plotter.save()
 
