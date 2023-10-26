@@ -27,16 +27,16 @@ plotter = Plotter(
 
 You can add several layers to plot with different colors, for now we'll stick with one layer.
 ```
-LAYER_1 = 'black'
+LAYER_1 = 'layer_1'
 plotter.add_layer(LAYER_1)
 ```
 
-TODO - For a full list of shapes, check out API.
+Draw a rectangle that starts at (25,25) and ends at (50,50). First you'll select the layer you want to draw on, in this case we only have one layer so we go with `LAYER_1`. Then we add a rectangle that consists of two points, the start (x,y) and the end (x,y).
+```
+plotter.layers[LAYER_1].add_rectangle(x_start=25, y_start=25, x_end=50, y_end=50)
+```
 
-Draw a rectangle that is as big as your plotter area. First you'll select the layer you want to draw on, in this case we only have one layer so we go with `LAYER_1`. Then we add a rectangle that consists of two points, the start (x,y) and the end (x,y).
-```
-plotter.layers[LAYERS_1].add_rectangle(plotter.x_min, plotter.y_min, plotter.x_max, plotter.y_max)
-```
+Other methods include `add_line`, `add_path`, `add_circle`, and `add_point`.  
 
 Now save the layers.
 
@@ -44,13 +44,14 @@ Now save the layers.
 plotter.save()
 ```
 
-TODO - Generate the actual G-Code and post below. Note I add a bunch of helpful comments so you can read the G-Code. 
-If you navigate to the folder specified by `output_directory`, you should now see two files `preview.gcode` and `black.gcode`. Open each of them up.
+If you navigate to the folder specified by `output_directory`, you should now see two files `preview.gcode` and `layer_1.gcode`. If you like, you can open each of the files and browse the code. The [G-Code Overview](./gcode) includes explanations of all of the instructions.
 
-TODO - For a full description check out `API`.
+For a full description of the API, check out the [Plotter API](./api/plotter) and the [Layer API](./api/layer).
 
 
 TODO - Set the origin if needed
 
 Start plotting. Don't forget to return to zero.
 TODO - Can I improve the return to zero for folks without limit siwtches?
+
+Check out the [Plotting Tips](./plotting_tips) and [Code Tips](./code_tips).
