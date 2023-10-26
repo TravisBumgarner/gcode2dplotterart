@@ -3,3 +3,54 @@ sidebar_position: 2
 ---
 
 # Quick Start - 2D Plotter
+
+TODO - Mention api doc below. 
+
+To get started, you'll need your plotting device's dimensions. If you've never used the Universal G-Code Sender application before, it is recommended you read [this article](./ugs). Or if you prefer, you can jump straight to [Get your plotting device's dimensions](./ugs#get-your-plotting-devicess-dimensions). Once you have your dimensions, you can enter them below. 
+
+```python
+from gcode2dplotterart import Plotter
+
+plotter = Plotter(
+  units="mm", # Change to `inches` if you're using inches.
+  x_min = 0,
+  x_max = 100,
+  y_min = 0,
+  y_max = 100,
+  feed_rate=10000, # Depending on your plotting device, you can raise or lower this value.
+  output_directory="./output", 
+  include_border_layer=False, # Don't draw a border layer
+  include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
+  handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
+)
+```
+
+You can add several layers to plot with different colors, for now we'll stick with one layer.
+```
+LAYER_1 = 'black'
+plotter.add_layer(LAYER_1)
+```
+
+TODO - For a full list of shapes, check out API.
+
+Draw a rectangle that is as big as your plotter area. First you'll select the layer you want to draw on, in this case we only have one layer so we go with `LAYER_1`. Then we add a rectangle that consists of two points, the start (x,y) and the end (x,y).
+```
+plotter.layers[LAYERS_1].add_rectangle(plotter.x_min, plotter.y_min, plotter.x_max, plotter.y_max)
+```
+
+Now save the layers.
+
+```
+plotter.save()
+```
+
+TODO - Generate the actual G-Code and post below. Note I add a bunch of helpful comments so you can read the G-Code. 
+If you navigate to the folder specified by `output_directory`, you should now see two files `preview.gcode` and `black.gcode`. Open each of them up.
+
+TODO - For a full description check out `API`.
+
+
+TODO - Set the origin if needed
+
+Start plotting. Don't forget to return to zero.
+TODO - Can I improve the return to zero for folks without limit siwtches?

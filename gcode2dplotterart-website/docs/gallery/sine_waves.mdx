@@ -1,8 +1,9 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
+description: Series of sine waves plotted with increasing amplitude
 ---
 
-# Sine Waves
+# 2023-06-20 Sine Waves
 
 ## Description
 
@@ -13,42 +14,48 @@ Series of sine waves plotted with increasing amplitude
 ## Code
 
 ```python
-const code = import math
+import math
+from gcode2dplotterart import Plotter
 
-from gcode2dplotterart import Layer, Plotter
+LAYER_1 = 'black'
 
-BASE_LAYER = 'base_layer'
-plotter = Plotter() # Args removed for brevity
-plotter.add_layer(BASE_LAYER)
+plotter = Plotter(
+  units="mm",
+  x_min = 0,
+  x_max = 220,
+  y_min = -150,
+  y_max = 0,
+  feed_rate=10000,
+  output_directory="./output",
+  include_border_layer=True,
+  include_preview_layer=True,
+  handle_out_of_bounds='Warning' # Some points will be out of bounds for this, that's ok.
+)
 
-def sine_waves(y_offset, amplitude):
-  wavelength = 50.0
+def plot_sine_wave(y_offset, amplitude, wavelength):
+  path = []
 
-  steps_per_integer = 10
+  # range() only takes integers. If want 10 points per mm, we need to scale up by 10, calculate the sin, then divide by 10.
+  scale_up = 10
+  scale_down = 1 / scale_up
 
-  adjusted_min = plotter.x_min * steps_per_integer
-  adjusted_max = plotter.x_max * steps_per_integer
-  for index, step in enumerate(range(adjusted_min, adjusted_max)):
-
-    x = step / steps_per_integer
-    y = amplitude * math.sin(2 * math.pi * x / wavelength)
+  for step in range(plotter.x_min * scale_up, plotter.x_max * scale_up):
+    x = step * scale_down
+    y = amplitude * math.sin((2 * math.pi * x) / wavelength)
     y += y_offset
-
-    plotter.layers[BASE_LAYER].add_point(x, y)
-    if index == 0:
-      plotter.layers[BASE_LAYER].lower_print_head()
-  plotter.layers[BASE_LAYER].raise_print_head()
-
+    path.append((x, y))
   
+  return path
 
-if __name__ == "__main__":
-  padding_near_borders = 5
+plotter.add_layer(LAYER_1)
 
-  adjusted_min = plotter.y_min + padding_near_borders
-  adjusted_max = plotter.y_max - padding_near_borders
-  for y_offset in range(adjusted_min, adjusted_max, 10):
-    amplitude=y_offset / 10.0
-    sine_waves(y_offset, amplitude)
+TOTAL_WAVES = 10
 
-  plotter.save()
+for i in range(1, TOTAL_WAVES + 1): # Wavelengths of 0 cause a divide by 0 error so I start at 1.
+  # To experiment - change all the numbers here.
+  # My plotter goes from 0 to -150, so I need to offset in the negative direction.
+  path = plot_sine_wave(y_offset=-(i**2.1), amplitude=1 * i, wavelength = 10) 
+  plotter.layers[LAYER_1].add_path(path)
+
+plotter.save()
 ```

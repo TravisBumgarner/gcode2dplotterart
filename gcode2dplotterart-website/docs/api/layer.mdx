@@ -1,0 +1,56 @@
+<a id="gcode2dplotterart/Layer"></a>
+
+# gcode2dplotterart/Layer
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction"></a>
+
+## SpecialInstruction Objects
+
+```python
+class SpecialInstruction(Enum)
+```
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.PAUSE"></a>
+
+#### PAUSE
+
+Might need to refine this number
+
+<a id="gcode2dplotterart/Layer.Layer"></a>
+
+## Layer Objects
+
+```python
+class Layer()
+```
+
+<a id="gcode2dplotterart/Layer.Layer.lower_print_head"></a>
+
+#### lower\_print\_head
+
+```python
+def lower_print_head(instruction_type='plotting')
+```
+
+Lower the pen. Should be used when starting a path.
+
+<a id="gcode2dplotterart/Layer.Layer.raise_print_head"></a>
+
+#### raise\_print\_head
+
+```python
+def raise_print_head(instruction_type='plotting')
+```
+
+Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+<a id="gcode2dplotterart/Layer.Layer.add_point"></a>
+
+#### add\_point
+
+```python
+def add_point(x, y, instruction_type="plotting")
+```
+
+Add two points to the layer. If the print head is lowered, it will be plotted.
+
