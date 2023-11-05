@@ -55,23 +55,46 @@ class Plotter:
         self.layers[name] = Layer(self)
         # self.colors[name] = color
 
-    def draw_border(self, as_preview):
-      bounds = [layer.get_max_and_min() for layer in self.layers.values()]
+    def get_image_bounds(self):
+      all_layers_mins_and_maxes = [layer.get_max_and_min() for layer in self.layers.values()]
       
-      x_min_values = [t['x_min'] for t in bounds]
-      x_max_values = [t['x_max'] for t in bounds]
-      y_min_values = [t['y_min'] for t in bounds]
-      y_max_values = [t['y_max'] for t in bounds]
+      x_min_values = [t['x_min'] for t in all_layers_mins_and_maxes]
+      x_max_values = [t['x_max'] for t in all_layers_mins_and_maxes]
+      y_min_values = [t['y_min'] for t in all_layers_mins_and_maxes]
+      y_max_values = [t['y_max'] for t in all_layers_mins_and_maxes]
 
       overall_x_min = min(x_min_values)
       overall_x_max = max(x_max_values)
       overall_y_min = min(y_min_values)
       overall_y_max = max(y_max_values)
 
-      border_layer = Layer(self, preview_only=as_preview)
-      border_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
+      return [(overall_x_min, overall_x_max), (overall_y_min, overall_y_max)]
+
+
+    def add_border_layer(self):
+      """
+      Creates a new layer titled border. The border layer outlines the print area, drawing a border.
+      """
+
+      [min_point, max_point] = self.get_image_bounds()
       
-      self.layers['preview' if as_preview else 'border'] = border_layer
+      border_layer = Layer(self, preview_only=False)
+      border_layer.add_rectangle(min_point[0], min_point[1], max_point[0], max_point[1])
+      
+      self.add_layer('border')
+      self.layers['border'] = border_layer
+
+    def add_preview_layer(self):
+      """
+      Creates a new layer titled preview. The preview layer outlines the print area without drawing anything.
+      """
+      [min_point, max_point] = self.get_image_bounds()
+      
+      preview_layer = Layer(self, preview_only=True)
+      preview_layer.add_rectangle(min_point[0], min_point[1], max_point[0], max_point[1])
+      
+      self.add_layer('preview')
+      self.layers['preview'] = preview_layer
 
     # def get_plotted_points(self):
     #   points = {}
@@ -120,11 +143,11 @@ class Plotter:
 
       if self.include_border_layer:
         # Creates a new layer titled border
-        self.draw_border(as_preview=False)
+        self.add_border_layer()
       
       if self.include_preview_layer:
         # Creates a new layer titled preview
-        self.draw_border(as_preview=True)
+        self.add_preview_layer()
 
       for name, layer in self.layers.items():
         layer.save(os.path.join(self.output_directory, f'{name}.gcode'))

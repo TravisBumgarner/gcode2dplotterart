@@ -8,7 +8,7 @@ plotter = Plotter(
   y_max = 100,
   feed_rate=10000, # Depending on your plotting device, you can raise or lower this value.
   output_directory="./output", 
-  include_border_layer=False, # Don't draw a border layer
+  include_border_layer=True, # Don't draw a border layer
   include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
   handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
 )
