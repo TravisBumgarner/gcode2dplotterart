@@ -1,8 +1,14 @@
 import os
 import shutil
 # import matplotlib.pyplot as plt
+from enum import Enum
+
 
 from .Layer import Layer, HandleOutOfBounds
+
+class Units(Enum):
+  mm = "mm"
+  inches = "inches"
 
 class Plotter:
     """
@@ -19,7 +25,19 @@ class Plotter:
     include_preview_layer: bool
     handle_out_of_bounds: HandleOutOfBounds
 
-    def __init__(self, units, x_min, x_max, y_min, y_max, feed_rate,handle_out_of_bounds, output_directory="./output", include_border_layer=True, include_preview_layer=True):
+    def __init__(
+        self,
+        units: Units,
+        x_min: int,
+        x_max: int,
+        y_min: int,
+        y_max: int,
+        feed_rate: int,
+        handle_out_of_bounds: HandleOutOfBounds,
+        output_directory: str ="./output",
+        include_border_layer: bool =True,
+        include_preview_layer: bool=True
+      ):
         """
         Initialize a new Plotter instance.
 
@@ -150,14 +168,19 @@ class Plotter:
         output[name] = layer.get_plotting_data()
       return output
 
-    def save(self):
+    def save(self, clear_output_before_save=True):
       """
       Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
       If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
+
+      Args:
+        clear_output_before_save : boolean
+          Whether to remove all files from the output directory before saving, defaults to True.
       """
-      if os.path.exists(self.output_directory):
+      if clear_output_before_save and os.path.exists(self.output_directory):
         shutil.rmtree(self.output_directory)
-      os.makedirs(self.output_directory)
+      if not os.path.exists(self.output_directory):
+        os.makedirs(self.output_directory)
 
       if self.include_border_layer:
         # Creates a new layer titled border

@@ -6,6 +6,7 @@ import math
 class HandleOutOfBounds(Enum):
   Warning = "Warning"
   Error = "Error"
+  Silent = "Silent"
   
 SETUP_INSTRUCTIONS_DISPLAY = """######################################################################################################
 ##############################            SETUP INSTRUCTIONS            ##############################
@@ -139,6 +140,9 @@ class Layer:
         return
       elif(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Error):
         raise ValueError("Failed to add point, outside dimensions of plotter", x, y)
+      elif(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Silent):
+        # Typically only used in testing to keep things quiet
+        pass
       else:
         raise ValueError("Invalid value for handle_out_of_bounds received", self.plotter.handle_out_of_bounds)
     self.add_comment(f"Point: {x}, {y}", instruction_type)
