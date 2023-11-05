@@ -116,31 +116,6 @@ class Plotter:
       self.add_layer('preview')
       self.layers['preview'] = preview_layer
 
-    # def get_plotted_points(self):
-    #   points = {}
-    #   for layer_name, layer in self.layers.items():
-    #     points[layer_name] = layer.get_plotted_points()
-    #   return points
-    
-    # def preview(self):
-    #   points = self.get_plotted_points()
-    #   plt.figure()
-
-    #   # Iterate through the dictionary
-    #   for layer, coordinates in points.items():
-    #       # Separate x and y coordinates
-    #       x_values, y_values = zip(*coordinates)
-    #       # Plot the points with the specified color
-    #       plt.scatter(x_values, y_values, c=self.colors[layer])
-
-    #   # Add labels and legend
-    #   plt.xlabel('X-axis')
-    #   plt.ylabel('Y-axis')
-    #   plt.legend()
-
-    #   # Display the plot
-    #   plt.show()
-
     @property
     def width(self):
       return self.x_max - self.x_min

@@ -22,6 +22,29 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """#############################################
 
 
 class Point:
+  """
+  A class representing a point in 2D space with an optional feed rate.
+
+  Attributes:
+  -----------
+  feed_rate : float
+      The feed rate of the point.
+  x : float, optional
+      The x-coordinate of the point.
+  y : float, optional
+      The y-coordinate of the point.
+
+  Raises:
+  -------
+  ValueError
+      If x or y is not provided.
+
+  Methods:
+  --------
+  __str__()
+      Returns a string representation of the point in G-code format.
+  """
+
   def __init__(self, feed_rate: float, x: float | None = None, y: float | None = None):
     self.x = x
     self.y = y
@@ -40,14 +63,28 @@ class Point:
     return output
   
 class Comment:
-  def __init__(self, text):
+  """
+  A class representing a comment in G-code.
+
+  Attributes:
+  -----------
+  text : str
+    The text of the comment.
+  """
+
+  def __init__(self, text: str):
     self.text = text
-          
+      
   def __str__(self):
     return f';{self.text}'
 
 
+from enum import Enum
+
 class SpecialInstruction(Enum):
+  """
+  Enum class for special G-code instructions used in 2D plotter art.
+  """
   PEN_UP = "M3 S0"
   PAUSE = "G4 P0.25" # Might need to refine this number
   PEN_DOWN = "M3 S1000"
