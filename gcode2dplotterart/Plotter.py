@@ -68,7 +68,7 @@ class Plotter:
       overall_y_min = min(y_min_values)
       overall_y_max = max(y_max_values)
 
-      return [(overall_x_min, overall_x_max), (overall_y_min, overall_y_max)]
+      return [overall_x_min, overall_y_min, overall_x_max, overall_y_max]
 
 
     def add_border_layer(self):
@@ -76,22 +76,24 @@ class Plotter:
       Creates a new layer titled border. The border layer outlines the print area, drawing a border.
       """
 
-      [min_point, max_point] = self.get_image_bounds()
+      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_image_bounds()
       
       border_layer = Layer(self, preview_only=False)
-      border_layer.add_rectangle(min_point[0], min_point[1], max_point[0], max_point[1])
+      border_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
       
       self.add_layer('border')
       self.layers['border'] = border_layer
 
     def add_preview_layer(self):
       """
-      Creates a new layer titled preview. The preview layer outlines the print area without drawing anything.
+      Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
       """
-      [min_point, max_point] = self.get_image_bounds()
+      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_image_bounds()
       
       preview_layer = Layer(self, preview_only=True)
-      preview_layer.add_rectangle(min_point[0], min_point[1], max_point[0], max_point[1])
+      preview_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
+      preview_layer.add_line(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
+      preview_layer.add_line(overall_x_min, overall_y_max, overall_x_max, overall_y_min)
       
       self.add_layer('preview')
       self.layers['preview'] = preview_layer
