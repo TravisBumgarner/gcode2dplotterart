@@ -37,6 +37,13 @@ class Point:
       output += f"Y{self.y:.3f} "
     output += f"F{self.feed_rate}"
     return output
+  
+class Comment:
+  def __init__(self, text):
+    self.text = text
+          
+  def __str__(self):
+    return f';{self.text}'
 
 
 class SpecialInstruction(Enum):
@@ -143,10 +150,10 @@ class Layer:
     self.instructions[instruction_type].append(point)
     return self
   
-  def add_line(self, x1: float, y1: float, x2: float, y2: float, instruction_type='plotting'):
+  def add_line(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type='plotting'):
     points = [
-      tuple(x1, y1),
-      tuple(x2, y2)
+      (x_start, y_start),
+      (x_end, y_end)
     ]
     self.add_path(points, instruction_type)
     return self
@@ -168,14 +175,32 @@ class Layer:
     return self
       
   def add_comment(self, comment: str, instruction_type):
-    self.instructions[instruction_type].append(f"")
     lines = comment.split("\n")
     for line in lines:
-      self.instructions[instruction_type].append(f";{line}")
+      comment = Comment(line)
+      self.instructions[instruction_type].append(comment)
     
     return self
 
   def add_rectangle(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type='plotting'):
+    """
+    Adds a rectangle to the layer.
+
+    Args:
+      x_start : float
+        The x-coordinate of the starting point of the rectangle.
+      y_start : float
+        The y-coordinate of the starting point of the rectangle.
+      x_end : float 
+        The x-coordinate of the ending point of the rectangle.
+      y_end : float
+        The y-coordinate of the ending point of the rectangle.
+      instruction_type : str, optional
+        The type of instruction to use. Defaults to 'plotting'.
+
+    Returns:
+      Layer: The Layer object.
+    """
     self.add_comment(f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type)
     points = [
       (x_start, y_start),
@@ -188,6 +213,24 @@ class Layer:
     return self
 
   def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36, instruction_type='plotting'):
+    """
+    Adds a circle to the layer.
+
+    Args:
+      x_center : float
+        The x-coordinate of the center of the circle.
+      y_center : float
+        The y-coordinate of the center of the circle.
+      radius : float
+        The radius of the circle.
+      num_points : float
+        The number of points to use to approximate the circle. Default is 36.
+      instruction_type : float
+        The type of instruction to use. Default is 'plotting'.
+    
+    Returns:
+      Layer: The Layer object.
+    """
     self.add_comment(f"Circle: {x_center}, {y_center}, {radius}, {num_points}", instruction_type)
     
     # Calculate angle step between points to approximate the circle
@@ -206,14 +249,37 @@ class Layer:
     return self
       
   def save(self, file_path: str):
-      with open(file_path, "w") as file:
-          file.write("\n".join([str(instruction) for instruction in self.instructions['setup']]))
-          file.write("\n")
-          file.write("\n".join([str(instruction) for instruction in self.instructions['plotting']]))
-          file.write("\n")
-          file.write("\n".join([str(instruction) for instruction in self.instructions['teardown']]))
+    """
+    Saves the layer instructions to a file at the specified file path.
+    
+    Args:
+      file_path : string
+        The path to the file where the layer instructions will be saved.
+    """
+    
+    with open(file_path, "w") as file:
+      file.write("\n".join([str(instruction) for instruction in self.instructions['setup']]))
+      file.write("\n")
+      file.write("\n".join([str(instruction) for instruction in self.instructions['plotting']]))
+      file.write("\n")
+      file.write("\n".join([str(instruction) for instruction in self.instructions['teardown']]))
 
+  def get_plotting_data(self):
+      """
+      Returns a dictionary containing the setup, plotting, and teardown instructions as an array of strings.
+      
+      Args:
+        include_comments : boolean 
+          A boolean indicating whether to include comments in the returned instructions.
+      
+      Returns:
+        A dictionary containing the setup, plotting, and teardown instructions as an array of strings.
+      """
 
-  def get_plotted_points(self):
-      return self.plotted_points
+      return {
+        "setup": [str(instruction) for instruction in self.instructions['setup'] if not isinstance(instruction, Comment)],
+        "plotting": [str(instruction) for instruction in self.instructions['plotting']if not isinstance(instruction, Comment)],
+        "teardown": [str(instruction) for instruction in self.instructions['teardown']if not isinstance(instruction, Comment)]
+      }
+
 

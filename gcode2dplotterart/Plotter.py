@@ -133,6 +133,22 @@ class Plotter:
 
     def is_point_in_bounds(self, x,y):
       return x > self.x_min and x < self.x_max and y > self.y_min and y < self.y_max
+    
+    def get_plotting_data(self):
+      """
+      """
+      if self.include_border_layer:
+        # Creates a new layer titled border
+        self.add_border_layer()
+      
+      if self.include_preview_layer:
+        # Creates a new layer titled preview
+        self.add_preview_layer()
+ 
+      output = {}
+      for name, layer in self.layers.items():
+        output[name] = layer.get_plotting_data()
+      return output
 
     def save(self):
       """

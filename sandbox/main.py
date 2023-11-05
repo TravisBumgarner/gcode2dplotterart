@@ -19,4 +19,4 @@ plotter.add_layer(LAYER_1)
 plotter.layers[LAYER_1].add_rectangle(x_start=25, y_start=25, x_end=50, y_end=50)
 
 plotter.save()
-
+print(plotter.get_plotting_data())
