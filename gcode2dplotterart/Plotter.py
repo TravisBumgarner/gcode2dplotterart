@@ -170,4 +170,4 @@ class Plotter:
         self.add_preview_layer()
 
       for name, layer in self.layers.items():
-        layer.save(os.path.join(self.output_directory, f'{name}.gcode'))
+        layer.save(os.path.join(self.output_directory, self.title, f'{name}.gcode'))

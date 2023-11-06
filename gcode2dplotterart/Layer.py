@@ -76,7 +76,7 @@ class Comment:
     self.text = text
       
   def __str__(self):
-    return f';{self.text}'
+    return f'\n;{self.text}'
 
 
 from enum import Enum

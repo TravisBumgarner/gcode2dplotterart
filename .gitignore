@@ -1,5 +1,6 @@
 dist/
 gcode2dplotterart-venv
+sandbox-venv
 .env
 *.pyc
 output/
