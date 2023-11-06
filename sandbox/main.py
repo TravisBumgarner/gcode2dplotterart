@@ -31,8 +31,8 @@ Note
 
 # These numbers can be changed in combination with the image size. Adds a bit of spacing since I use thicker 
 # pens and they'd overlap.
-X_PIXELS_PER_PLOTTER_UNIT = 1 / 4
-Y_PIXELS_PER_PLOTTER_UNIT = 1 / 4
+X_PIXELS_PER_PLOTTER_UNIT = 1 / 3
+Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 
 
 # Todo - this algorithm seems like it's broken and not evenly distrubuting the pixels.
@@ -84,8 +84,8 @@ plotter = Plotter(
   title="Horizontal Line Art",
   units="mm",
   x_min = 0,
-  x_max = 220,
-  y_min = -150, # Note - My plotting goes from -150 to 0.
+  x_max = 200,
+  y_min = -140, # Note - My plotting goes from -150 to 0.
   y_max = 0,
   feed_rate=10000,
   output_directory="./output",
@@ -95,11 +95,11 @@ plotter = Plotter(
 )
 
 # TODO - Might want to think about how the ordering here maps to the histogram bucketing. 
-COLOR_LAYERS=['light_green', 'green', 'light_blue', 'blue', 'brown', "one_off_error_this_file_will_be_empty"]
+COLOR_LAYERS=['purple', 'blue', 'yellow', 'orange', 'red', ] # "one_off_error_this_file_will_be_empty"]
 for layer in COLOR_LAYERS:
   plotter.add_layer(layer)
 
-input_filename = "me.jpg"
+input_filename = "landscape.jpg"
 
 # Works with color PNGs exported from lightroom and photoshop. Could learn some more about reading images
 grayscale_buckets = convert_image_to_n_grayscale_colors(input_filename,  n = len(COLOR_LAYERS))
@@ -107,7 +107,7 @@ print(grayscale_buckets)
 print(grayscale_buckets.shape)
 
 color_counts = [0 for _ in COLOR_LAYERS]
-
+# Todo - I think there's a bug here with getting to the end of rows. Not sure what happened with the sunset photos. 
 for y, row in enumerate(grayscale_buckets):
   y_scaled = y / Y_PIXELS_PER_PLOTTER_UNIT * -1 # My plotter goes from -150 to 0, and therefore I negate all the numbers. Probably a better solution I'll need to research.
   line_start = [0, y_scaled] 
@@ -130,5 +130,5 @@ for y, row in enumerate(grayscale_buckets):
 
 print(COLOR_LAYERS)
 print(color_counts) #  one_off_error_this_file_will_be_empty is sometimes empty
-# print(plotter.get_image_bounds())
+print(plotter.get_image_bounds())
 plotter.save()
