@@ -23,7 +23,16 @@ Preface - numpy and cv2 are still a bit alien to me. The code here could probabl
   - If the neighboring pixel has been added to a path before, repeat step 4.
   - If there are no neighboring pixels of the same color, repeat step 4.
 7. Continue until all points of all colors are plotted.
-"""
+
+Note
+- Make sure that the combination of X_SCALE, Y_SCALE, and the resized image aren't too big for the plotter area. 
+
+""" 
+
+# These numbers can be changed in combination with the image size. Adds a bit of spacing since I use thicker 
+# pens and they'd overlap.
+X_PIXELS_PER_PLOTTER_UNIT = 1 / 4
+Y_PIXELS_PER_PLOTTER_UNIT = 1 / 4
 
 
 def evenly_distribute_pixels_per_color(img, n):
@@ -47,23 +56,28 @@ def evenly_distribute_pixels_per_color(img, n):
   # Example code shows it starting at 0 indexed.
   return np.subtract(np.digitize(img, pixel_bins), 1)
 
+
 def convert_image_to_n_grayscale_colors(filename, n):
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     [width, height] = img.shape
 
-    # Not sure if the next lines are actually correct for all aspect ratios.
-    # if width > height:
-    #     img = resize(img, width=IMG_RESIZE_X)
-    # if width <= height:
-    #     img = resize(img, width=IMG_RESIZE_X)
+    # The following math will ensure that the image is scaled to the plotter size and the remaining math
+    # throughout the program will work.
+    plotter_ratio = 'landscape' if plotter.width > plotter.height else 'portrait'
+    img_ratio = 'landscape' if width > height else 'portrait'
 
+    if plotter_ratio == 'landscape' and img_ratio == 'landscape' or plotter_ratio == 'portrait' and img_ratio == 'landscape':
+      img = resize(img, width=floor(plotter.width * X_PIXELS_PER_PLOTTER_UNIT))
+    elif plotter_ratio == 'portrait' and img_ratio == 'portrait' or plotter_ratio == 'landscape' and img_ratio == 'portrait':
+      img = resize(img, height=floor(plotter.height * Y_PIXELS_PER_PLOTTER_UNIT))
+ 
     print('resized to ', img.shape)
     img = evenly_distribute_pixels_per_color(img, n)
     return img
 
 plotter = Plotter(
-  title="Horizontal Line Photography",
+  title="Horizontal Line Art",
   units="mm",
   x_min = 0,
   x_max = 220,
@@ -73,16 +87,8 @@ plotter = Plotter(
   output_directory="./output",
   include_border_layer=True,
   include_preview_layer=True,
-  handle_out_of_bounds='Error' # No points should be out of bounds
+  handle_out_of_bounds='Warning' # It appears that some points end up outside of bounds so scale down. 
 )
-
-# I could probably not have me hit the bounds of the plotter with some better math.
-# Oh well. For now, this mess.
-# need to some point account for offsets better with large prints.
-# SCALE = 3
-# magic_number = 5
-# IMG_RESIZE_X = floor(plotter.x_max / SCALE) - magic_number
-# IMG_RESIZE_Y = floor(abs(plotter.y_min / SCALE)) - magic_number # y_min is here because my plotter has y_min being negative.
 
 COLOR_LAYERS=['thick_red', 'thick_green', 'thick_blue']
 for layer in COLOR_LAYERS:
@@ -95,18 +101,14 @@ grayscale_buckets = convert_image_to_n_grayscale_colors(input_filename,  n = len
 print(grayscale_buckets)
 print(grayscale_buckets.shape)
 
-# These numbers can be changed in combination with the image size. Adds a bit of spacing since I use fatter pens and they'd overlap.
-X_SCALE = 5
-Y_SCALE = 5
-
 for y, row in enumerate(grayscale_buckets):
-  y_scaled = y * Y_SCALE * -1 # My plotter goes from -150 to 0, and therefore I negate all the numbers. Probably a better solution I'll need to research.
+  y_scaled = y / Y_PIXELS_PER_PLOTTER_UNIT * -1 # My plotter goes from -150 to 0, and therefore I negate all the numbers. Probably a better solution I'll need to research.
   line_start = [0, y_scaled] 
   line_end = None
   current_color_value = grayscale_buckets[0][y]
 
   for x, color_value in enumerate(row): 
-    x_scaled = x * X_SCALE 
+    x_scaled = x / X_PIXELS_PER_PLOTTER_UNIT 
     if color_value == current_color_value:
       continue
   
@@ -123,4 +125,6 @@ for y, row in enumerate(grayscale_buckets):
   if y == 2:
     print(current_color_value, line_start, line_end)
 
+
+print(plotter.get_image_bounds())
 plotter.save()
