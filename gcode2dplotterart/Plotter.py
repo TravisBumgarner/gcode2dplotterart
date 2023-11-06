@@ -1,6 +1,5 @@
 import os
 import shutil
-# import matplotlib.pyplot as plt
 from enum import Enum
 
 
@@ -14,6 +13,7 @@ class Plotter:
     """
     A class for configuring and controlling a plotter.
     """
+    title: str
     x_min: int
     x_max: int
     y_min: int
@@ -27,6 +27,7 @@ class Plotter:
 
     def __init__(
         self,
+        title: str,
         units: Units,
         x_min: int,
         x_max: int,
@@ -38,36 +39,38 @@ class Plotter:
         include_border_layer: bool =True,
         include_preview_layer: bool=True
       ):
-        """
-        Initialize a new Plotter instance.
+      """
+      Initialize a new Plotter instance.
 
-        Args:
-            x_min (int): The minimum X-coordinate of the plotter.
-            x_max (int): The maximum X-coordinate of the plotter.
-            y_min (int): The minimum Y-coordinate of the plotter.
-            y_max (int): The maximum Y-coordinate of the plotter.
-            feed_rate (int): The feed rate for the plotter.
-            layers (dict[str, Layer]): A dictionary of plot layers.
-            output_directory (str): The directory where G-code files will be saved.
-            include_border_layer (bool): Whether to include a border layer, outlines the print area, drawing a border.
-            include_preview_layer (bool): Whether to include a preview layer, outlines the print area without drawing anything.
-            handle_out_of_bounds (HandleOutOfBounds): How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
-        """
-        
-        self.units = units
-        if units not in ['mm', 'inches']:
-            raise ValueError("Units must be mm or inches")  
-        self.x_min = x_min
-        self.x_max = x_max
-        self.y_min = y_min
-        self.y_max = y_max
-        self.feed_rate = feed_rate
-        self.layers = {}
-        # self.colors = {}
-        self.output_directory=output_directory
-        self.include_border_layer = include_border_layer
-        self.include_preview_layer = include_preview_layer
-        self.handle_out_of_bounds = HandleOutOfBounds[handle_out_of_bounds]
+      Args:
+          title (str): The title of the work of art
+          x_min (int): The minimum X-coordinate of the plotter.
+          x_max (int): The maximum X-coordinate of the plotter.
+          y_min (int): The minimum Y-coordinate of the plotter.
+          y_max (int): The maximum Y-coordinate of the plotter.
+          feed_rate (int): The feed rate for the plotter.
+          layers (dict[str, Layer]): A dictionary of plot layers.
+          output_directory (str): The directory where G-code files will be saved.
+          include_border_layer (bool): Whether to include a border layer, outlines the print area, drawing a border.
+          include_preview_layer (bool): Whether to include a preview layer, outlines the print area without drawing anything.
+          handle_out_of_bounds (HandleOutOfBounds): How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
+      """
+    
+      self.title = title
+      self.units = units
+      if units not in ['mm', 'inches']:
+          raise ValueError("Units must be mm or inches")  
+      self.x_min = x_min
+      self.x_max = x_max
+      self.y_min = y_min
+      self.y_max = y_max
+      self.feed_rate = feed_rate
+      self.layers = {}
+      # self.colors = {}
+      self.output_directory=output_directory
+      self.include_border_layer = include_border_layer
+      self.include_preview_layer = include_preview_layer
+      self.handle_out_of_bounds = HandleOutOfBounds[handle_out_of_bounds]
 
     def add_layer(self, name: str):
         self.layers[name] = Layer(self)
@@ -150,12 +153,13 @@ class Plotter:
 
       Args:
         clear_output_before_save : boolean
-          Whether to remove all files from the output directory before saving, defaults to True.
+          Whether to remove all files from the artwork output directory (defined as [output_directory]/[name]) before saving, defaults to True.
       """
-      if clear_output_before_save and os.path.exists(self.output_directory):
-        shutil.rmtree(self.output_directory)
-      if not os.path.exists(self.output_directory):
-        os.makedirs(self.output_directory)
+      artwork_directory = os.path.join(self.output_directory, self.title)
+      if clear_output_before_save and os.path.exists(artwork_directory):
+        shutil.rmtree(artwork_directory)
+      if not os.path.exists(artwork_directory):
+        os.makedirs(artwork_directory)
 
       if self.include_border_layer:
         # Creates a new layer titled border

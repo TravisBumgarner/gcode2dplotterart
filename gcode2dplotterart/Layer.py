@@ -318,9 +318,9 @@ class Layer:
       """
 
       return {
-        "setup": [str(instruction) for instruction in self.instructions['setup'] if not isinstance(instruction, Comment)],
-        "plotting": [str(instruction) for instruction in self.instructions['plotting']if not isinstance(instruction, Comment)],
-        "teardown": [str(instruction) for instruction in self.instructions['teardown']if not isinstance(instruction, Comment)]
+        "setup": [str(instruction) for instruction in self.instructions['setup']],
+        "plotting": [str(instruction) for instruction in self.instructions['plotting']],
+        "teardown": [str(instruction) for instruction in self.instructions['teardown']]
       }
 
 
