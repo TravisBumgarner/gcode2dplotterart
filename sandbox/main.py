@@ -35,6 +35,8 @@ X_PIXELS_PER_PLOTTER_UNIT = 1 / 4
 Y_PIXELS_PER_PLOTTER_UNIT = 1 / 4
 
 
+# Todo - this algorithm seems like it's broken and not evenly distrubuting the pixels.
+# Or it might work, and it's just not good for images with lots of a single color. 
 def evenly_distribute_pixels_per_color(img, n):
   """
   Ensures that each color has the same number of pixels.
@@ -44,8 +46,10 @@ def evenly_distribute_pixels_per_color(img, n):
   :return: image mapped
   """
   total_pixels = img.size
+  print('total pixels', total_pixels)
   pixel_bins = [0]
   histogram,bins = np.histogram(img.ravel(),256,[0,256])
+  print(histogram)
   count = 0
   for pixel_value, pixel_count in enumerate(histogram):
       if count >= total_pixels / (n):
@@ -90,16 +94,19 @@ plotter = Plotter(
   handle_out_of_bounds='Warning' # It appears that some points end up outside of bounds so scale down. 
 )
 
-COLOR_LAYERS=['thick_red', 'thick_green', 'thick_blue']
+# TODO - Might want to think about how the ordering here maps to the histogram bucketing. 
+COLOR_LAYERS=['light_green', 'green', 'light_blue', 'blue', 'brown', "one_off_error_this_file_will_be_empty"]
 for layer in COLOR_LAYERS:
   plotter.add_layer(layer)
 
-input_filename = "test.png"
+input_filename = "me.jpg"
 
 # Works with color PNGs exported from lightroom and photoshop. Could learn some more about reading images
 grayscale_buckets = convert_image_to_n_grayscale_colors(input_filename,  n = len(COLOR_LAYERS))
 print(grayscale_buckets)
 print(grayscale_buckets.shape)
+
+color_counts = [0 for _ in COLOR_LAYERS]
 
 for y, row in enumerate(grayscale_buckets):
   y_scaled = y / Y_PIXELS_PER_PLOTTER_UNIT * -1 # My plotter goes from -150 to 0, and therefore I negate all the numbers. Probably a better solution I'll need to research.
@@ -114,17 +121,14 @@ for y, row in enumerate(grayscale_buckets):
   
     line_end = [x_scaled,y_scaled]
     plotter.layers[COLOR_LAYERS[current_color_value]].add_line(line_start[0], line_start[1], line_end[0], line_end[1])
-    
-    if y == 2:
-      print(current_color_value, line_start, line_end)
-
+    color_counts[current_color_value] += 1
     line_start=line_end
     current_color_value = color_value
   line_end = [x_scaled, y_scaled]
   plotter.layers[COLOR_LAYERS[current_color_value]].add_line(line_start[0], line_start[1], line_end[0], line_end[1])
-  if y == 2:
-    print(current_color_value, line_start, line_end)
+  color_counts[current_color_value] += 1
 
-
-print(plotter.get_image_bounds())
+print(COLOR_LAYERS)
+print(color_counts) #  one_off_error_this_file_will_be_empty is sometimes empty
+# print(plotter.get_image_bounds())
 plotter.save()
