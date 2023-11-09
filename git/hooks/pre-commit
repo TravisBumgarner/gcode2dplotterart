@@ -1,0 +1,2 @@
+source ./gcode2dplotterart-venv/bin/activate
+python test_tests.py
