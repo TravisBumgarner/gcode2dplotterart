@@ -106,7 +106,8 @@ class Plotter:
       overall_y_min = min(y_min_values)
       overall_y_max = max(y_max_values)
 
-      return {"x_min": overall_x_min, "y_min": overall_y_min, "x_max": overall_x_max, "y_max": overall_y_max}
+      value = {"x_min": overall_x_min, "y_min": overall_y_min, "x_max": overall_x_max, "y_max": overall_y_max}
+      return value
 
 
     def add_border_layer(self):
@@ -116,10 +117,10 @@ class Plotter:
       Creates a new layer titled border. The border layer outlines the print area, drawing a border.
       """
 
-      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_min_and_max_points()
+      points = self.get_min_and_max_points()
       
       border_layer = Layer(self, preview_only=False)
-      border_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
+      border_layer.add_rectangle(points['x_min'], points['y_min'], points['x_max'], points['y_max'])
       
       self.add_layer('border')
       self.layers['border'] = border_layer
@@ -130,12 +131,12 @@ class Plotter:
       -----------
       Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
       """
-      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_min_and_max_points()
+      points = self.get_min_and_max_points()
       
       preview_layer = Layer(self, preview_only=True)
-      preview_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
-      preview_layer.add_line(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
-      preview_layer.add_line(overall_x_min, overall_y_max, overall_x_max, overall_y_min)
+      preview_layer.add_rectangle(points['x_min'], points['y_min'], points['x_max'], points['y_max'])
+      preview_layer.add_line(points['x_min'], points['y_min'], points['x_max'], points['y_max'])
+      preview_layer.add_line(points['x_min'], points['y_max'], points['x_max'], points['y_min'])
       
       self.add_layer('preview')
       self.layers['preview'] = preview_layer

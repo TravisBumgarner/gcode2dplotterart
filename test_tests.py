@@ -3,7 +3,7 @@
 import os
 import unittest
 from gcode2dplotterart.Plotter import Plotter
-from gcode2dplotterart.enums import PlotterTypeEnum
+from gcode2dplotterart.enums import PlotterTypeEnum, SpecialInstructionEnum, PlottingInstructionTypeEnum
 import json
 
 INDENT = 4
@@ -23,17 +23,23 @@ class TestSnapshot(unittest.TestCase):
       y_max = 100,
       feed_rate=10000,
       output_directory="./snapshots", 
-      include_border_layer=False, 
-      include_preview_layer=False, 
+      include_border_layer=True, 
+      include_preview_layer=True, 
       handle_out_of_bounds='Silent' 
     )
     snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
     snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")
 
     plotter.add_layer(layer)
-    plotter.layers[layer].add_circle(1,1, 10)
-    plotter.layers[layer].add_rectangle(50,50,75,75)
-    plotter.layers[layer].add_path([(10,10), (20,20), (30,30)])
+    
+    plotter.layers[layer] \
+      .add_point(30,40) \
+      .add_circle(1,1, 10)\
+      .add_rectangle(50,50,75,75) \
+      .add_path([(10,10), (20,20), (30,30)]) \
+      .add_line(0, 15, 0, 15) \
+      .add_comment("Test comment", instruction_type=PlottingInstructionTypeEnum.teardown) \
+      .add_special(SpecialInstructionEnum.pause, instruction_type=PlottingInstructionTypeEnum.setup)
 
     os.makedirs(snapshot_directory, exist_ok=True)
 
@@ -48,12 +54,11 @@ class TestSnapshot(unittest.TestCase):
       with open(snapshot_file_path, 'r') as file:
         old_snapshot = file.read()
         new_snapshot = json.dumps(plotter.get_plotting_data(), indent=INDENT)
-        # assert old_snapshot == new_snapshot, f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
+        assert old_snapshot == new_snapshot, f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
 
       # comment out the assert line to write changes to the file to get a diff, could be a better way of doing this.
-      return
-      # with open(snapshot_file_path, "w") as file:
-      #   file.write(new_snapshot)
+      with open(snapshot_file_path, "w") as file:
+          file.write(new_snapshot)
         
 
 if __name__ == '__main__':

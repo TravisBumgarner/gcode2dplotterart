@@ -133,7 +133,6 @@ class SpecialInstruction:
     """
     Separate the drawing instrument from the drawing surface. 
     """
-    print('hmm', self.plotter_type, PlotterTypeEnum.plotter_2d)
     if self.plotter_type == PlotterTypeEnum.plotter_2d:
       return "M3 S0"
     elif self.plotter_type == PlotterTypeEnum.plotter_3d:
@@ -146,7 +145,6 @@ class SpecialInstruction:
     """
     Connect the drawing instrument with the drawing surface.
     """
-    print('hmm2', self.plotter_type)
     if self.plotter_type == PlotterTypeEnum.plotter_2d:
       return "M3 S1000"
     elif self.plotter_type == PlotterTypeEnum.plotter_3d:
@@ -250,6 +248,8 @@ class Layer:
     """
     Updates the current max and min values for the bounding box of the layer.
     """
+
+
     if x < self.image_x_min:
       self.image_x_min = x
     if x > self.image_x_max:
@@ -337,7 +337,7 @@ class Layer:
 
     return self
 
-  def add_point(self, x, y, instruction_type=PlottingInstructionTypeEnum.plotting):
+  def add_point(self, x: float, y: float, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
     Add a point to the layer. Typically not used directly, instead use one of the other add methods.
 
@@ -355,7 +355,6 @@ class Layer:
       Layer
         The Layer object. Allows for chaining of add methods.
     """
-
     if (
       x > self.plotter.x_max
       or y > self.plotter.y_max
@@ -387,6 +386,7 @@ class Layer:
       (x_start, y_start),
       (x_end, y_end)
     ]
+    self.add_comment(f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type)
     self.add_path(points, instruction_type)
     return self
 
@@ -408,7 +408,6 @@ class Layer:
     """
 
     self.add_comment(f"Path: {points}", instruction_type)
-
     for index, [x,y] in enumerate(points):
       self.add_point(x, y, instruction_type)
       if index == 0 and not self.preview_only:
