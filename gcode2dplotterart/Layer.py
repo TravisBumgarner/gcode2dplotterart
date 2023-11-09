@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import math
 
-from .enums import HandleOutOfBoundsEnum, SpecialInstructionEnum, PlotterTypeEnum
+from .enums import HandleOutOfBoundsEnum, SpecialInstructionEnum, PlotterTypeEnum, PlottingInstructionTypeEnum
   
 SETUP_INSTRUCTIONS_DISPLAY = """######################################################################################################
 ##############################            SETUP INSTRUCTIONS            ##############################
@@ -43,9 +43,9 @@ class Point:
     if(x is None or y is None):
       raise ValueError("Point requires an X or Y")
           
-  def to_gcode(self):
+  def to_g_code(self):
     """
-     Returns a string representation of the point in G-code format.
+     Returns a string representation of the point in G-Code format.
     """
     output = "G1 "
     if(self.x is not None):
@@ -57,7 +57,7 @@ class Point:
   
 class Comment:
   """
-  A class representing a comment in G-code.
+  A class representing a comment in G-Code.
 
   Attributes:
   -----------
@@ -68,15 +68,15 @@ class Comment:
   def __init__(self, text: str):
     self.text = text
       
-  def to_gcode(self):
+  def to_g_code(self):
     """
-     Returns a string representation of the comment in G-code format.
+     Returns a string representation of the comment in G-Code format.
     """
     return f'\n;{self.text}'
 
 class FeedRate:
   """
-  A class representing the feed rate in G-code.
+  A class representing the feed rate in G-Code.
 
   Attributes:
   -----------
@@ -87,20 +87,20 @@ class FeedRate:
   def __init__(self, feed_rate: float):
     self.feed_rate = feed_rate
       
-  def to_gcode(self):
+  def to_g_code(self):
     """
-     Returns a string representation of the feed rate in G-code format.
+     Returns a string representation of the feed rate in G-Code format.
     """
     return f'\nF{self.feed_rate}'  
 
 class SpecialInstruction:
   """
-  A class representing the special G-code instructions used in 2D plotter art.
+  A class representing the special G-Code instructions used in 2D plotter art.
 
   Attributes:
   -----------
   plotter_type : PlotterType
-
+    The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
   """
 
   def __init__(self, plotter_type: PlotterTypeEnum, instruction: SpecialInstructionEnum):
@@ -161,9 +161,9 @@ class SpecialInstruction:
     """
     return "G20"
   
-  def to_gcode(self):
+  def to_g_code(self):
     """
-     Returns a string representation of the special instruction in G-code format.
+     Returns a string representation of the special instruction in G-Code format.
     """
     if self.instruction == SpecialInstructionEnum.pen_up:
       return self.pen_up
@@ -184,9 +184,9 @@ class SpecialInstruction:
 class Layer:
   def __init__(self, plotter, preview_only=False):
     self.instructions = {
-      "setup": [],
-      "plotting": [],
-      "teardown": []
+      PlottingInstructionTypeEnum.setup: [],
+      PlottingInstructionTypeEnum.plotting: [],
+      PlottingInstructionTypeEnum.teardown: []
     }
     self.preview_only = preview_only
     self.plotter = plotter
@@ -199,26 +199,29 @@ class Layer:
     self.image_y_min = self.plotter.y_max
     self.image_y_max = self.plotter.y_min
 
-    self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, 'setup')
-    self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, 'plotting')
-    self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, 'teardown')
+    self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.setup)
+    self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.plotting)
+    self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.teardown)
 
     if self.plotter.units == 'mm':
-      self.add_comment('Setting units to mm', 'setup')
-      self.add_special(SpecialInstructionEnum.units_mm, 'setup')
+      self.add_comment('Setting units to mm', PlottingInstructionTypeEnum.setup)
+      self.add_special(SpecialInstructionEnum.units_mm, PlottingInstructionTypeEnum.setup)
     
     if self.plotter.units == 'inches':
-      self.add_comment('Setting units to inches', 'setup')
-      self.add_special(SpecialInstructionEnum.units_inches, 'setup')
+      self.add_comment('Setting units to inches', PlottingInstructionTypeEnum.setup)
+      self.add_special(SpecialInstructionEnum.units_inches, PlottingInstructionTypeEnum.setup)
 
-    self.set_feed_rate(self.plotter.feed_rate, 'setup')
+    self.set_feed_rate(self.plotter.feed_rate, PlottingInstructionTypeEnum.setup)
     
     self.is_print_head_lowered = False
-    self.add_special(SpecialInstructionEnum.pen_up, 'setup')
+    self.add_special(SpecialInstructionEnum.pen_up, PlottingInstructionTypeEnum.setup)
 
-    self.add_special(SpecialInstructionEnum.program_end, 'teardown')
+    self.add_special(SpecialInstructionEnum.program_end, PlottingInstructionTypeEnum.teardown)
 
-  def update_max_and_min(self, x, y):
+  def _update_max_and_min(self, x, y):
+    """
+    Updates the current max and min values for the bounding box of the layer.
+    """
     if x < self.image_x_min:
       self.image_x_min = x
     if x > self.image_x_max:
@@ -231,12 +234,12 @@ class Layer:
   def get_max_and_min(self) -> dict[str, float]:
     return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
   
-  def set_feed_rate(self, feed_rate, instruction_type='plotting'):
+  def set_feed_rate(self, feed_rate, instruction_type=PlottingInstructionTypeEnum.plotting):
     self.add_comment(f"Feed Rate: {feed_rate}", instruction_type)
     self.instructions[instruction_type].append(FeedRate(feed_rate))
     return self
 
-  def lower_print_head(self, instruction_type='plotting'):
+  def lower_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
     """Lower the pen. Should be used when starting a path."""
     self.add_special(SpecialInstructionEnum.pen_down, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
@@ -244,7 +247,7 @@ class Layer:
 
     return self
 
-  def raise_print_head(self, instruction_type='plotting'):
+  def raise_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
     """Raise the pen. Should be used once drawing a path is complete before moving on to next path."""
     self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
@@ -252,8 +255,10 @@ class Layer:
 
     return self
 
-  def add_point(self, x, y, instruction_type="plotting"):
+  def add_point(self, x, y, instruction_type=PlottingInstructionTypeEnum.plotting):
     """Add a point to the layer. If the print head is lowered, it will be plotted."""
+
+
 
     if (
       x > self.plotter.x_max
@@ -273,7 +278,7 @@ class Layer:
       else:
         raise ValueError("Invalid value for handle_out_of_bounds received", self.plotter.handle_out_of_bounds)
     self.add_comment(f"Point: {x}, {y}", instruction_type)
-    self.update_max_and_min(x, y)
+    self._update_max_and_min(x, y)
     if self.is_print_head_lowered:
       self.plotted_points.append((x, y))
 
@@ -281,7 +286,7 @@ class Layer:
     self.instructions[instruction_type].append(point)
     return self
   
-  def add_line(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type='plotting'):
+  def add_line(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type=PlottingInstructionTypeEnum.plotting):
     points = [
       (x_start, y_start),
       (x_end, y_end)
@@ -289,7 +294,7 @@ class Layer:
     self.add_path(points, instruction_type)
     return self
 
-  def add_path(self, points: List[Tuple[float, float]], instruction_type="plotting"):
+  def add_path(self, points: List[Tuple[float, float]], instruction_type=PlottingInstructionTypeEnum.plotting):
     self.add_comment(f"Path: {points}", instruction_type)
 
     for index, [x,y] in enumerate(points):
@@ -299,20 +304,29 @@ class Layer:
     self.raise_print_head()
     return self
   
-  def add_special(self, special_instruction: SpecialInstructionEnum, instruction_type='plotting'):
+  def add_special(self, special_instruction: SpecialInstructionEnum, instruction_type=PlottingInstructionTypeEnum.plotting):
     self.add_comment(str(special_instruction), instruction_type)
-    print(self.plotter.plotter_type)
     self.instructions[instruction_type].append(SpecialInstruction(self.plotter.plotter_type, special_instruction))
     return self
       
-  def add_comment(self, comment: str, instruction_type):
-    lines = comment.split("\n")
+  def add_comment(self, text: str, instruction_type):
+    """
+    Add a comment to the layer.
+
+    Args: 
+      text : str
+        The text to add.
+      instruction_type : str
+        The type of instruction to use.
+    """
+
+    lines = text.split("\n")
     for line in lines:
       self.instructions[instruction_type].append(Comment(line))
     
     return self
 
-  def add_rectangle(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type='plotting'):
+  def add_rectangle(self, x_start: float, y_start: float, x_end: float, y_end: float, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
     Adds a rectangle to the layer.
 
@@ -326,7 +340,7 @@ class Layer:
       y_end : float
         The y-coordinate of the ending point of the rectangle.
       instruction_type : str, optional
-        The type of instruction to use. Defaults to 'plotting'.
+        The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
       Layer: The Layer object.
@@ -342,7 +356,7 @@ class Layer:
     self.add_path(points, instruction_type)
     return self
 
-  def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36, instruction_type='plotting'):
+  def add_circle(self, x_center: float, y_center: float, radius: float, num_points=36, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
     Adds a circle to the layer.
 
@@ -356,7 +370,7 @@ class Layer:
       num_points : float
         The number of points to use to approximate the circle. Default is 36.
       instruction_type : float
-        The type of instruction to use. Default is 'plotting'.
+        The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
     
     Returns:
       Layer: The Layer object.
@@ -387,27 +401,21 @@ class Layer:
         The path to the file where the layer instructions will be saved.
     """
     with open(file_path, "w") as file:
-      file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['setup']]))
-      # file.write("\n")
-      # file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['plotting']]))
-      # file.write("\n")
-      # file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['teardown']]))
+      file.write("\n".join([instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.setup]]))
+      file.write("\n".join([instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.plotting]]))
+      file.write("\n".join([instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.teardown]]))
 
   def get_plotting_data(self):
-      """
-      Returns a dictionary containing the setup, plotting, and teardown instructions as an array of strings.
-      
-      Args:
-        include_comments : boolean 
-          A boolean indicating whether to include comments in the returned instructions.
-      
-      Returns:
-        A dictionary containing the setup, plotting, and teardown instructions as an array of strings.
-      """
-      return {
-        "setup": [instruction.to_gcode() for instruction in self.instructions['setup']],
-        "plotting": [instruction.to_gcode() for instruction in self.instructions['plotting']],
-        "teardown": [instruction.to_gcode() for instruction in self.instructions['teardown']]
-      }
+    """
+    Get current plotting data
+    
+    Returns:
+      A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
+    """
+    return {
+      PlottingInstructionTypeEnum.setup.value: [instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.setup]],
+      PlottingInstructionTypeEnum.plotting.value: [instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.plotting]],
+      PlottingInstructionTypeEnum.teardown.value: [instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.teardown]]
+    }
 
 

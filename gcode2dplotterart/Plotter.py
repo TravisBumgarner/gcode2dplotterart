@@ -25,8 +25,8 @@ class Plotter:
 
     def __init__(
         self,
-        plotter_type: PlotterTypeEnum,
         title: str,
+        plotter_type: PlotterTypeEnum,
         units: UnitsEnum,
         x_min: int,
         x_max: int,
@@ -42,8 +42,8 @@ class Plotter:
       Initialize a new Plotter instance.
 
       Args:
-          title (str): The title of the work of art
           plotter_type (PlotterTypeEnum): The type of plotter. Currently only supports plotter_2d.
+          title (str): The title of the work of art
           x_min (int): The minimum X-coordinate of the plotter.
           x_max (int): The maximum X-coordinate of the plotter.
           y_min (int): The minimum Y-coordinate of the plotter.
@@ -56,8 +56,8 @@ class Plotter:
           handle_out_of_bounds (HandleOutOfBounds): How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
       """
     
-      self.title = title
       self.plotter_type = plotter_type
+      self.title = title
       self.units = units
       if units not in ['mm', 'inches']:
           raise ValueError("Units must be mm or inches")  
@@ -67,7 +67,6 @@ class Plotter:
       self.y_max = y_max
       self.feed_rate = feed_rate
       self.layers = {}
-      # self.colors = {}
       self.output_directory=output_directory
       self.include_border_layer = include_border_layer
       self.include_preview_layer = include_preview_layer
@@ -75,7 +74,6 @@ class Plotter:
 
     def add_layer(self, name: str):
         self.layers[name] = Layer(self)
-        # self.colors[name] = color
 
     def get_image_bounds(self):
       all_layers_mins_and_maxes = [layer.get_max_and_min() for layer in self.layers.values()]
@@ -133,6 +131,7 @@ class Plotter:
     
     def get_plotting_data(self):
       """
+      
       """
       if self.include_border_layer:
         # Creates a new layer titled border
@@ -152,7 +151,7 @@ class Plotter:
       Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
       If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
 
-      Args:
+      Attributes:
         clear_output_before_save : boolean
           Whether to remove all files from the artwork output directory (defined as [output_directory]/[name]) before saving, defaults to True.
       """

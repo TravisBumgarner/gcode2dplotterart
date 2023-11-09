@@ -48,3 +48,20 @@ class PlotterTypeEnum(Enum):
   """
   plotter_2d = "plotter_2d"
   plotter_3d = "plotter_3d"
+
+
+class PlottingInstructionTypeEnum(Enum):
+  """
+  An enumeration of the different types of plotting instructions.
+
+  Attributes:
+    setup : str
+      Instructions run before plotting has begun.
+    plotting : str
+      Instructions run while plotting.
+    teardown : str
+      Instructions run once plotting has completed.
+  """
+  setup = "setup"
+  plotting = "plotting"
+  teardown = "teardown"
