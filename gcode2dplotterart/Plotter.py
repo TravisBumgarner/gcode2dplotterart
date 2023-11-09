@@ -7,9 +7,6 @@ from .Layer import Layer
 from .enums import PlotterTypeEnum, HandleOutOfBoundsEnum, UnitsEnum
 
 class Plotter:
-    """
-    A class for configuring and controlling a plotter.
-    """
     plotter_type: PlotterTypeEnum
     title: str
     x_min: int
@@ -72,11 +69,25 @@ class Plotter:
       self.include_preview_layer = include_preview_layer
       self.handle_out_of_bounds = HandleOutOfBoundsEnum[handle_out_of_bounds]
 
-    def add_layer(self, name: str):
-        self.layers[name] = Layer(self)
+    def add_layer(self, title: str):
+        """
+        Add a new layer to the plotter with the given 
 
-    def get_image_bounds(self):
-      all_layers_mins_and_maxes = [layer.get_max_and_min() for layer in self.layers.values()]
+        Args:
+          title : str
+            The title of the layer. Used when saving a layer to G-Code.
+        """
+        self.layers[title] = Layer(self)
+
+    def get_min_and_max_points(self):
+      """
+      Find the min and max plot points of the plotter.
+
+      Returns:
+        {x_min: float, y_min: float, x_max: float, y_max: float}
+          A dictionary containing the min and max plot points of the plotter.
+      """
+      all_layers_mins_and_maxes = [layer.get_min_and_max_points() for layer in self.layers.values()]
       
       x_min_values = [t['x_min'] for t in all_layers_mins_and_maxes]
       x_max_values = [t['x_max'] for t in all_layers_mins_and_maxes]
@@ -88,7 +99,7 @@ class Plotter:
       overall_y_min = min(y_min_values)
       overall_y_max = max(y_max_values)
 
-      return [overall_x_min, overall_y_min, overall_x_max, overall_y_max]
+      return {"x_min": overall_x_min, "y_min": overall_y_min, "x_max": overall_x_max, "y_max": overall_y_max}
 
 
     def add_border_layer(self):
@@ -96,7 +107,7 @@ class Plotter:
       Creates a new layer titled border. The border layer outlines the print area, drawing a border.
       """
 
-      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_image_bounds()
+      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_min_and_max_points()
       
       border_layer = Layer(self, preview_only=False)
       border_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
@@ -108,7 +119,7 @@ class Plotter:
       """
       Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
       """
-      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_image_bounds()
+      [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_min_and_max_points()
       
       preview_layer = Layer(self, preview_only=True)
       preview_layer.add_rectangle(overall_x_min, overall_y_min, overall_x_max, overall_y_max)
@@ -120,13 +131,32 @@ class Plotter:
 
     @property
     def width(self):
+      """
+      Width of the plotting area
+      """
       return self.x_max - self.x_min
     
     @property
     def height(self):
+      """
+      Height of the plotting area
+      """
       return self.y_max - self.y_min
 
     def is_point_in_bounds(self, x,y):
+      """
+      Whether the point to be potted is within the plotter bounds
+
+      Args:
+        x : float
+          The x-coordinate of the point to be plotted
+        y : float
+          The y-coordinate of the point to be plotted
+      
+      Returns:
+        boolean
+          Whether the point to be plotted is within the plotter bounds
+      """
       return x > self.x_min and x < self.x_max and y > self.y_min and y < self.y_max
     
     def get_plotting_data(self):
@@ -142,8 +172,8 @@ class Plotter:
         self.add_preview_layer()
  
       output = {}
-      for name, layer in self.layers.items():
-        output[name] = layer.get_plotting_data()
+      for title, layer in self.layers.items():
+        output[title] = layer.get_plotting_data()
       return output
 
     def save(self, clear_output_before_save=True):
@@ -153,7 +183,7 @@ class Plotter:
 
       Attributes:
         clear_output_before_save : boolean
-          Whether to remove all files from the artwork output directory (defined as [output_directory]/[name]) before saving, defaults to True.
+          Whether to remove all files from the artwork output directory (defined as [output_directory]/[title]) before saving, defaults to True.
       """
       artwork_directory = os.path.join(self.output_directory, self.title)
       if clear_output_before_save and os.path.exists(artwork_directory):
@@ -169,5 +199,5 @@ class Plotter:
         # Creates a new layer titled preview
         self.add_preview_layer()
 
-      for name, layer in self.layers.items():
-        layer.save(os.path.join(self.output_directory, self.title, f'{name}.gcode'))
+      for title, layer in self.layers.items():
+        layer.save(os.path.join(self.output_directory, self.title, f'{title}.gcode'))

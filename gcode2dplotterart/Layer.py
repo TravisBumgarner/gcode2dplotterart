@@ -231,16 +231,47 @@ class Layer:
     if y > self.image_y_max:
       self.image_y_max = y
 
-  def get_max_and_min(self) -> dict[str, float]:
-    return {"x_min": self.image_x_min, "x_max": self.image_x_max, "y_min": self.image_y_min, "y_max": self.image_y_max}
+  def get_min_and_max_points(self) -> dict[str, float]:
+    """
+    Find the min and max plot points of the layer.
+
+    Returns:
+      A dictionary containing the max and min plot points of the layer.
+      {x_min: float, y_min: float, x_max: float, y_max: float}
+    """
+    return {"x_min": self.image_x_min, "x_max": "y_min": self.image_y_min, self.image_x_max, "y_max": self.image_y_max}
   
   def set_feed_rate(self, feed_rate, instruction_type=PlottingInstructionTypeEnum.plotting):
+    """
+    Set the speed at which the print head moves.
+
+    Args: 
+      feed_rate : float
+        The feed rate to set.
+      instruction_type : str
+        The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
+    
     self.add_comment(f"Feed Rate: {feed_rate}", instruction_type)
     self.instructions[instruction_type].append(FeedRate(feed_rate))
     return self
 
   def lower_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
-    """Lower the pen. Should be used when starting a path."""
+    """
+    Lower the pen. Should be used when starting a path.
+
+    Args: 
+      instruction_type : str
+        The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
     self.add_special(SpecialInstructionEnum.pen_down, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = True
@@ -248,7 +279,18 @@ class Layer:
     return self
 
   def raise_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
-    """Raise the pen. Should be used once drawing a path is complete before moving on to next path."""
+    """
+    Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+  
+    Args: 
+      instruction_type : str
+        The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
+
     self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = False
@@ -256,9 +298,21 @@ class Layer:
     return self
 
   def add_point(self, x, y, instruction_type=PlottingInstructionTypeEnum.plotting):
-    """Add a point to the layer. If the print head is lowered, it will be plotted."""
+    """
+    Add a point to the layer. Typically not used directly, instead use one of the other add methods.
 
+    Args: 
+      x : float
+        The x-coordinate of the point.
+      y : float
+        The y-coordinate of the point.
+      instruction_type : str
+        The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
 
     if (
       x > self.plotter.x_max
@@ -295,6 +349,20 @@ class Layer:
     return self
 
   def add_path(self, points: List[Tuple[float, float]], instruction_type=PlottingInstructionTypeEnum.plotting):
+    """
+    Add a path layer.
+
+    Args: 
+      points : List[Tuple[float, float]
+        An array of points to add
+      instruction_type : str
+        The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
+
     self.add_comment(f"Path: {points}", instruction_type)
 
     for index, [x,y] in enumerate(points):
@@ -305,6 +373,20 @@ class Layer:
     return self
   
   def add_special(self, special_instruction: SpecialInstructionEnum, instruction_type=PlottingInstructionTypeEnum.plotting):
+    """
+    Add a special instruction.
+
+    Args:
+      special_instruction : SpecialInstructionEnum
+        See `SpecialInstructionEnum` for special instruction definitions
+      instruction_type : str
+        The type of instruction to use.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
+    """
+
     self.add_comment(str(special_instruction), instruction_type)
     self.instructions[instruction_type].append(SpecialInstruction(self.plotter.plotter_type, special_instruction))
     return self
@@ -318,6 +400,10 @@ class Layer:
         The text to add.
       instruction_type : str
         The type of instruction to use.
+
+    Returns:
+      Layer
+        The Layer object. Allows for chaining of add methods.
     """
 
     lines = text.split("\n")
@@ -343,7 +429,8 @@ class Layer:
         The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-      Layer: The Layer object.
+      Layer
+        The Layer object. Allows for chaining of add methods.
     """
     self.add_comment(f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type)
     points = [
@@ -373,7 +460,8 @@ class Layer:
         The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
     
     Returns:
-      Layer: The Layer object.
+      Layer
+        The Layer object. Allows for chaining of add methods.
     """
     self.add_comment(f"Circle: {x_center}, {y_center}, {radius}, {num_points}", instruction_type)
     
@@ -397,7 +485,7 @@ class Layer:
     Saves the layer instructions to a file at the specified file path.
     
     Args:
-      file_path : string
+      string
         The path to the file where the layer instructions will be saved.
     """
     with open(file_path, "w") as file:
@@ -410,7 +498,8 @@ class Layer:
     Get current plotting data
     
     Returns:
-      A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
+      {"setup": [], "plotting": [], "teardown": []}
+        A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
     """
     return {
       PlottingInstructionTypeEnum.setup.value: [instruction.to_g_code() for instruction in self.instructions[PlottingInstructionTypeEnum.setup]],
