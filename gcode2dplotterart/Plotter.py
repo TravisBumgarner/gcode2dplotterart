@@ -36,9 +36,12 @@ class Plotter:
         include_preview_layer: bool=True
       ):
       """
+      Description:
+      -----------
       Initialize a new Plotter instance.
 
       Args:
+      -----------
           plotter_type (PlotterTypeEnum): The type of plotter. Currently only supports plotter_2d.
           title (str): The title of the work of art
           x_min (int): The minimum X-coordinate of the plotter.
@@ -74,6 +77,7 @@ class Plotter:
         Add a new layer to the plotter with the given 
 
         Args:
+        -----------
           title : str
             The title of the layer. Used when saving a layer to G-Code.
         """
@@ -81,9 +85,12 @@ class Plotter:
 
     def get_min_and_max_points(self):
       """
+      Description:
+      -----------
       Find the min and max plot points of the plotter.
 
-      Returns:
+      Returns
+      -----------
         {x_min: float, y_min: float, x_max: float, y_max: float}
           A dictionary containing the min and max plot points of the plotter.
       """
@@ -104,6 +111,8 @@ class Plotter:
 
     def add_border_layer(self):
       """
+      Description:
+      -----------
       Creates a new layer titled border. The border layer outlines the print area, drawing a border.
       """
 
@@ -117,6 +126,8 @@ class Plotter:
 
     def add_preview_layer(self):
       """
+      Description:
+      -----------
       Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
       """
       [overall_x_min, overall_y_min, overall_x_max, overall_y_max] = self.get_min_and_max_points()
@@ -132,6 +143,8 @@ class Plotter:
     @property
     def width(self):
       """
+      Description:
+      -----------
       Width of the plotting area
       """
       return self.x_max - self.x_min
@@ -139,21 +152,27 @@ class Plotter:
     @property
     def height(self):
       """
+      Description:
+      -----------
       Height of the plotting area
       """
       return self.y_max - self.y_min
 
     def is_point_in_bounds(self, x,y):
       """
+      Description:
+      -----------
       Whether the point to be potted is within the plotter bounds
 
       Args:
+      -----------
         x : float
           The x-coordinate of the point to be plotted
         y : float
           The y-coordinate of the point to be plotted
       
-      Returns:
+      Returns
+      -----------
         boolean
           Whether the point to be plotted is within the plotter bounds
       """
@@ -161,6 +180,8 @@ class Plotter:
     
     def get_plotting_data(self):
       """
+      Description:
+      -----------
       
       """
       if self.include_border_layer:
@@ -178,10 +199,12 @@ class Plotter:
 
     def save(self, clear_output_before_save=True):
       """
+      Description:
+      -----------
       Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
       If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
 
-      Attributes:
+      Arg:
         clear_output_before_save : boolean
           Whether to remove all files from the artwork output directory (defined as [output_directory]/[title]) before saving, defaults to True.
       """
