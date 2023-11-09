@@ -268,7 +268,12 @@ class Layer:
       {x_min: float, y_min: float, x_max: float, y_max: float}
         A dictionary containing the max and min plot points of the layer.
     """
-    return {"x_min": self.image_x_min, "x_max": "y_min": self.image_y_min, self.image_x_max, "y_max": self.image_y_max}
+    return {
+      "x_min": self.image_x_min,
+      "y_min": self.image_y_min,
+      "x_max": self.image_x_max, 
+      "y_max": self.image_y_max
+    }
   
   def set_feed_rate(self, feed_rate, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
