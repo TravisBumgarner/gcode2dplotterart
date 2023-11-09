@@ -132,5 +132,5 @@ for y, row in enumerate(grayscale_buckets):
 
 print(COLOR_LAYERS)
 print(color_counts) #  one_off_error_this_file_will_be_empty is sometimes empty
-print(plotter.get_max_and_min_points())
+print(plotter.get_min_and_max_points())
 plotter.save()
