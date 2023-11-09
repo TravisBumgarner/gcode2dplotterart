@@ -10,29 +10,32 @@
 class Plotter()
 ```
 
-A class for configuring and controlling a plotter.
-
 <a id="gcode2dplotterart/Plotter.Plotter.__init__"></a>
 
 #### \_\_init\_\_
 
 ```python
-def __init__(units,
-             x_min,
-             x_max,
-             y_min,
-             y_max,
-             feed_rate,
-             handle_out_of_bounds,
-             output_directory="./output",
-             include_border_layer=True,
-             include_preview_layer=True)
+def __init__(title: str,
+             plotter_type: PlotterTypeEnum,
+             units: UnitsEnum,
+             x_min: int,
+             x_max: int,
+             y_min: int,
+             y_max: int,
+             feed_rate: int,
+             handle_out_of_bounds: HandleOutOfBoundsEnum,
+             output_directory: str = "./output",
+             include_border_layer: bool = True,
+             include_preview_layer: bool = True)
 ```
 
+Description:
 Initialize a new Plotter instance.
 
 **Arguments**:
 
+- `plotter_type` _PlotterTypeEnum_ - The type of plotter. Currently only supports plotter_2d.
+- `title` _str_ - The title of the work of art
 - `x_min` _int_ - The minimum X-coordinate of the plotter.
 - `x_max` _int_ - The maximum X-coordinate of the plotter.
 - `y_min` _int_ - The minimum Y-coordinate of the plotter.
@@ -44,14 +47,127 @@ Initialize a new Plotter instance.
 - `include_preview_layer` _bool_ - Whether to include a preview layer, outlines the print area without drawing anything.
 - `handle_out_of_bounds` _HandleOutOfBounds_ - How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
 
+<a id="gcode2dplotterart/Plotter.Plotter.add_layer"></a>
+
+#### add\_layer
+
+```python
+def add_layer(title: str)
+```
+
+Add a new layer to the plotter with the given
+
+**Arguments**:
+
+  title : str
+  The title of the layer. Used when saving a layer to G-Code.
+
+<a id="gcode2dplotterart/Plotter.Plotter.get_min_and_max_points"></a>
+
+#### get\_min\_and\_max\_points
+
+```python
+def get_min_and_max_points()
+```
+
+Description:
+Find the min and max plot points of the plotter.
+
+Returns
+  {x_min: float, y_min: float, x_max: float, y_max: float}
+    A dictionary containing the min and max plot points of the plotter.
+
+<a id="gcode2dplotterart/Plotter.Plotter.add_border_layer"></a>
+
+#### add\_border\_layer
+
+```python
+def add_border_layer()
+```
+
+Description:
+Creates a new layer titled border. The border layer outlines the print area, drawing a border.
+
+<a id="gcode2dplotterart/Plotter.Plotter.add_preview_layer"></a>
+
+#### add\_preview\_layer
+
+```python
+def add_preview_layer()
+```
+
+Description:
+Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
+
+<a id="gcode2dplotterart/Plotter.Plotter.width"></a>
+
+#### width
+
+```python
+@property
+def width()
+```
+
+Description:
+Width of the plotting area
+
+<a id="gcode2dplotterart/Plotter.Plotter.height"></a>
+
+#### height
+
+```python
+@property
+def height()
+```
+
+Description:
+Height of the plotting area
+
+<a id="gcode2dplotterart/Plotter.Plotter.is_point_in_bounds"></a>
+
+#### is\_point\_in\_bounds
+
+```python
+def is_point_in_bounds(x, y)
+```
+
+Description:
+Whether the point to be potted is within the plotter bounds
+
+**Arguments**:
+
+  x : float
+  The x-coordinate of the point to be plotted
+  y : float
+  The y-coordinate of the point to be plotted
+  
+  Returns
+  boolean
+  Whether the point to be plotted is within the plotter bounds
+
+<a id="gcode2dplotterart/Plotter.Plotter.get_plotting_data"></a>
+
+#### get\_plotting\_data
+
+```python
+def get_plotting_data()
+```
+
+Description:
+
 <a id="gcode2dplotterart/Plotter.Plotter.save"></a>
 
 #### save
 
 ```python
-def save()
+def save(clear_output_before_save=True)
 ```
 
+Description:
 Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
-If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively.
+If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
+
+Arg:
+  clear_output_before_save : boolean
+    Whether to remove all files from the artwork output directory (defined as [output_directory]/[title]) before saving, defaults to True.
 

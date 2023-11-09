@@ -2,19 +2,201 @@
 
 # gcode2dplotterart/Layer
 
+<a id="gcode2dplotterart/Layer.Point"></a>
+
+## Point Objects
+
+```python
+class Point()
+```
+
+A class representing a point in 2D space with an optional feed rate.
+
+Attributes
+feed_rate : float
+The feed rate of the point.
+x : float
+The x-coordinate of the point.
+y : float
+The y-coordinate of the point.
+
+**Raises**:
+
+  -------
+  ValueError
+  If x or y is not provided.
+
+<a id="gcode2dplotterart/Layer.Point.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code()
+```
+
+Description:
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  A point in G-Code format.
+
+<a id="gcode2dplotterart/Layer.Comment"></a>
+
+## Comment Objects
+
+```python
+class Comment()
+```
+
+A class representing a comment in G-Code.
+
+Attributes
+text : str
+  The text of the comment.
+
+<a id="gcode2dplotterart/Layer.Comment.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code()
+```
+
+Description:
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  A comment in G-Code format.
+
+<a id="gcode2dplotterart/Layer.FeedRate"></a>
+
+## FeedRate Objects
+
+```python
+class FeedRate()
+```
+
+A class representing the feed rate in G-Code.
+
+Attributes
+feed_rate : float
+  The feed rate.
+
+<a id="gcode2dplotterart/Layer.FeedRate.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code()
+```
+
+Description:
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  The feed rate in G-Code format.
+
 <a id="gcode2dplotterart/Layer.SpecialInstruction"></a>
 
 ## SpecialInstruction Objects
 
 ```python
-class SpecialInstruction(Enum)
+class SpecialInstruction()
 ```
 
-<a id="gcode2dplotterart/Layer.SpecialInstruction.PAUSE"></a>
+A class representing the special G-Code instructions used in 2D plotter art.
 
-#### PAUSE
+Attributes
+plotter_type : PlotterType
+  The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
 
-Might need to refine this number
+<a id="gcode2dplotterart/Layer.SpecialInstruction.pen_up"></a>
+
+#### pen\_up
+
+```python
+@property
+def pen_up()
+```
+
+Separate the drawing instrument from the drawing surface.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.pen_down"></a>
+
+#### pen\_down
+
+```python
+@property
+def pen_down()
+```
+
+Connect the drawing instrument with the drawing surface.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.pause"></a>
+
+#### pause
+
+```python
+@property
+def pause()
+```
+
+Perform a brief pause. Useful, to reduce and prevent vibration.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.program_end"></a>
+
+#### program\_end
+
+```python
+@property
+def program_end()
+```
+
+Instruct the plotting device that plotting has concluded.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.units_mm"></a>
+
+#### units\_mm
+
+```python
+@property
+def units_mm()
+```
+
+Set the units of the plotting device to mm.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.units_inches"></a>
+
+#### units\_inches
+
+```python
+@property
+def units_inches()
+```
+
+Set the units of the plotting device to inches.
+
+<a id="gcode2dplotterart/Layer.SpecialInstruction.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code()
+```
+
+Description:
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  A special instruction in G-Code format.
 
 <a id="gcode2dplotterart/Layer.Layer"></a>
 
@@ -24,33 +206,278 @@ Might need to refine this number
 class Layer()
 ```
 
+<a id="gcode2dplotterart/Layer.Layer.get_min_and_max_points"></a>
+
+#### get\_min\_and\_max\_points
+
+```python
+def get_min_and_max_points() -> dict[str, float]
+```
+
+Find the min and max plot points of the layer.
+
+**Returns**:
+
+- `{x_min` - float, y_min: float, x_max: float, y_max: float}
+  A dictionary containing the max and min plot points of the layer.
+
+<a id="gcode2dplotterart/Layer.Layer.set_feed_rate"></a>
+
+#### set\_feed\_rate
+
+```python
+def set_feed_rate(feed_rate,
+                  instruction_type=PlottingInstructionTypeEnum.plotting)
+```
+
+Set the speed at which the print head moves.
+
+**Arguments**:
+
+  feed_rate : float
+  The feed rate to set.
+  instruction_type : str
+  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
 <a id="gcode2dplotterart/Layer.Layer.lower_print_head"></a>
 
 #### lower\_print\_head
 
 ```python
-def lower_print_head(instruction_type='plotting')
+def lower_print_head(instruction_type=PlottingInstructionTypeEnum.plotting)
 ```
 
 Lower the pen. Should be used when starting a path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
 
 <a id="gcode2dplotterart/Layer.Layer.raise_print_head"></a>
 
 #### raise\_print\_head
 
 ```python
-def raise_print_head(instruction_type='plotting')
+def raise_print_head(instruction_type=PlottingInstructionTypeEnum.plotting)
 ```
 
 Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
 
 <a id="gcode2dplotterart/Layer.Layer.add_point"></a>
 
 #### add\_point
 
 ```python
-def add_point(x, y, instruction_type="plotting")
+def add_point(x: float,
+              y: float,
+              instruction_type=PlottingInstructionTypeEnum.plotting)
 ```
 
-Add two points to the layer. If the print head is lowered, it will be plotted.
+Add a point to the layer. Typically not used directly, instead use one of the other add methods.
+
+**Arguments**:
+
+  x : float
+  The x-coordinate of the point.
+  y : float
+  The y-coordinate of the point.
+  instruction_type : str
+  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.add_path"></a>
+
+#### add\_path
+
+```python
+def add_path(points: List[Tuple[float, float]],
+             instruction_type=PlottingInstructionTypeEnum.plotting)
+```
+
+Add a path layer.
+
+**Arguments**:
+
+  points : List[Tuple[float, float]
+  An array of points to add
+  instruction_type : str
+  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.add_special"></a>
+
+#### add\_special
+
+```python
+def add_special(special_instruction: SpecialInstructionEnum,
+                instruction_type=PlottingInstructionTypeEnum.plotting)
+```
+
+Add a special instruction.
+
+**Arguments**:
+
+  special_instruction : SpecialInstructionEnum
+  See `SpecialInstructionEnum` for special instruction definitions
+  instruction_type : str
+  The type of instruction to use.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.add_comment"></a>
+
+#### add\_comment
+
+```python
+def add_comment(text: str, instruction_type)
+```
+
+Add a comment to the layer.
+
+**Arguments**:
+
+  text : str
+  The text to add.
+  instruction_type : str
+  The type of instruction to use.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.add_rectangle"></a>
+
+#### add\_rectangle
+
+```python
+def add_rectangle(x_start: float,
+                  y_start: float,
+                  x_end: float,
+                  y_end: float,
+                  instruction_type=PlottingInstructionTypeEnum.plotting)
+```
+
+Adds a rectangle to the layer.
+
+**Arguments**:
+
+  x_start : float
+  The x-coordinate of the starting point of the rectangle.
+  y_start : float
+  The y-coordinate of the starting point of the rectangle.
+  x_end : float
+  The x-coordinate of the ending point of the rectangle.
+  y_end : float
+  The y-coordinate of the ending point of the rectangle.
+  instruction_type : str, optional
+  The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.add_circle"></a>
+
+#### add\_circle
+
+```python
+def add_circle(x_center: float,
+               y_center: float,
+               radius: float,
+               num_points=36,
+               instruction_type=PlottingInstructionTypeEnum.plotting)
+```
+
+Adds a circle to the layer.
+
+**Arguments**:
+
+  x_center : float
+  The x-coordinate of the center of the circle.
+  y_center : float
+  The y-coordinate of the center of the circle.
+  radius : float
+  The radius of the circle.
+  num_points : float
+  The number of points to use to approximate the circle. Default is 36.
+  instruction_type : float
+  The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer.save"></a>
+
+#### save
+
+```python
+def save(file_path: str)
+```
+
+Saves the layer instructions to a file at the specified file path.
+
+**Arguments**:
+
+  string
+  The path to the file where the layer instructions will be saved.
+
+<a id="gcode2dplotterart/Layer.Layer.get_plotting_data"></a>
+
+#### get\_plotting\_data
+
+```python
+def get_plotting_data()
+```
+
+Get current plotting data
+
+**Returns**:
+
+- `{"setup"` - [], "plotting": [], "teardown": []}
+  A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
 

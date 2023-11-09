@@ -20,8 +20,7 @@ class Point:
   """
   A class representing a point in 2D space with an optional feed rate.
 
-  Attributes:
-  -----------
+  Attributes
   feed_rate : float
     The feed rate of the point.
   x : float
@@ -46,11 +45,9 @@ class Point:
   def to_g_code(self):
     """
     Description:
-    -----------
     Convert instruction to G-Code.
 
     Returns:
-    -----------
     string
       A point in G-Code format.
     """
@@ -66,8 +63,7 @@ class Comment:
   """
   A class representing a comment in G-Code.
 
-  Attributes:
-  -----------
+  Attributes
   text : str
     The text of the comment.
   """
@@ -78,11 +74,9 @@ class Comment:
   def to_g_code(self):
     """
     Description:
-    -----------
     Convert instruction to G-Code.
 
     Returns:
-    -----------
     string
       A comment in G-Code format.
     """
@@ -92,8 +86,7 @@ class FeedRate:
   """
   A class representing the feed rate in G-Code.
 
-  Attributes:
-  -----------
+  Attributes
   feed_rate : float
     The feed rate.
   """
@@ -104,11 +97,9 @@ class FeedRate:
   def to_g_code(self):
     """
     Description:
-    -----------
     Convert instruction to G-Code.
 
     Returns:
-    -----------
     string
       The feed rate in G-Code format.
     """
@@ -118,8 +109,7 @@ class SpecialInstruction:
   """
   A class representing the special G-Code instructions used in 2D plotter art.
 
-  Attributes:
-  -----------
+  Attributes
   plotter_type : PlotterType
     The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
   """
@@ -183,11 +173,9 @@ class SpecialInstruction:
   def to_g_code(self):
     """
     Description:
-    -----------
     Convert instruction to G-Code.
 
     Returns:
-    -----------
     string
       A special instruction in G-Code format.
     """
@@ -264,7 +252,6 @@ class Layer:
     Find the min and max plot points of the layer.
 
     Returns:
-    -----------
       {x_min: float, y_min: float, x_max: float, y_max: float}
         A dictionary containing the max and min plot points of the layer.
     """
@@ -279,15 +266,13 @@ class Layer:
     """
     Set the speed at which the print head moves.
 
-    Args:
-    ----------- 
+    Args: 
       feed_rate : float
         The feed rate to set.
       instruction_type : str
         The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -300,13 +285,11 @@ class Layer:
     """
     Lower the pen. Should be used when starting a path.
 
-    Args:
-    ----------- 
+    Args: 
       instruction_type : str
         The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -320,13 +303,11 @@ class Layer:
     """
     Raise the pen. Should be used once drawing a path is complete before moving on to next path.
   
-    Args:
-    ----------- 
+    Args: 
       instruction_type : str
         The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -341,8 +322,7 @@ class Layer:
     """
     Add a point to the layer. Typically not used directly, instead use one of the other add methods.
 
-    Args:
-    ----------- 
+    Args: 
       x : float
         The x-coordinate of the point.
       y : float
@@ -351,7 +331,6 @@ class Layer:
         The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -394,15 +373,13 @@ class Layer:
     """
     Add a path layer.
 
-    Args:
-    ----------- 
+    Args: 
       points : List[Tuple[float, float]
         An array of points to add
       instruction_type : str
         The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -420,14 +397,12 @@ class Layer:
     Add a special instruction.
 
     Args:
-    -----------
       special_instruction : SpecialInstructionEnum
         See `SpecialInstructionEnum` for special instruction definitions
       instruction_type : str
         The type of instruction to use.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -440,15 +415,13 @@ class Layer:
     """
     Add a comment to the layer.
 
-    Args:
-    ----------- 
+    Args: 
       text : str
         The text to add.
       instruction_type : str
         The type of instruction to use.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -464,7 +437,6 @@ class Layer:
     Adds a rectangle to the layer.
 
     Args:
-    -----------
       x_start : float
         The x-coordinate of the starting point of the rectangle.
       y_start : float
@@ -477,7 +449,6 @@ class Layer:
         The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
 
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -497,7 +468,6 @@ class Layer:
     Adds a circle to the layer.
 
     Args:
-    -----------
       x_center : float
         The x-coordinate of the center of the circle.
       y_center : float
@@ -510,7 +480,6 @@ class Layer:
         The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
     
     Returns:
-    -----------
       Layer
         The Layer object. Allows for chaining of add methods.
     """
@@ -536,7 +505,6 @@ class Layer:
     Saves the layer instructions to a file at the specified file path.
     
     Args:
-    -----------
       string
         The path to the file where the layer instructions will be saved.
     """
@@ -550,7 +518,6 @@ class Layer:
     Get current plotting data
     
     Returns:
-    -----------
       {"setup": [], "plotting": [], "teardown": []}
         A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
     """
