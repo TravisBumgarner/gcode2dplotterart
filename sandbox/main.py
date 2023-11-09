@@ -1,5 +1,6 @@
 from random import randint, choice
 from gcode2dplotterart import Plotter
+from gcode2dplotterart.enums import PlotterTypeEnum
 import cv2
 import numpy as np
 from imutils import resize
@@ -81,6 +82,7 @@ def convert_image_to_n_grayscale_colors(filename, n):
     return img
 
 plotter = Plotter(
+  plotter_type=PlotterTypeEnum.plotter_2d,
   title="Horizontal Line Art",
   units="mm",
   x_min = 0,

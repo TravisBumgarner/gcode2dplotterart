@@ -3,16 +3,14 @@ import shutil
 from enum import Enum
 
 
-from .Layer import Layer, HandleOutOfBounds
-
-class Units(Enum):
-  mm = "mm"
-  inches = "inches"
+from .Layer import Layer
+from .enums import PlotterTypeEnum, HandleOutOfBoundsEnum, UnitsEnum
 
 class Plotter:
     """
     A class for configuring and controlling a plotter.
     """
+    plotter_type: PlotterTypeEnum
     title: str
     x_min: int
     x_max: int
@@ -23,18 +21,19 @@ class Plotter:
     output_directory: str
     include_border_layer: bool
     include_preview_layer: bool
-    handle_out_of_bounds: HandleOutOfBounds
+    handle_out_of_bounds: HandleOutOfBoundsEnum
 
     def __init__(
         self,
+        plotter_type: PlotterTypeEnum,
         title: str,
-        units: Units,
+        units: UnitsEnum,
         x_min: int,
         x_max: int,
         y_min: int,
         y_max: int,
         feed_rate: int,
-        handle_out_of_bounds: HandleOutOfBounds,
+        handle_out_of_bounds: HandleOutOfBoundsEnum,
         output_directory: str ="./output",
         include_border_layer: bool =True,
         include_preview_layer: bool=True
@@ -44,6 +43,7 @@ class Plotter:
 
       Args:
           title (str): The title of the work of art
+          plotter_type (PlotterTypeEnum): The type of plotter. Currently only supports plotter_2d.
           x_min (int): The minimum X-coordinate of the plotter.
           x_max (int): The maximum X-coordinate of the plotter.
           y_min (int): The minimum Y-coordinate of the plotter.
@@ -57,6 +57,7 @@ class Plotter:
       """
     
       self.title = title
+      self.plotter_type = plotter_type
       self.units = units
       if units not in ['mm', 'inches']:
           raise ValueError("Units must be mm or inches")  
@@ -70,7 +71,7 @@ class Plotter:
       self.output_directory=output_directory
       self.include_border_layer = include_border_layer
       self.include_preview_layer = include_preview_layer
-      self.handle_out_of_bounds = HandleOutOfBounds[handle_out_of_bounds]
+      self.handle_out_of_bounds = HandleOutOfBoundsEnum[handle_out_of_bounds]
 
     def add_layer(self, name: str):
         self.layers[name] = Layer(self)

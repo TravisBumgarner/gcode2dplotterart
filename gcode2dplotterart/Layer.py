@@ -1,12 +1,7 @@
-from enum import Enum
 from typing import List, Tuple
-
 import math
 
-class HandleOutOfBounds(Enum):
-  Warning = "Warning"
-  Error = "Error"
-  Silent = "Silent"
+from .enums import HandleOutOfBoundsEnum, SpecialInstructionEnum, PlotterTypeEnum
   
 SETUP_INSTRUCTIONS_DISPLAY = """######################################################################################################
 ##############################            SETUP INSTRUCTIONS            ##############################
@@ -38,14 +33,9 @@ class Point:
   -------
   ValueError
       If x or y is not provided.
-
-  Methods:
-  --------
-  __str__()
-      Returns a string representation of the point in G-code format.
   """
 
-  def __init__(self, feed_rate: float, x: float | None = None, y: float | None = None):
+  def __init__(self, feed_rate: float, x: float, y: float):
     self.x = x
     self.y = y
     self.feed_rate = feed_rate
@@ -53,7 +43,10 @@ class Point:
     if(x is None or y is None):
       raise ValueError("Point requires an X or Y")
           
-  def __str__(self):
+  def to_gcode(self):
+    """
+     Returns a string representation of the point in G-code format.
+    """
     output = "G1 "
     if(self.x is not None):
       output += f"X{self.x:.3f} "
@@ -75,20 +68,117 @@ class Comment:
   def __init__(self, text: str):
     self.text = text
       
-  def __str__(self):
+  def to_gcode(self):
+    """
+     Returns a string representation of the comment in G-code format.
+    """
     return f'\n;{self.text}'
 
-
-from enum import Enum
-
-class SpecialInstruction(Enum):
+class FeedRate:
   """
-  Enum class for special G-code instructions used in 2D plotter art.
+  A class representing the feed rate in G-code.
+
+  Attributes:
+  -----------
+  feed_rate : float
+    The feed rate.
   """
-  PEN_UP = "M3 S0"
-  PAUSE = "G4 P0.25" # Might need to refine this number
-  PEN_DOWN = "M3 S1000"
-  PROGRAM_END = "M2"
+
+  def __init__(self, feed_rate: float):
+    self.feed_rate = feed_rate
+      
+  def to_gcode(self):
+    """
+     Returns a string representation of the feed rate in G-code format.
+    """
+    return f'\nF{self.feed_rate}'  
+
+class SpecialInstruction:
+  """
+  A class representing the special G-code instructions used in 2D plotter art.
+
+  Attributes:
+  -----------
+  plotter_type : PlotterType
+
+  """
+
+  def __init__(self, plotter_type: PlotterTypeEnum, instruction: SpecialInstructionEnum):
+    self.plotter_type = plotter_type
+    self.instruction = instruction
+
+  @property
+  def pen_up(self):
+    """
+    Separate the drawing instrument from the drawing surface. 
+    """
+    print('hmm', self.plotter_type, PlotterTypeEnum.plotter_2d)
+    if self.plotter_type == PlotterTypeEnum.plotter_2d:
+      return "M3 S0"
+    elif self.plotter_type == PlotterTypeEnum.plotter_3d:
+      pass
+    else:
+      raise ValueError("Invalid plotter type")
+    
+  @property
+  def pen_down(self):
+    """
+    Connect the drawing instrument with the drawing surface.
+    """
+    print('hmm2', self.plotter_type)
+    if self.plotter_type == PlotterTypeEnum.plotter_2d:
+      return "M3 S1000"
+    elif self.plotter_type == PlotterTypeEnum.plotter_3d:
+      pass
+    else: 
+      raise ValueError("Invalid plotter type")
+    
+  @property
+  def pause(self):
+    """
+    Perform a brief pause. Useful, to reduce and prevent vibration. 
+    """
+    return "G4 P0.25"
+    
+  @property
+  def program_end(self):
+    """
+    Instruct the plotting device that plotting has concluded.
+    """
+    return "M2"
+  
+  @property
+  def units_mm(self):
+    """
+    Set the units of the plotting device to mm.
+    """
+    return "G21"
+  
+  @property
+  def units_inches(self):
+    """
+    Set the units of the plotting device to inches.
+    """
+    return "G20"
+  
+  def to_gcode(self):
+    """
+     Returns a string representation of the special instruction in G-code format.
+    """
+    if self.instruction == SpecialInstructionEnum.pen_up:
+      return self.pen_up
+    elif self.instruction == SpecialInstructionEnum.pen_down:
+      return self.pen_down
+    elif self.instruction == SpecialInstructionEnum.pause:
+      return self.pause
+    elif self.instruction == SpecialInstructionEnum.program_end:
+      return self.program_end
+    elif self.instruction == SpecialInstructionEnum.units_mm:
+      return self.units_mm
+    elif self.instruction == SpecialInstructionEnum.units_inches:
+      return self.units_inches
+    else:
+      raise ValueError("Invalid special instruction")
 
 
 class Layer:
@@ -115,17 +205,18 @@ class Layer:
 
     if self.plotter.units == 'mm':
       self.add_comment('Setting units to mm', 'setup')
-      self.instructions['setup'].append('G21')
+      self.add_special(SpecialInstructionEnum.units_mm, 'setup')
+    
     if self.plotter.units == 'inches':
       self.add_comment('Setting units to inches', 'setup')
-      self.instructions['setup'].append('G20')
+      self.add_special(SpecialInstructionEnum.units_inches, 'setup')
 
     self.set_feed_rate(self.plotter.feed_rate, 'setup')
     
     self.is_print_head_lowered = False
-    self.add_special(SpecialInstruction.PEN_UP, 'setup')
+    self.add_special(SpecialInstructionEnum.pen_up, 'setup')
 
-    self.instructions['teardown'].append(SpecialInstruction.PROGRAM_END.value)
+    self.add_special(SpecialInstructionEnum.program_end, 'teardown')
 
   def update_max_and_min(self, x, y):
     if x < self.image_x_min:
@@ -142,22 +233,21 @@ class Layer:
   
   def set_feed_rate(self, feed_rate, instruction_type='plotting'):
     self.add_comment(f"Feed Rate: {feed_rate}", instruction_type)
-
-    self.instructions[instruction_type].append(f"F{feed_rate}")
+    self.instructions[instruction_type].append(FeedRate(feed_rate))
     return self
 
   def lower_print_head(self, instruction_type='plotting'):
     """Lower the pen. Should be used when starting a path."""
-    self.add_special(SpecialInstruction.PEN_DOWN, instruction_type)
-    self.add_special(SpecialInstruction.PAUSE, instruction_type)
+    self.add_special(SpecialInstructionEnum.pen_down, instruction_type)
+    self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = True
 
     return self
 
   def raise_print_head(self, instruction_type='plotting'):
     """Raise the pen. Should be used once drawing a path is complete before moving on to next path."""
-    self.add_special(SpecialInstruction.PEN_UP, instruction_type)
-    self.add_special(SpecialInstruction.PAUSE, instruction_type)
+    self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
+    self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = False
 
     return self
@@ -171,13 +261,13 @@ class Layer:
       or x < self.plotter.x_min
       or y < self.plotter.y_min
     ):
-      if(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Warning):
+      if(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Warning):
         print("Failed to add point, outside dimensions of plotter", x, y)
         # Todo - Can this cause an error with pen up / pen down instructions?
         return
-      elif(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Error):
+      elif(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Error):
         raise ValueError("Failed to add point, outside dimensions of plotter", x, y)
-      elif(self.plotter.handle_out_of_bounds == HandleOutOfBounds.Silent):
+      elif(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Silent):
         # Typically only used in testing to keep things quiet
         pass
       else:
@@ -208,18 +298,17 @@ class Layer:
           self.lower_print_head()
     self.raise_print_head()
     return self
-
-  def add_special(self, special_instruction: SpecialInstruction, instruction_type='plotting'):
+  
+  def add_special(self, special_instruction: SpecialInstructionEnum, instruction_type='plotting'):
     self.add_comment(str(special_instruction), instruction_type)
-
-    self.instructions[instruction_type].append(special_instruction.value)
+    print(self.plotter.plotter_type)
+    self.instructions[instruction_type].append(SpecialInstruction(self.plotter.plotter_type, special_instruction))
     return self
       
   def add_comment(self, comment: str, instruction_type):
     lines = comment.split("\n")
     for line in lines:
-      comment = Comment(line)
-      self.instructions[instruction_type].append(comment)
+      self.instructions[instruction_type].append(Comment(line))
     
     return self
 
@@ -277,8 +366,8 @@ class Layer:
     # Calculate angle step between points to approximate the circle
     angle_step = 360.0 / num_points
 
-    self.add_special(SpecialInstruction.PEN_UP, instruction_type)
-    self.add_special(SpecialInstruction.PAUSE, instruction_type)
+    self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
+    self.add_special(SpecialInstructionEnum.pause, instruction_type)
 
     points: List[Tuple[float, float]] = []
     for point in range(num_points):
@@ -297,13 +386,12 @@ class Layer:
       file_path : string
         The path to the file where the layer instructions will be saved.
     """
-    
     with open(file_path, "w") as file:
-      file.write("\n".join([str(instruction) for instruction in self.instructions['setup']]))
-      file.write("\n")
-      file.write("\n".join([str(instruction) for instruction in self.instructions['plotting']]))
-      file.write("\n")
-      file.write("\n".join([str(instruction) for instruction in self.instructions['teardown']]))
+      file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['setup']]))
+      # file.write("\n")
+      # file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['plotting']]))
+      # file.write("\n")
+      # file.write("\n".join([instruction.to_gcode() for instruction in self.instructions['teardown']]))
 
   def get_plotting_data(self):
       """
@@ -316,11 +404,10 @@ class Layer:
       Returns:
         A dictionary containing the setup, plotting, and teardown instructions as an array of strings.
       """
-
       return {
-        "setup": [str(instruction) for instruction in self.instructions['setup']],
-        "plotting": [str(instruction) for instruction in self.instructions['plotting']],
-        "teardown": [str(instruction) for instruction in self.instructions['teardown']]
+        "setup": [instruction.to_gcode() for instruction in self.instructions['setup']],
+        "plotting": [instruction.to_gcode() for instruction in self.instructions['plotting']],
+        "teardown": [instruction.to_gcode() for instruction in self.instructions['teardown']]
       }
 
 
