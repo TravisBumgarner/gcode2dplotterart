@@ -29,7 +29,6 @@ def __init__(title: str,
              include_preview_layer: bool = True)
 ```
 
-Description:
 Initialize a new Plotter instance.
 
 **Arguments**:
@@ -70,7 +69,6 @@ Add a new layer to the plotter with the given
 def get_min_and_max_points()
 ```
 
-Description:
 Find the min and max plot points of the plotter.
 
 Returns
@@ -85,7 +83,6 @@ Returns
 def add_border_layer()
 ```
 
-Description:
 Creates a new layer titled border. The border layer outlines the print area, drawing a border.
 
 <a id="gcode2dplotterart/Plotter.Plotter.add_preview_layer"></a>
@@ -96,7 +93,6 @@ Creates a new layer titled border. The border layer outlines the print area, dra
 def add_preview_layer()
 ```
 
-Description:
 Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
 
 <a id="gcode2dplotterart/Plotter.Plotter.width"></a>
@@ -108,7 +104,6 @@ Creates a new layer titled preview. The preview layer outlines the print area an
 def width()
 ```
 
-Description:
 Width of the plotting area
 
 <a id="gcode2dplotterart/Plotter.Plotter.height"></a>
@@ -120,7 +115,6 @@ Width of the plotting area
 def height()
 ```
 
-Description:
 Height of the plotting area
 
 <a id="gcode2dplotterart/Plotter.Plotter.is_point_in_bounds"></a>
@@ -131,7 +125,6 @@ Height of the plotting area
 def is_point_in_bounds(x, y)
 ```
 
-Description:
 Whether the point to be potted is within the plotter bounds
 
 **Arguments**:
@@ -153,7 +146,12 @@ Whether the point to be potted is within the plotter bounds
 def get_plotting_data()
 ```
 
-Description:
+Get current plotting data.
+
+**Returns**:
+
+  {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+  A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
 
 <a id="gcode2dplotterart/Plotter.Plotter.save"></a>
 
@@ -163,7 +161,6 @@ Description:
 def save(clear_output_before_save=True)
 ```
 
-Description:
 Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
 If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
 

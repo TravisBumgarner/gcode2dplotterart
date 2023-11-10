@@ -33,7 +33,6 @@ The y-coordinate of the point.
 def to_g_code()
 ```
 
-Description:
 Convert instruction to G-Code.
 
 **Returns**:
@@ -52,8 +51,8 @@ class Comment()
 A class representing a comment in G-Code.
 
 Attributes
-text : str
-  The text of the comment.
+  text : str
+    The text of the comment.
 
 <a id="gcode2dplotterart/Layer.Comment.to_g_code"></a>
 
@@ -63,7 +62,6 @@ text : str
 def to_g_code()
 ```
 
-Description:
 Convert instruction to G-Code.
 
 **Returns**:
@@ -93,7 +91,6 @@ feed_rate : float
 def to_g_code()
 ```
 
-Description:
 Convert instruction to G-Code.
 
 **Returns**:
@@ -115,24 +112,24 @@ Attributes
 plotter_type : PlotterType
   The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
 
-<a id="gcode2dplotterart/Layer.SpecialInstruction.pen_up"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction.navigation_mode"></a>
 
-#### pen\_up
+#### navigation\_mode
 
 ```python
 @property
-def pen_up()
+def navigation_mode()
 ```
 
 Separate the drawing instrument from the drawing surface.
 
-<a id="gcode2dplotterart/Layer.SpecialInstruction.pen_down"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction.drawing_mode"></a>
 
-#### pen\_down
+#### drawing\_mode
 
 ```python
 @property
-def pen_down()
+def drawing_mode()
 ```
 
 Connect the drawing instrument with the drawing surface.
@@ -189,7 +186,6 @@ Set the units of the plotting device to inches.
 def to_g_code()
 ```
 
-Description:
 Convert instruction to G-Code.
 
 **Returns**:
@@ -244,12 +240,12 @@ Set the speed at which the print head moves.
   Layer
   The Layer object. Allows for chaining of add methods.
 
-<a id="gcode2dplotterart/Layer.Layer.lower_print_head"></a>
+<a id="gcode2dplotterart/Layer.Layer.set_mode_to_draw"></a>
 
-#### lower\_print\_head
+#### set\_mode\_to\_draw
 
 ```python
-def lower_print_head(instruction_type=PlottingInstructionTypeEnum.plotting)
+def set_mode_to_draw(instruction_type=PlottingInstructionTypeEnum.plotting)
 ```
 
 Lower the pen. Should be used when starting a path.
@@ -265,12 +261,13 @@ Lower the pen. Should be used when starting a path.
   Layer
   The Layer object. Allows for chaining of add methods.
 
-<a id="gcode2dplotterart/Layer.Layer.raise_print_head"></a>
+<a id="gcode2dplotterart/Layer.Layer.set_mode_to_navigation"></a>
 
-#### raise\_print\_head
+#### set\_mode\_to\_navigation
 
 ```python
-def raise_print_head(instruction_type=PlottingInstructionTypeEnum.plotting)
+def set_mode_to_navigation(
+        instruction_type=PlottingInstructionTypeEnum.plotting)
 ```
 
 Raise the pen. Should be used once drawing a path is complete before moving on to next path.

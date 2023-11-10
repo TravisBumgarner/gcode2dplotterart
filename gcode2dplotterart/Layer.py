@@ -115,7 +115,7 @@ class SpecialInstruction:
     self.instruction = instruction
 
   @property
-  def pen_up(self):
+  def navigation_mode(self):
     """
     Separate the drawing instrument from the drawing surface. 
     """
@@ -127,7 +127,7 @@ class SpecialInstruction:
       raise ValueError("Invalid plotter type")
     
   @property
-  def pen_down(self):
+  def drawing_mode(self):
     """
     Connect the drawing instrument with the drawing surface.
     """
@@ -174,10 +174,10 @@ class SpecialInstruction:
       string
         A special instruction in G-Code format.
     """
-    if self.instruction == SpecialInstructionEnum.pen_up:
-      return self.pen_up
-    elif self.instruction == SpecialInstructionEnum.pen_down:
-      return self.pen_down
+    if self.instruction == SpecialInstructionEnum.navigation_mode:
+      return self.navigation_mode
+    elif self.instruction == SpecialInstructionEnum.drawing_mode:
+      return self.drawing_mode
     elif self.instruction == SpecialInstructionEnum.pause:
       return self.pause
     elif self.instruction == SpecialInstructionEnum.program_end:
@@ -223,7 +223,7 @@ class Layer:
     self.set_feed_rate(self.plotter.feed_rate, PlottingInstructionTypeEnum.setup)
     
     self.is_print_head_lowered = False
-    self.add_special(SpecialInstructionEnum.pen_up, PlottingInstructionTypeEnum.setup)
+    self.add_special(SpecialInstructionEnum.navigation_mode, PlottingInstructionTypeEnum.setup)
 
     self.add_special(SpecialInstructionEnum.program_end, PlottingInstructionTypeEnum.teardown)
 
@@ -276,7 +276,7 @@ class Layer:
     self.instructions[instruction_type].append(FeedRate(feed_rate))
     return self
 
-  def lower_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
+  def set_mode_to_draw(self, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
     Lower the pen. Should be used when starting a path.
 
@@ -288,13 +288,13 @@ class Layer:
       Layer
         The Layer object. Allows for chaining of add methods.
     """
-    self.add_special(SpecialInstructionEnum.pen_down, instruction_type)
+    self.add_special(SpecialInstructionEnum.drawing_mode, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = True
 
     return self
 
-  def raise_print_head(self, instruction_type=PlottingInstructionTypeEnum.plotting):
+  def set_mode_to_navigation(self, instruction_type=PlottingInstructionTypeEnum.plotting):
     """
     Raise the pen. Should be used once drawing a path is complete before moving on to next path.
   
@@ -307,7 +307,7 @@ class Layer:
         The Layer object. Allows for chaining of add methods.
     """
 
-    self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
+    self.add_special(SpecialInstructionEnum.navigation_mode, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
     self.is_print_head_lowered = False
 
@@ -383,8 +383,8 @@ class Layer:
     for index, [x,y] in enumerate(points):
       self.add_point(x, y, instruction_type)
       if index == 0 and not self.preview_only:
-          self.lower_print_head()
-    self.raise_print_head()
+          self.set_mode_to_draw()
+    self.set_mode_to_navigation()
     return self
   
   def add_special(self, special_instruction: SpecialInstructionEnum, instruction_type=PlottingInstructionTypeEnum.plotting):
@@ -483,7 +483,7 @@ class Layer:
     # Calculate angle step between points to approximate the circle
     angle_step = 360.0 / num_points
 
-    self.add_special(SpecialInstructionEnum.pen_up, instruction_type)
+    self.add_special(SpecialInstructionEnum.navigation_mode, instruction_type)
     self.add_special(SpecialInstructionEnum.pause, instruction_type)
 
     points: List[Tuple[float, float]] = []
