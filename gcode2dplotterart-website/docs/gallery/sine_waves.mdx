@@ -16,10 +16,12 @@ Series of sine waves plotted with increasing amplitude
 ```python
 import math
 from gcode2dplotterart import Plotter
+from gcode2dplotterart.enums import PlotterTypeEnum
 
 LAYER_1 = 'black'
 
 plotter = Plotter(
+  plotter_type=PlotterTypeEnum.plotter_2d,
   title="Sine Waves",
   units="mm",
   x_min = 0,

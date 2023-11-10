@@ -10,7 +10,6 @@ class SpecialInstructionEnum(Enum):
   Enum representing special instructions that can be included in G-code programs.
   
   Attributes:
-  -----------
     pen_up : str
       Command to lift the pen off the drawing surface.
     pen_down : str
@@ -36,7 +35,6 @@ class UnitsEnum(Enum):
   Enum representing the types of units that are supported.
 
   Attributes:
-  -----------
     mm : str
       Millimeters
     inches : str
@@ -51,7 +49,6 @@ class PlotterTypeEnum(Enum):
   Enum representing the types of plotters that are supported
 
   Attributes:
-  -----------
     plotter_2d : str
       2D Plotter
     plotter_3d : str
@@ -66,7 +63,6 @@ class PlottingInstructionTypeEnum(Enum):
   An enumeration of the different types of plotting instructions.
 
   Attributes:
-  -----------
     setup : str
       Instructions run before plotting has begun.
     plotting : str

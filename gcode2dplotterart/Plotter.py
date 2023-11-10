@@ -36,8 +36,7 @@ class Plotter:
         include_preview_layer: bool=True
       ):
       """
-      Description:
-      Initialize a new Plotter instance.
+        Initialize a new Plotter instance.
 
       Args:
           plotter_type (PlotterTypeEnum): The type of plotter. Currently only supports plotter_2d.
@@ -71,18 +70,17 @@ class Plotter:
       self.handle_out_of_bounds = HandleOutOfBoundsEnum[handle_out_of_bounds]
 
     def add_layer(self, title: str):
-        """
-        Add a new layer to the plotter with the given 
+      """
+      Add a new layer to the plotter with the given 
 
-        Args:
-          title : str
-            The title of the layer. Used when saving a layer to G-Code.
-        """
-        self.layers[title] = Layer(self)
+      Args:
+        title : str
+          The title of the layer. Used when saving a layer to G-Code.
+      """
+      self.layers[title] = Layer(self)
 
     def get_min_and_max_points(self):
       """
-      Description:
       Find the min and max plot points of the plotter.
 
       Returns
@@ -107,7 +105,6 @@ class Plotter:
 
     def add_border_layer(self):
       """
-      Description:
       Creates a new layer titled border. The border layer outlines the print area, drawing a border.
       """
 
@@ -121,7 +118,6 @@ class Plotter:
 
     def add_preview_layer(self):
       """
-      Description:
       Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
       """
       points = self.get_min_and_max_points()
@@ -137,7 +133,6 @@ class Plotter:
     @property
     def width(self):
       """
-      Description:
       Width of the plotting area
       """
       return self.x_max - self.x_min
@@ -145,14 +140,12 @@ class Plotter:
     @property
     def height(self):
       """
-      Description:
       Height of the plotting area
       """
       return self.y_max - self.y_min
 
     def is_point_in_bounds(self, x,y):
       """
-      Description:
       Whether the point to be potted is within the plotter bounds
 
       Args:
@@ -169,8 +162,11 @@ class Plotter:
     
     def get_plotting_data(self):
       """
-      Description:
+      Get current plotting data.
       
+      Returns:
+        {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+          A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings per layer. Mostly used for testing purposes. 
       """
       if self.include_border_layer:
         # Creates a new layer titled border
@@ -187,7 +183,6 @@ class Plotter:
 
     def save(self, clear_output_before_save=True):
       """
-      Description:
       Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
       If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively. 
 

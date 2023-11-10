@@ -29,7 +29,6 @@ class Point:
     The y-coordinate of the point.
 
   Raises:
-  -------
   ValueError
       If x or y is not provided.
   """
@@ -39,12 +38,11 @@ class Point:
     self.y = y
     self.feed_rate = feed_rate
 
-    if(x is None or y is None):
+    if x is None or y is None:
       raise ValueError("Point requires an X or Y")
           
   def to_g_code(self):
     """
-    Description:
     Convert instruction to G-Code.
 
     Returns:
@@ -52,9 +50,9 @@ class Point:
       A point in G-Code format.
     """
     output = "G1 "
-    if(self.x is not None):
+    if self.x is not None:
       output += f"X{self.x:.3f} "
-    if(self.y is not None):
+    if self.y is not None:
       output += f"Y{self.y:.3f} "
     output += f"F{self.feed_rate}"
     return output
@@ -64,8 +62,8 @@ class Comment:
   A class representing a comment in G-Code.
 
   Attributes
-  text : str
-    The text of the comment.
+    text : str
+      The text of the comment.
   """
 
   def __init__(self, text: str):
@@ -73,12 +71,11 @@ class Comment:
       
   def to_g_code(self):
     """
-    Description:
     Convert instruction to G-Code.
 
     Returns:
-    string
-      A comment in G-Code format.
+      string
+        A comment in G-Code format.
     """
     return f'\n;{self.text}'
 
@@ -96,7 +93,6 @@ class FeedRate:
       
   def to_g_code(self):
     """
-    Description:
     Convert instruction to G-Code.
 
     Returns:
@@ -148,7 +144,7 @@ class SpecialInstruction:
     Perform a brief pause. Useful, to reduce and prevent vibration. 
     """
     return "G4 P0.25"
-    
+  
   @property
   def program_end(self):
     """
@@ -172,12 +168,11 @@ class SpecialInstruction:
   
   def to_g_code(self):
     """
-    Description:
     Convert instruction to G-Code.
 
     Returns:
-    string
-      A special instruction in G-Code format.
+      string
+        A special instruction in G-Code format.
     """
     if self.instruction == SpecialInstructionEnum.pen_up:
       return self.pen_up
@@ -340,13 +335,13 @@ class Layer:
       or x < self.plotter.x_min
       or y < self.plotter.y_min
     ):
-      if(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Warning):
+      if self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Warning:
         print("Failed to add point, outside dimensions of plotter", x, y)
         # Todo - Can this cause an error with pen up / pen down instructions?
         return
-      elif(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Error):
+      elif self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Error:
         raise ValueError("Failed to add point, outside dimensions of plotter", x, y)
-      elif(self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Silent):
+      elif self.plotter.handle_out_of_bounds == HandleOutOfBoundsEnum.Silent:
         # Typically only used in testing to keep things quiet
         pass
       else:

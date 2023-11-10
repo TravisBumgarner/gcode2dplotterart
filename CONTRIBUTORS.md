@@ -17,6 +17,7 @@
 
 ## `examples` and `sandbox` Directories
 
-To work work with these examples locally, run `pip install --editable .` from the project root directory first. This will install the `gcode2dplotterart` package in editable mode, allowing you to make changes to the package and see them reflected in the examples. 
-
-Can activate a virtual environment, then do pip install --editable .
+1. Activate a virtual environment with ` python3 -m venv sandbox-venv`
+2. Activate virtual environment source `./sandbox-venv/bin/activate`
+3. Install `pip install -r requirements.txt`
+4. The sandbox should have access to the latest code. If not, run ` pip install --editable .` with the venv activated from the root of the repo.
