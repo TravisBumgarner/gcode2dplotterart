@@ -9,14 +9,15 @@
 
 ## Local Development
 
-1. Setup virtual environment `python3 -m venv gcode2dplotterart-venv`
-2. Active virtual environment `source ./gcode2dplotterart-venv/bin/activate`
-3. Install requirements `python -m pip install .`
-4. Make changes to code.
-5. Experiment within `src/sandbox.py` to test updated functionality.
-6. Generate docs with `./docstrings2md.sh`
-7. Create a pull request with changes. 
+1. Run `./bootstrap.sh`
+2. Make changes to code.
+3. Experiment within `src/sandbox.py` to test updated functionality.
+4. Generate docs with `./docstrings2md.sh`
+5. Create a pull request with changes. 
 
 ## `examples` and `sandbox` Directories
 
-To work work with these examples locally, run `pip install --editable .` from the project root directory first. This will install the `gcode2dplotterart` package in editable mode, allowing you to make changes to the package and see them reflected in the examples.
+1. Activate a virtual environment with ` python3 -m venv sandbox-venv`
+2. Activate virtual environment source `./sandbox-venv/bin/activate`
+3. Install `pip install -r requirements.txt`
+4. The sandbox should have access to the latest code. If not, run ` pip install --editable .` with the venv activated from the root of the repo.

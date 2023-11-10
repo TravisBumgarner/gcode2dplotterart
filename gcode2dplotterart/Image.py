@@ -16,15 +16,13 @@ class Image:
             - If a single color, such as white or black, takes up a large portion of the image, this algorithm won't achieve `1/n`th of the plotted image for a given color.
         
 
-        Parameters
-        ----------
+        Parameters---
         image : Mat
             Image to process
         number_of_colors : int
             
 
         Returns
-        -------
         Mat
             Image mapped to new colors
         """
@@ -52,14 +50,12 @@ class Image:
             - If there are 3 colors, resulting in buckets `0 -> 85`, `86 -> 170`, `171 -> 255`. If no pixels exist in a color, it won't be used to plot.
 
         Parameters
-        ----------
         image : Mat
             Image to process
         number_of_colors : int
             
 
         Returns
-        -------
         Mat
             Image mapped to new colors
         """
