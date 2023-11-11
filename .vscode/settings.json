@@ -4,5 +4,8 @@
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "editor.detectIndentation": false,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "flake8.args": [
+    "--max-line-length=120"
+  ],
 }

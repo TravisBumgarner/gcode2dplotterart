@@ -5,21 +5,23 @@ import math
 from .enums import (
     HandleOutOfBoundsEnum,
     SpecialInstructionEnum,
-    PlotterTypeEnum,
     PlottingInstructionTypeEnum,
     UnitsEnum,
     PlotterTypeEnum,
 )
 
-SETUP_INSTRUCTIONS_DISPLAY = """######################################################################################################
+SETUP_INSTRUCTIONS_DISPLAY = """
+######################################################################################################
 ##############################            SETUP INSTRUCTIONS            ##############################
 ######################################################################################################"""
 
-PLOTTING_INSTRUCTIONS_DISPLAY = """######################################################################################################
+PLOTTING_INSTRUCTIONS_DISPLAY = """
+######################################################################################################
 ##############################           PLOTTING INSTRUCTIONS          ##############################
 ######################################################################################################"""
 
-TEARDOWN_INSTRUCTIONS_DISPLAY = """######################################################################################################
+TEARDOWN_INSTRUCTIONS_DISPLAY = """
+######################################################################################################
 ##############################           TEARDOWN INSTRUCTIONS          ##############################
 ######################################################################################################"""
 
@@ -121,7 +123,8 @@ class SpecialInstruction:
 
     Attributes
     plotter_type : PlotterType
-      The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
+      The plotting device that was selected during Plotter setup. Certain instructions are
+      dependent upon the plotting device.
     """
 
     def __init__(
@@ -649,7 +652,8 @@ class Layer:
 
         Returns:
           {"setup": [], "plotting": [], "teardown": []}
-            A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
+            A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code
+            instruction strings.
         """
         return {
             PlottingInstructionTypeEnum.setup.value: [

@@ -39,17 +39,24 @@ class Plotter:
 
         Args:
             title (str): The title of the work of art
-            plotter_type (PlotterTypeEnum): The type of plotter. Currently only supports plotter_2d.
+            plotter_type (PlotterTypeEnum): The type of plotter. Currently
+            only supports plotter_2d.
             units: ("mm", "inches"): The units of the plotter.
             x_min (float): The minimum X-coordinate of the plotter.
             y_min (float): The minimum Y-coordinate of the plotter.
             x_max (float): The maximum X-coordinate of the plotter.
             y_max (float): The maximum Y-coordinate of the plotter.
             feed_rate (float): The feed rate for the plotter.
-            handle_out_of_bounds ("Warning", "Error", "Silent"): How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop. "Silent" will skip the point and continue.
-            output_directory (str): The directory where G-code files will be saved.
-            include_border_layer (bool): Whether to include a border layer, outlines the print area, drawing a border.
-            include_preview_layer (bool): Whether to include a preview layer, outlines the print area without drawing anything.
+            handle_out_of_bounds ("Warning", "Error", "Silent"): How to handle
+            out-of-bounds points. "Warning" will print a warning, skip the
+            point, continue, "Error" will throw an error and stop. "Silent"
+            will skip the point and continue.
+            output_directory (str): The directory where G-code files will be
+            saved.
+            include_border_layer (bool): Whether to include a border layer,
+            outlines the print area, drawing a border.
+            include_preview_layer (bool): Whether to include a preview layer,
+            outlines the print area without drawing anything.
         """
 
         self.plotter_type = plotter_type
@@ -74,11 +81,14 @@ class Plotter:
           title : str
             The title of the layer. Used when saving a layer to G-Code.
           preview_only : bool
-            Whether the layer is a preview layer. Preview layers show the print head in motion but do not come in contact with drawing surface.
+            Whether the layer is a preview layer. Preview layers show the
+            print head in motion but do not come in contact with drawing
+            surface.
 
         Returns:
           Layer
-            The newly created layer. Allows for chaining of the layer's add methods.
+            The newly created layer. Allows for chaining of the layer's add
+            methods.
 
 
         """
@@ -131,7 +141,8 @@ class Plotter:
 
     def add_border_layer(self) -> None:
         """
-        Creates a new layer titled border. The border layer outlines the print area, drawing a border.
+        Creates a new layer titled border. The border layer outlines the print
+        area, drawing a border.
         """
 
         points = self.get_min_and_max_points()
@@ -143,7 +154,9 @@ class Plotter:
 
     def add_preview_layer(self) -> None:
         """
-        Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
+        Creates a new layer titled preview. The preview layer outlines the
+        print area and draws an X through the middle without drawing anything.
+        Useful for checking the the drawing surface is flat.
         """
         points = self.get_min_and_max_points()
 
@@ -184,7 +197,11 @@ class Plotter:
           boolean
             Whether the point to be plotted is within the plotter bounds
         """
-        return x > self.x_min and x < self.x_max and y > self.y_min and y < self.y_max
+
+        too_low = x < self.x_min or y < self.y_min
+        too_high = x > self.x_max or y > self.y_max
+
+        return not too_low and not too_high
 
     def get_plotting_data(self) -> Dict[str, Dict[str, List[str]]]:
         """
@@ -209,12 +226,18 @@ class Plotter:
 
     def save(self, clear_output_before_save: bool = True) -> None:
         """
-        Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
-        If include_border_layer or include_preview_layer are set to True, they will be saved as `border.gcode` and `preview.gcode` respectively.
+        Save all the layers to the output directory defined by the
+        `output_directory` Plotter param. Each layer will be saved
+        as an individual file with the filename defined by
+        `{layer_name}.gcode`. If include_border_layer or include_preview_layer
+        are set to True, they will be saved as `border.gcode` and
+        `preview.gcode` respectively.
 
         Arg:
           clear_output_before_save : boolean
-            Whether to remove all files from the artwork output directory (defined as [output_directory]/[title]) before saving, defaults to True.
+            Whether to remove all files from the artwork output directory
+            (defined as [output_directory]/[title]) before saving,
+            defaults to True.
         """
         artwork_directory = os.path.join(self.output_directory, self.title)
         if clear_output_before_save and os.path.exists(artwork_directory):
