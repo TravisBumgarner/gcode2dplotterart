@@ -205,6 +205,7 @@ class Plotter:
 
     def get_plotting_data(self) -> Dict[str, Dict[str, List[str]]]:
         """
+
         Get current plotting data.
 
         Returns:
