@@ -9,11 +9,12 @@
 
 ## Local Development
 
-1. Run `./bootstrap.sh`
-2. Make changes to code.
-3. Experiment within `src/sandbox.py` to test updated functionality.
-4. Generate docs with `./docstrings2md.sh`
-5. Create a pull request with changes. 
+1. Install VS Code Plugins - "Black Formatter", "Mypy", and "Flake8"
+2. Run `./bootstrap.sh`
+3. Make changes to code.
+4. Experiment within `src/sandbox.py` to test updated functionality.
+5. Generate docs with `./docstrings2md.sh`
+6. Create a pull request with changes. 
 
 ## `examples` and `sandbox` Directories
 

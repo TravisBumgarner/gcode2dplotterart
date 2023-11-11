@@ -17,13 +17,13 @@ class Plotter()
 ```python
 def __init__(title: str,
              plotter_type: PlotterTypeEnum,
-             units: UnitsEnum,
-             x_min: int,
-             x_max: int,
-             y_min: int,
-             y_max: int,
-             feed_rate: int,
-             handle_out_of_bounds: HandleOutOfBoundsEnum,
+             units: str,
+             x_min: float,
+             x_max: float,
+             y_min: float,
+             y_max: float,
+             feed_rate: float,
+             handle_out_of_bounds: str,
              output_directory: str = "./output",
              include_border_layer: bool = True,
              include_preview_layer: bool = True)
@@ -33,25 +33,25 @@ Initialize a new Plotter instance.
 
 **Arguments**:
 
-- `plotter_type` _PlotterTypeEnum_ - The type of plotter. Currently only supports plotter_2d.
 - `title` _str_ - The title of the work of art
-- `x_min` _int_ - The minimum X-coordinate of the plotter.
-- `x_max` _int_ - The maximum X-coordinate of the plotter.
-- `y_min` _int_ - The minimum Y-coordinate of the plotter.
-- `y_max` _int_ - The maximum Y-coordinate of the plotter.
-- `feed_rate` _int_ - The feed rate for the plotter.
-- `layers` _dict[str, Layer]_ - A dictionary of plot layers.
+- `plotter_type` _PlotterTypeEnum_ - The type of plotter. Currently only supports plotter_2d.
+- `units` - ("mm", "inches"): The units of the plotter.
+- `x_min` _float_ - The minimum X-coordinate of the plotter.
+- `y_min` _float_ - The minimum Y-coordinate of the plotter.
+- `x_max` _float_ - The maximum X-coordinate of the plotter.
+- `y_max` _float_ - The maximum Y-coordinate of the plotter.
+- `feed_rate` _float_ - The feed rate for the plotter.
+- `handle_out_of_bounds` _"Warning", "Error", "Silent"_ - How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop. "Silent" will skip the point and continue.
 - `output_directory` _str_ - The directory where G-code files will be saved.
 - `include_border_layer` _bool_ - Whether to include a border layer, outlines the print area, drawing a border.
 - `include_preview_layer` _bool_ - Whether to include a preview layer, outlines the print area without drawing anything.
-- `handle_out_of_bounds` _HandleOutOfBounds_ - How to handle out-of-bounds points. "Warning" will print a warning, skip the point, continue, "Error" will throw an error and stop.
 
 <a id="gcode2dplotterart/Plotter.Plotter.add_layer"></a>
 
 #### add\_layer
 
 ```python
-def add_layer(title: str)
+def add_layer(title: str, preview_only: bool = False) -> Layer
 ```
 
 Add a new layer to the plotter with the given
@@ -60,13 +60,22 @@ Add a new layer to the plotter with the given
 
   title : str
   The title of the layer. Used when saving a layer to G-Code.
+  preview_only : bool
+  Whether the layer is a preview layer. Preview layers show the print head in motion but do not come in contact with drawing surface.
+  
+
+**Returns**:
+
+  Layer
+  The newly created layer. Allows for chaining of the layer's add methods.
 
 <a id="gcode2dplotterart/Plotter.Plotter.get_min_and_max_points"></a>
 
 #### get\_min\_and\_max\_points
 
 ```python
-def get_min_and_max_points()
+def get_min_and_max_points(
+) -> Dict[Literal["x_min", "y_min", "x_max", "y_max"], float]
 ```
 
 Find the min and max plot points of the plotter.
@@ -80,7 +89,7 @@ Returns
 #### add\_border\_layer
 
 ```python
-def add_border_layer()
+def add_border_layer() -> None
 ```
 
 Creates a new layer titled border. The border layer outlines the print area, drawing a border.
@@ -90,7 +99,7 @@ Creates a new layer titled border. The border layer outlines the print area, dra
 #### add\_preview\_layer
 
 ```python
-def add_preview_layer()
+def add_preview_layer() -> None
 ```
 
 Creates a new layer titled preview. The preview layer outlines the print area and draws an X through the middle without drawing anything. Useful for checking the the drawing surface is flat.
@@ -101,7 +110,7 @@ Creates a new layer titled preview. The preview layer outlines the print area an
 
 ```python
 @property
-def width()
+def width() -> float
 ```
 
 Width of the plotting area
@@ -112,7 +121,7 @@ Width of the plotting area
 
 ```python
 @property
-def height()
+def height() -> float
 ```
 
 Height of the plotting area
@@ -122,7 +131,7 @@ Height of the plotting area
 #### is\_point\_in\_bounds
 
 ```python
-def is_point_in_bounds(x, y)
+def is_point_in_bounds(x: float, y: float) -> bool
 ```
 
 Whether the point to be potted is within the plotter bounds
@@ -143,7 +152,7 @@ Whether the point to be potted is within the plotter bounds
 #### get\_plotting\_data
 
 ```python
-def get_plotting_data()
+def get_plotting_data() -> Dict[str, Dict[str, List[str]]]
 ```
 
 Get current plotting data.
@@ -158,7 +167,7 @@ Get current plotting data.
 #### save
 
 ```python
-def save(clear_output_before_save=True)
+def save(clear_output_before_save: bool = True) -> None
 ```
 
 Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be saved as an individual file with the filename defined by `{layer_name}.gcode`.
