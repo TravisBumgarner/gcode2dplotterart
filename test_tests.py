@@ -62,7 +62,8 @@ class TestSnapshot(unittest.TestCase):
                     old_snapshot == new_snapshot
                 ), f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
 
-            # comment out the assert line to write changes to the file to get a diff, could be a better way of doing this.
+            # comment out the assert line to write changes to the file to get a diff,
+            # could be a better way of doing this.
             with open(snapshot_file_path, "w") as file:
                 file.write(new_snapshot)
 
