@@ -205,12 +205,12 @@ class Plotter:
 
     def get_plotting_data(self) -> Dict[str, Dict[str, List[str]]]:
         """
-
         Get current plotting data.
 
         Returns:
           {"layer" : {"setup": [], "plotting": [], "teardown": []}}
-            A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
+            A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
+            G-Code instruction strings per layer. Mostly used for testing purposes.
         """
         if self.include_border_layer:
             # Creates a new layer titled border

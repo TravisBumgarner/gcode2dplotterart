@@ -1,4 +1,4 @@
-source ./gcode2dplotterart-venv/bin/activate
-python test_tests.py
-flake8 --max-line-length 120 ./gcode2dplotterart
+source ./gcode2dplotterart-venv/bin/activate 
+pytest test_tests.py &&
+flake8 --max-line-length 120 ./gcode2dplotterart && 
 black ./gcode2dplotterart --check

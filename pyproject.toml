@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "imutils", "numpy", "opencv-python", "pydoc-markdown", "mypy", "flake8"]
+requires = ["hatchling", "imutils", "numpy", "opencv-python", "pydoc-markdown", "mypy", "flake8", "pytest"]
 build-backend = "hatchling.build"
 
 [project]
