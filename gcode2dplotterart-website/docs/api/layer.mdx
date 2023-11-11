@@ -30,7 +30,7 @@ The y-coordinate of the point.
 #### to\_g\_code
 
 ```python
-def to_g_code()
+def to_g_code() -> str
 ```
 
 Convert instruction to G-Code.
@@ -59,7 +59,7 @@ Attributes
 #### to\_g\_code
 
 ```python
-def to_g_code()
+def to_g_code() -> str
 ```
 
 Convert instruction to G-Code.
@@ -88,7 +88,7 @@ feed_rate : float
 #### to\_g\_code
 
 ```python
-def to_g_code()
+def to_g_code() -> str
 ```
 
 Convert instruction to G-Code.
@@ -118,7 +118,7 @@ plotter_type : PlotterType
 
 ```python
 @property
-def navigation_mode()
+def navigation_mode() -> Union[str, None]
 ```
 
 Separate the drawing instrument from the drawing surface.
@@ -129,7 +129,7 @@ Separate the drawing instrument from the drawing surface.
 
 ```python
 @property
-def drawing_mode()
+def drawing_mode() -> Union[str, None]
 ```
 
 Connect the drawing instrument with the drawing surface.
@@ -140,7 +140,7 @@ Connect the drawing instrument with the drawing surface.
 
 ```python
 @property
-def pause()
+def pause() -> str
 ```
 
 Perform a brief pause. Useful, to reduce and prevent vibration.
@@ -151,7 +151,7 @@ Perform a brief pause. Useful, to reduce and prevent vibration.
 
 ```python
 @property
-def program_end()
+def program_end() -> str
 ```
 
 Instruct the plotting device that plotting has concluded.
@@ -162,7 +162,7 @@ Instruct the plotting device that plotting has concluded.
 
 ```python
 @property
-def units_mm()
+def units_mm() -> str
 ```
 
 Set the units of the plotting device to mm.
@@ -173,7 +173,7 @@ Set the units of the plotting device to mm.
 
 ```python
 @property
-def units_inches()
+def units_inches() -> str
 ```
 
 Set the units of the plotting device to inches.
@@ -183,7 +183,7 @@ Set the units of the plotting device to inches.
 #### to\_g\_code
 
 ```python
-def to_g_code()
+def to_g_code() -> Union[str, None]
 ```
 
 Convert instruction to G-Code.
@@ -206,7 +206,7 @@ class Layer()
 #### get\_min\_and\_max\_points
 
 ```python
-def get_min_and_max_points() -> dict[str, float]
+def get_min_and_max_points() -> Dict[str, float]
 ```
 
 Find the min and max plot points of the layer.
@@ -221,8 +221,11 @@ Find the min and max plot points of the layer.
 #### set\_feed\_rate
 
 ```python
-def set_feed_rate(feed_rate,
-                  instruction_type=PlottingInstructionTypeEnum.plotting)
+def set_feed_rate(
+    feed_rate: float,
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Set the speed at which the print head moves.
@@ -245,7 +248,10 @@ Set the speed at which the print head moves.
 #### set\_mode\_to\_draw
 
 ```python
-def set_mode_to_draw(instruction_type=PlottingInstructionTypeEnum.plotting)
+def set_mode_to_draw(
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Lower the pen. Should be used when starting a path.
@@ -267,7 +273,9 @@ Lower the pen. Should be used when starting a path.
 
 ```python
 def set_mode_to_navigation(
-        instruction_type=PlottingInstructionTypeEnum.plotting)
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Raise the pen. Should be used once drawing a path is complete before moving on to next path.
@@ -288,9 +296,12 @@ Raise the pen. Should be used once drawing a path is complete before moving on t
 #### add\_point
 
 ```python
-def add_point(x: float,
-              y: float,
-              instruction_type=PlottingInstructionTypeEnum.plotting)
+def add_point(
+    x: float,
+    y: float,
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Add a point to the layer. Typically not used directly, instead use one of the other add methods.
@@ -315,8 +326,11 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
 #### add\_path
 
 ```python
-def add_path(points: List[Tuple[float, float]],
-             instruction_type=PlottingInstructionTypeEnum.plotting)
+def add_path(
+    points: List[Tuple[float, float]],
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Add a path layer.
@@ -339,8 +353,11 @@ Add a path layer.
 #### add\_special
 
 ```python
-def add_special(special_instruction: SpecialInstructionEnum,
-                instruction_type=PlottingInstructionTypeEnum.plotting)
+def add_special(
+    special_instruction: SpecialInstructionEnum,
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Add a special instruction.
@@ -363,7 +380,8 @@ Add a special instruction.
 #### add\_comment
 
 ```python
-def add_comment(text: str, instruction_type)
+def add_comment(text: str,
+                instruction_type: PlottingInstructionTypeEnum) -> Self
 ```
 
 Add a comment to the layer.
@@ -386,11 +404,14 @@ Add a comment to the layer.
 #### add\_rectangle
 
 ```python
-def add_rectangle(x_start: float,
-                  y_start: float,
-                  x_end: float,
-                  y_end: float,
-                  instruction_type=PlottingInstructionTypeEnum.plotting)
+def add_rectangle(
+    x_start: float,
+    y_start: float,
+    x_end: float,
+    y_end: float,
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Adds a rectangle to the layer.
@@ -419,11 +440,14 @@ Adds a rectangle to the layer.
 #### add\_circle
 
 ```python
-def add_circle(x_center: float,
-               y_center: float,
-               radius: float,
-               num_points=36,
-               instruction_type=PlottingInstructionTypeEnum.plotting)
+def add_circle(
+    x_center: float,
+    y_center: float,
+    radius: float,
+    num_points: int = 36,
+    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    .plotting
+) -> Self
 ```
 
 Adds a circle to the layer.
@@ -436,7 +460,7 @@ Adds a circle to the layer.
   The y-coordinate of the center of the circle.
   radius : float
   The radius of the circle.
-  num_points : float
+  num_points : int
   The number of points to use to approximate the circle. Default is 36.
   instruction_type : float
   The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
@@ -452,7 +476,7 @@ Adds a circle to the layer.
 #### save
 
 ```python
-def save(file_path: str)
+def save(file_path: str) -> None
 ```
 
 Saves the layer instructions to a file at the specified file path.
@@ -467,7 +491,7 @@ Saves the layer instructions to a file at the specified file path.
 #### get\_plotting\_data
 
 ```python
-def get_plotting_data()
+def get_plotting_data() -> Dict[str, List[str]]
 ```
 
 Get current plotting data
