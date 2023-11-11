@@ -10,7 +10,7 @@ INDENT = 4
 
 class TestSnapshot(unittest.TestCase):
 
-  def testSnapshot(self):
+  def testSnapshot(self) -> None:
     layer = "black"
     
     plotter = Plotter(

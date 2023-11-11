@@ -1,10 +1,11 @@
 from random import randint, choice
-from gcode2dplotterart import Plotter
+from gcode2dplotterart.Plotter import Plotter
 from gcode2dplotterart.enums import PlotterTypeEnum
 import cv2
 import numpy as np
 from imutils import resize
 from math import floor
+from typing import Any
 
 """
 Preface - numpy and cv2 are still a bit alien to me. The code here could probably be done better. 
@@ -38,7 +39,7 @@ Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 
 # Todo - this algorithm seems like it's broken and not evenly distrubuting the pixels.
 # Or it might work, and it's just not good for images with lots of a single color. 
-def evenly_distribute_pixels_per_color(img, n):
+def evenly_distribute_pixels_per_color(img: Any, n: int) -> Any:
   """
   Ensures that each color has the same number of pixels.
 
@@ -62,7 +63,7 @@ def evenly_distribute_pixels_per_color(img, n):
   return np.subtract(np.digitize(img, pixel_bins), 1)
 
 
-def convert_image_to_n_grayscale_colors(filename, n):
+def convert_image_to_n_grayscale_colors(filename: str, n: int) -> Any:
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     [width, height] = img.shape
