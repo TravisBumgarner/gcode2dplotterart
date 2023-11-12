@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from gcode2dplotterart.Plotter import Plotter2d
+from gcode2dplotterart.Plotter import Plotter3d
 from gcode2dplotterart.enums import InstructionTypeEnum
 from gcode2dplotterart.Layer import SimpleInstructionPause
 import json
@@ -14,18 +14,20 @@ class TestSnapshot(unittest.TestCase):
     def testSnapshot(self) -> None:
         layer = "black"
 
-        plotter = Plotter2d(
-            title="test",
-            units="mm",
-            x_min=0,
-            x_max=100,
-            y_min=0,
-            y_max=100,
-            feed_rate=10000,
+        plotter = Plotter3d(
+            title="plotter3d_test",
+            units="inches",
+            x_min=-100,
+            x_max=0,
+            y_min=-100,
+            y_max=0,
+            feed_rate=20000,
             output_directory="./snapshots",
-            include_border_layer=True,
-            include_preview_layer=True,
+            include_border_layer=False,
+            include_preview_layer=False,
             handle_out_of_bounds="Silent",
+            z_drawing_height=0,
+            z_navigation_height=10,
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
         snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")
@@ -53,9 +55,9 @@ class TestSnapshot(unittest.TestCase):
             with open(snapshot_file_path, "r") as file:
                 old_snapshot = file.read()
                 new_snapshot = json.dumps(plotter.get_plotting_data(), indent=INDENT)
-                # assert (
-                #     old_snapshot == new_snapshot
-                # ), f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
+                assert (
+                    old_snapshot == new_snapshot
+                ), f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
 
             # comment out the assert line to write changes to the file to get a diff,
             # could be a better way of doing this.

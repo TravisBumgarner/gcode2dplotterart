@@ -1,11 +1,13 @@
 import os
 import shutil
-from typing import List, Dict, Literal
-from .Layer import Layer
+from typing import List, Dict, Literal, Union
+from abc import ABC, abstractmethod
+
+from .Layer import Layer2d, Layer3d
 from .enums import PlotterTypeEnum, HandleOutOfBoundsEnum, UnitsEnum
 
 
-class Plotter:
+class Plotter(ABC):
     plotter_type: PlotterTypeEnum
     title: str
     x_min: float
@@ -13,7 +15,7 @@ class Plotter:
     y_min: float
     y_max: float
     feed_rate: float
-    layers: Dict[str, Layer]
+    layers: Dict[str, Union[Layer2d, Layer3d]]
     output_directory: str
     include_border_layer: bool
     include_preview_layer: bool
@@ -103,6 +105,12 @@ class Plotter:
             "x_max": overall_x_max,
             "y_max": overall_y_max,
         }
+
+    @abstractmethod
+    def add_layer(
+        self, title: str, preview_only: bool = False
+    ) -> Union[Layer2d, Layer3d]:
+        pass
 
     def add_border_layer(self) -> None:
         """
@@ -255,7 +263,7 @@ class Plotter2d(Plotter):
             plotter_type=PlotterTypeEnum.plotter_2d,
         )
 
-    def add_layer(self, title: str, preview_only: bool = False) -> Layer:
+    def add_layer(self, title: str, preview_only: bool = False) -> Layer2d:
         """
         Add a new layer to the plotter with the given
 
@@ -276,9 +284,8 @@ class Plotter2d(Plotter):
         """
 
         # Todo - Is there a better way to prevent so much drilling?
-        self.layers[title] = Layer(
+        new_layer = Layer2d(
             units=self.units,
-            plotter_type=self.plotter_type,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -287,8 +294,9 @@ class Plotter2d(Plotter):
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
         )
+        self.layers[title] = new_layer
 
-        return self.layers[title]
+        return new_layer
 
 
 class Plotter3d(Plotter):
@@ -328,7 +336,7 @@ class Plotter3d(Plotter):
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height
 
-    def add_layer(self, title: str, preview_only: bool = False) -> Layer:
+    def add_layer(self, title: str, preview_only: bool = False) -> Layer3d:
         """
         Add a new layer to the plotter with the given
 
@@ -349,9 +357,8 @@ class Plotter3d(Plotter):
         """
 
         # Todo - Is there a better way to prevent so much drilling?
-        self.layers[title] = Layer(
+        new_layer = Layer3d(
             units=self.units,
-            plotter_type=self.plotter_type,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -359,6 +366,10 @@ class Plotter3d(Plotter):
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
+            z_drawing_height=self.z_drawing_height,
+            z_navigation_height=self.z_navigation_height,
         )
 
-        return self.layers[title]
+        self.layers[title] = new_layer
+
+        return new_layer

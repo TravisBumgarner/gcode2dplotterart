@@ -1,6 +1,7 @@
 from typing import List, Tuple, Union, Dict
 from typing_extensions import Self
 import math
+from abc import ABC, abstractmethod
 
 from .enums import (
     HandleOutOfBoundsEnum,
@@ -260,7 +261,7 @@ class SpecialInstructionNavigationHeight3DPrinter:
         return f"\nG1 Z{self.z_navigating_height}"
 
 
-class Layer:
+class Layer(ABC):
     def __init__(
         self,
         x_min: float,
@@ -380,52 +381,19 @@ class Layer:
         )
         return self
 
+    @abstractmethod
     def set_mode_to_draw(
         self,
         instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
     ) -> Self:
-        """
-        Lower the pen. Should be used when starting a path.
+        pass
 
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-        self.add_instruction(
-            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = True
-
-        return self
-
+    @abstractmethod
     def set_mode_to_navigation(
         self,
         instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
     ) -> Self:
-        """
-        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-
-        self.add_instruction(
-            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = False
-
-        return self
+        pass
 
     def add_point(
         self,
@@ -751,6 +719,53 @@ class Layer2d(Layer):
             preview_only=preview_only,
         )
 
+    def set_mode_to_draw(
+        self,
+        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+    ) -> Self:
+        """
+        Lower the pen. Should be used when starting a path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+        self.add_instruction(
+            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = True
+
+        return self
+
+    def set_mode_to_navigation(
+        self,
+        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+    ) -> Self:
+        """
+        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_instruction(
+            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = False
+
+        return self
+
 
 class Layer3d(Layer):
     z_drawing_height: float
@@ -782,3 +797,50 @@ class Layer3d(Layer):
         )
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height
+
+    def set_mode_to_draw(
+        self,
+        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+    ) -> Self:
+        """
+        Lower the pen. Should be used when starting a path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+        self.add_instruction(
+            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = True
+
+        return self
+
+    def set_mode_to_navigation(
+        self,
+        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+    ) -> Self:
+        """
+        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_instruction(
+            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = False
+
+        return self
