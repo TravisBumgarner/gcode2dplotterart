@@ -5,10 +5,8 @@ from abc import ABC, abstractmethod
 
 from .enums import (
     HandleOutOfBoundsEnum,
-    # SpecialInstructionEnum,
     InstructionTypeEnum,
     UnitsEnum,
-    PlotterTypeEnum,
 )
 
 SETUP_INSTRUCTIONS_DISPLAY = """
@@ -270,7 +268,6 @@ class Layer(ABC):
         y_max: float,
         units: UnitsEnum,
         feed_rate: float,
-        plotter_type: PlotterTypeEnum,
         handle_out_of_bounds: HandleOutOfBoundsEnum,
         preview_only: bool = False,
     ):
@@ -284,8 +281,6 @@ class Layer(ABC):
 
         # Todo - Better type refinement
         self.plotted_points: list = []
-
-        self.plotter_type = plotter_type
 
         # For calculating if a point is out of the range of the plotter.
         self.plotter_x_min = x_min
@@ -714,7 +709,6 @@ class Layer2d(Layer):
             y_max=y_max,
             units=units,
             feed_rate=feed_rate,
-            plotter_type=PlotterTypeEnum.plotter_2d,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
         )
@@ -791,7 +785,6 @@ class Layer3d(Layer):
             y_max=y_max,
             units=units,
             feed_rate=feed_rate,
-            plotter_type=PlotterTypeEnum.plotter_3d,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
         )

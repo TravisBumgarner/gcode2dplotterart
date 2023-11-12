@@ -53,21 +53,6 @@ class UnitsEnum(Enum):
     inches = "inches"
 
 
-class PlotterTypeEnum(Enum):
-    """
-    Enum representing the types of plotters that are supported
-
-    Attributes:
-      plotter_2d : str
-        2D Plotter
-      plotter_3d : str
-        3D Printer
-    """
-
-    plotter_2d = "plotter_2d"
-    plotter_3d = "plotter_3d"
-
-
 class InstructionTypeEnum(Enum):
     """
     An enumeration of the different types of plotting instructions.

@@ -40,12 +40,12 @@ Convert instruction to G-Code.
   string
   A point in G-Code format.
 
-<a id="gcode2dplotterart/Layer.Comment"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstructionComment"></a>
 
-## Comment Objects
+## SpecialInstructionComment Objects
 
 ```python
-class Comment()
+class SpecialInstructionComment()
 ```
 
 A class representing a comment in G-Code.
@@ -54,7 +54,7 @@ Attributes
   text : str
     The text of the comment.
 
-<a id="gcode2dplotterart/Layer.Comment.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstructionComment.to_g_code"></a>
 
 #### to\_g\_code
 
@@ -69,12 +69,12 @@ Convert instruction to G-Code.
   string
   A comment in G-Code format.
 
-<a id="gcode2dplotterart/Layer.FeedRate"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstructionFeedRate"></a>
 
-## FeedRate Objects
+## SpecialInstructionFeedRate Objects
 
 ```python
-class FeedRate()
+class SpecialInstructionFeedRate()
 ```
 
 A class representing the feed rate in G-Code.
@@ -83,7 +83,7 @@ Attributes
 feed_rate : float
   The feed rate.
 
-<a id="gcode2dplotterart/Layer.FeedRate.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstructionFeedRate.to_g_code"></a>
 
 #### to\_g\_code
 
@@ -98,92 +98,26 @@ Convert instruction to G-Code.
   string
   The feed rate in G-Code format.
 
-<a id="gcode2dplotterart/Layer.SpecialInstruction"></a>
+<a id="gcode2dplotterart/Layer.SimpleInstruction"></a>
 
-## SpecialInstruction Objects
+## SimpleInstruction Objects
 
 ```python
-class SpecialInstruction()
+class SimpleInstruction()
 ```
 
-A class representing the special G-Code instructions used in 2D plotter art.
+A class representing a special instruction in G-Code.
 
 Attributes
-plotter_type : PlotterType
-  The plotting device that was selected during Plotter setup. Certain instructions are dependent upon the plotting device.
+  instruction : str
+    The instruction to use.
 
-<a id="gcode2dplotterart/Layer.SpecialInstruction.navigation_mode"></a>
-
-#### navigation\_mode
-
-```python
-@property
-def navigation_mode() -> Union[str, None]
-```
-
-Separate the drawing instrument from the drawing surface.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.drawing_mode"></a>
-
-#### drawing\_mode
-
-```python
-@property
-def drawing_mode() -> Union[str, None]
-```
-
-Connect the drawing instrument with the drawing surface.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.pause"></a>
-
-#### pause
-
-```python
-@property
-def pause() -> str
-```
-
-Perform a brief pause. Useful, to reduce and prevent vibration.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.program_end"></a>
-
-#### program\_end
-
-```python
-@property
-def program_end() -> str
-```
-
-Instruct the plotting device that plotting has concluded.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.units_mm"></a>
-
-#### units\_mm
-
-```python
-@property
-def units_mm() -> str
-```
-
-Set the units of the plotting device to mm.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.units_inches"></a>
-
-#### units\_inches
-
-```python
-@property
-def units_inches() -> str
-```
-
-Set the units of the plotting device to inches.
-
-<a id="gcode2dplotterart/Layer.SpecialInstruction.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.SimpleInstruction.to_g_code"></a>
 
 #### to\_g\_code
 
 ```python
-def to_g_code() -> Union[str, None]
+def to_g_code() -> str
 ```
 
 Convert instruction to G-Code.
@@ -193,12 +127,130 @@ Convert instruction to G-Code.
   string
   A special instruction in G-Code format.
 
+<a id="gcode2dplotterart/Layer.SimpleInstructionDrawingHeight2DPlotter"></a>
+
+## SimpleInstructionDrawingHeight2DPlotter Objects
+
+```python
+class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction)
+```
+
+The height of the print head when drawing on the drawing surface.
+
+<a id="gcode2dplotterart/Layer.SimpleInstructionNavigationHeight2DPlotter"></a>
+
+## SimpleInstructionNavigationHeight2DPlotter Objects
+
+```python
+class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction)
+```
+
+The height of the print head when drawing on the drawing surface.
+
+<a id="gcode2dplotterart/Layer.SimpleInstructionPause"></a>
+
+## SimpleInstructionPause Objects
+
+```python
+class SimpleInstructionPause(SimpleInstruction)
+```
+
+Perform a brief pause. Useful, to reduce and prevent vibration.
+
+<a id="gcode2dplotterart/Layer.SimpleInstructionUnitsMM"></a>
+
+## SimpleInstructionUnitsMM Objects
+
+```python
+class SimpleInstructionUnitsMM(SimpleInstruction)
+```
+
+Set the units of the plotting device to mm.
+
+<a id="gcode2dplotterart/Layer.SimpleInstructionUnitsInches"></a>
+
+## SimpleInstructionUnitsInches Objects
+
+```python
+class SimpleInstructionUnitsInches(SimpleInstruction)
+```
+
+Set the units of the plotting device to inches.
+
+<a id="gcode2dplotterart/Layer.SimpleInstructionProgramEnd"></a>
+
+## SimpleInstructionProgramEnd Objects
+
+```python
+class SimpleInstructionProgramEnd(SimpleInstruction)
+```
+
+Instruct the plotting device that plotting has concluded.
+
+<a id="gcode2dplotterart/Layer.SpecialInstructionDrawingHeight3DPrinter"></a>
+
+## SpecialInstructionDrawingHeight3DPrinter Objects
+
+```python
+class SpecialInstructionDrawingHeight3DPrinter()
+```
+
+The height of the print head when drawing on the drawing surface.
+
+Attributes
+    z_drawing_height : float
+        The height of the drawing instrument when drawing.
+
+<a id="gcode2dplotterart/Layer.SpecialInstructionDrawingHeight3DPrinter.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code() -> str
+```
+
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  The drawing height in G-Code format.
+
+<a id="gcode2dplotterart/Layer.SpecialInstructionNavigationHeight3DPrinter"></a>
+
+## SpecialInstructionNavigationHeight3DPrinter Objects
+
+```python
+class SpecialInstructionNavigationHeight3DPrinter()
+```
+
+The height of the print head when navigating around the drawing surface.
+
+Attributes
+    z_navigating_height : float
+        The height of the navigating instrument when navigating.
+
+<a id="gcode2dplotterart/Layer.SpecialInstructionNavigationHeight3DPrinter.to_g_code"></a>
+
+#### to\_g\_code
+
+```python
+def to_g_code() -> str
+```
+
+Convert instruction to G-Code.
+
+**Returns**:
+
+  string
+  The navigating height in G-Code format.
+
 <a id="gcode2dplotterart/Layer.Layer"></a>
 
 ## Layer Objects
 
 ```python
-class Layer()
+class Layer(ABC)
 ```
 
 <a id="gcode2dplotterart/Layer.Layer.get_min_and_max_points"></a>
@@ -223,8 +275,7 @@ Find the min and max plot points of the layer.
 ```python
 def set_feed_rate(
     feed_rate: float,
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -243,54 +294,6 @@ Set the speed at which the print head moves.
   Layer
   The Layer object. Allows for chaining of add methods.
 
-<a id="gcode2dplotterart/Layer.Layer.set_mode_to_draw"></a>
-
-#### set\_mode\_to\_draw
-
-```python
-def set_mode_to_draw(
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
-) -> Self
-```
-
-Lower the pen. Should be used when starting a path.
-
-**Arguments**:
-
-  instruction_type : str
-  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
-  
-
-**Returns**:
-
-  Layer
-  The Layer object. Allows for chaining of add methods.
-
-<a id="gcode2dplotterart/Layer.Layer.set_mode_to_navigation"></a>
-
-#### set\_mode\_to\_navigation
-
-```python
-def set_mode_to_navigation(
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
-) -> Self
-```
-
-Raise the pen. Should be used once drawing a path is complete before moving on to next path.
-
-**Arguments**:
-
-  instruction_type : str
-  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
-  
-
-**Returns**:
-
-  Layer
-  The Layer object. Allows for chaining of add methods.
-
 <a id="gcode2dplotterart/Layer.Layer.add_point"></a>
 
 #### add\_point
@@ -299,8 +302,7 @@ Raise the pen. Should be used once drawing a path is complete before moving on t
 def add_point(
     x: float,
     y: float,
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -328,8 +330,7 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
 ```python
 def add_path(
     points: List[Tuple[float, float]],
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -348,15 +349,25 @@ Add a path layer.
   Layer
   The Layer object. Allows for chaining of add methods.
 
-<a id="gcode2dplotterart/Layer.Layer.add_special"></a>
+<a id="gcode2dplotterart/Layer.Layer.add_instruction"></a>
 
-#### add\_special
+#### add\_instruction
 
 ```python
-def add_special(
-    special_instruction: SpecialInstructionEnum,
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+def add_instruction(
+    instruction: Union[
+        SimpleInstructionPause,
+        SpecialInstructionFeedRate,
+        SpecialInstructionComment,
+        SpecialInstructionDrawingHeight3DPrinter,
+        SpecialInstructionNavigationHeight3DPrinter,
+        SimpleInstructionNavigationHeight2DPlotter,
+        SimpleInstructionDrawingHeight2DPlotter,
+        SimpleInstructionUnitsMM,
+        SimpleInstructionUnitsInches,
+        SimpleInstructionProgramEnd,
+    ],
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -380,8 +391,7 @@ Add a special instruction.
 #### add\_comment
 
 ```python
-def add_comment(text: str,
-                instruction_type: InstructionTypeEnum) -> Self
+def add_comment(text: str, instruction_type: InstructionTypeEnum) -> Self
 ```
 
 Add a comment to the layer.
@@ -409,8 +419,7 @@ def add_rectangle(
     y_start: float,
     x_end: float,
     y_end: float,
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -445,8 +454,7 @@ def add_circle(
     y_center: float,
     radius: float,
     num_points: int = 36,
-    instruction_type: InstructionTypeEnum = InstructionTypeEnum
-    .plotting
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
 ) -> Self
 ```
 
@@ -499,5 +507,114 @@ Get current plotting data
 **Returns**:
 
 - `{"setup"` - [], "plotting": [], "teardown": []}
-  A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code instruction strings.
+  A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code
+  instruction strings.
+
+<a id="gcode2dplotterart/Layer.Layer2d"></a>
+
+## Layer2d Objects
+
+```python
+class Layer2d(Layer)
+```
+
+<a id="gcode2dplotterart/Layer.Layer2d.set_mode_to_draw"></a>
+
+#### set\_mode\_to\_draw
+
+```python
+def set_mode_to_draw(
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
+) -> Self
+```
+
+Lower the pen. Should be used when starting a path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer2d.set_mode_to_navigation"></a>
+
+#### set\_mode\_to\_navigation
+
+```python
+def set_mode_to_navigation(
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
+) -> Self
+```
+
+Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer3d"></a>
+
+## Layer3d Objects
+
+```python
+class Layer3d(Layer)
+```
+
+<a id="gcode2dplotterart/Layer.Layer3d.set_mode_to_draw"></a>
+
+#### set\_mode\_to\_draw
+
+```python
+def set_mode_to_draw(
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
+) -> Self
+```
+
+Lower the pen. Should be used when starting a path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
+
+<a id="gcode2dplotterart/Layer.Layer3d.set_mode_to_navigation"></a>
+
+#### set\_mode\_to\_navigation
+
+```python
+def set_mode_to_navigation(
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting
+) -> Self
+```
+
+Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+**Arguments**:
+
+  instruction_type : str
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+  
+
+**Returns**:
+
+  Layer
+  The Layer object. Allows for chaining of add methods.
 

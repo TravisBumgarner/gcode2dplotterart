@@ -4,11 +4,10 @@ from typing import List, Dict, Literal, Union
 from abc import ABC, abstractmethod
 
 from .Layer import Layer2d, Layer3d
-from .enums import PlotterTypeEnum, HandleOutOfBoundsEnum, UnitsEnum
+from .enums import HandleOutOfBoundsEnum, UnitsEnum
 
 
-class Plotter(ABC):
-    plotter_type: PlotterTypeEnum
+class _AbstractPlotter(ABC):
     title: str
     x_min: float
     x_max: float
@@ -24,7 +23,6 @@ class Plotter(ABC):
     def __init__(
         self,
         title: str,
-        plotter_type: PlotterTypeEnum,
         units: str,
         x_min: float,
         x_max: float,
@@ -41,7 +39,6 @@ class Plotter(ABC):
 
         Args:
             title (str): The title of the work of art
-            plotter_type (PlotterTypeEnum): The type of plotter. Currently
             only supports plotter_2d.
             units: ("mm", "inches"): The units of the plotter.
             x_min (float): The minimum X-coordinate of the plotter.
@@ -61,7 +58,6 @@ class Plotter(ABC):
             outlines the print area without drawing anything.
         """
 
-        self.plotter_type = plotter_type
         self.title = title
         self.units = UnitsEnum(units)
         self.x_min = x_min
@@ -233,7 +229,7 @@ class Plotter(ABC):
             )
 
 
-class Plotter2d(Plotter):
+class Plotter2d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
@@ -260,12 +256,11 @@ class Plotter2d(Plotter):
             output_directory=output_directory,
             include_border_layer=include_border_layer,
             include_preview_layer=include_preview_layer,
-            plotter_type=PlotterTypeEnum.plotter_2d,
         )
 
     def add_layer(self, title: str, preview_only: bool = False) -> Layer2d:
         """
-        Add a new layer to the plotter with the given
+        Add a new layer to the plotter
 
         Args:
           title : str
@@ -299,7 +294,7 @@ class Plotter2d(Plotter):
         return new_layer
 
 
-class Plotter3d(Plotter):
+class Plotter3d(_AbstractPlotter):
     z_drawing_height: float
     z_navigation_height: float
 
@@ -331,14 +326,13 @@ class Plotter3d(Plotter):
             output_directory=output_directory,
             include_border_layer=include_border_layer,
             include_preview_layer=include_preview_layer,
-            plotter_type=PlotterTypeEnum.plotter_3d,
         )
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height
 
     def add_layer(self, title: str, preview_only: bool = False) -> Layer3d:
         """
-        Add a new layer to the plotter with the given
+        Add a new layer to the plotter
 
         Args:
           title : str
