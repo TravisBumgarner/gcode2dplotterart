@@ -2,12 +2,8 @@
 
 import os
 import unittest
-from gcode2dplotterart.Plotter import Plotter
-from gcode2dplotterart.enums import (
-    PlotterTypeEnum,
-    SpecialInstructionEnum,
-    PlottingInstructionTypeEnum,
-)
+from gcode2dplotterart.Plotter import Plotter3d
+from gcode2dplotterart.Layer import SimpleInstructionPause
 import json
 
 INDENT = 4
@@ -17,19 +13,20 @@ class TestSnapshot(unittest.TestCase):
     def testSnapshot(self) -> None:
         layer = "black"
 
-        plotter = Plotter(
-            title="test",
-            plotter_type=PlotterTypeEnum.plotter_2d,
-            units="mm",
-            x_min=0,
-            x_max=100,
-            y_min=0,
-            y_max=100,
-            feed_rate=10000,
+        plotter = Plotter3d(
+            title="plotter3d_test",
+            units="inches",
+            x_min=-100,
+            x_max=0,
+            y_min=-100,
+            y_max=0,
+            feed_rate=20000,
             output_directory="./snapshots",
-            include_border_layer=True,
-            include_preview_layer=True,
+            include_border_layer=False,
+            include_preview_layer=False,
             handle_out_of_bounds="Silent",
+            z_drawing_height=0,
+            z_navigation_height=10,
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
         snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")
@@ -39,10 +36,9 @@ class TestSnapshot(unittest.TestCase):
         plotter.layers[layer].add_point(30, 40).add_circle(1, 1, 10).add_rectangle(
             50, 50, 75, 75
         ).add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15).add_comment(
-            "Test comment", instruction_type=PlottingInstructionTypeEnum.teardown
-        ).add_special(
-            SpecialInstructionEnum.pause,
-            instruction_type=PlottingInstructionTypeEnum.setup,
+            "Test comment", instruction_type="teardown"
+        ).add_instruction(
+            SimpleInstructionPause(), instruction_type="setup"
         )
 
         os.makedirs(snapshot_directory, exist_ok=True)
