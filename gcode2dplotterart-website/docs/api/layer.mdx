@@ -223,7 +223,7 @@ Find the min and max plot points of the layer.
 ```python
 def set_feed_rate(
     feed_rate: float,
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -235,7 +235,7 @@ Set the speed at which the print head moves.
   feed_rate : float
   The feed rate to set.
   instruction_type : str
-  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -249,7 +249,7 @@ Set the speed at which the print head moves.
 
 ```python
 def set_mode_to_draw(
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -259,7 +259,7 @@ Lower the pen. Should be used when starting a path.
 **Arguments**:
 
   instruction_type : str
-  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -273,7 +273,7 @@ Lower the pen. Should be used when starting a path.
 
 ```python
 def set_mode_to_navigation(
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -283,7 +283,7 @@ Raise the pen. Should be used once drawing a path is complete before moving on t
 **Arguments**:
 
   instruction_type : str
-  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -299,7 +299,7 @@ Raise the pen. Should be used once drawing a path is complete before moving on t
 def add_point(
     x: float,
     y: float,
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -313,7 +313,7 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
   y : float
   The y-coordinate of the point.
   instruction_type : str
-  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -328,7 +328,7 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
 ```python
 def add_path(
     points: List[Tuple[float, float]],
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -340,7 +340,7 @@ Add a path layer.
   points : List[Tuple[float, float]
   An array of points to add
   instruction_type : str
-  The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -355,7 +355,7 @@ Add a path layer.
 ```python
 def add_special(
     special_instruction: SpecialInstructionEnum,
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -381,7 +381,7 @@ Add a special instruction.
 
 ```python
 def add_comment(text: str,
-                instruction_type: PlottingInstructionTypeEnum) -> Self
+                instruction_type: InstructionTypeEnum) -> Self
 ```
 
 Add a comment to the layer.
@@ -409,7 +409,7 @@ def add_rectangle(
     y_start: float,
     x_end: float,
     y_end: float,
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -427,7 +427,7 @@ Adds a rectangle to the layer.
   y_end : float
   The y-coordinate of the ending point of the rectangle.
   instruction_type : str, optional
-  The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use. Defaults to InstructionTypeEnum.plotting.
   
 
 **Returns**:
@@ -445,7 +445,7 @@ def add_circle(
     y_center: float,
     radius: float,
     num_points: int = 36,
-    instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum
+    instruction_type: InstructionTypeEnum = InstructionTypeEnum
     .plotting
 ) -> Self
 ```
@@ -463,7 +463,7 @@ Adds a circle to the layer.
   num_points : int
   The number of points to use to approximate the circle. Default is 36.
   instruction_type : float
-  The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
+  The type of instruction to use. Default is InstructionTypeEnum.plotting.
   
 
 **Returns**:
