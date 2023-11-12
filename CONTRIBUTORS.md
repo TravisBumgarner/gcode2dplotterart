@@ -1,4 +1,4 @@
-# 2d-plotter-art-gcode
+# 2d-plotter-art-g-code
 
 
 ## Deploy to PyPi
