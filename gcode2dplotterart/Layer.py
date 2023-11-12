@@ -3,11 +3,7 @@ from typing_extensions import Self
 import math
 from abc import ABC, abstractmethod
 
-from .enums import (
-    HandleOutOfBoundsEnum,
-    InstructionTypeEnum,
-    UnitsEnum,
-)
+from .types import THandleOutOfBounds, TUnits, TInstructionType
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -266,16 +262,16 @@ class Layer(ABC):
         y_min: float,
         x_max: float,
         y_max: float,
-        units: UnitsEnum,
+        units: TUnits,
         feed_rate: float,
-        handle_out_of_bounds: HandleOutOfBoundsEnum,
+        handle_out_of_bounds: THandleOutOfBounds,
         preview_only: bool = False,
     ):
         # Todo - Better type refinement
-        self.instructions: Dict[InstructionTypeEnum, list] = {
-            InstructionTypeEnum.setup: [],
-            InstructionTypeEnum.plotting: [],
-            InstructionTypeEnum.teardown: [],
+        self.instructions: Dict[TInstructionType, list] = {
+            "setup": [],
+            "plotting": [],
+            "teardown": [],
         }
         self.preview_only = preview_only
 
@@ -298,30 +294,27 @@ class Layer(ABC):
 
         self.handle_out_of_bounds = handle_out_of_bounds
 
-        self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, InstructionTypeEnum.setup)
-        self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, InstructionTypeEnum.plotting)
-        self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, InstructionTypeEnum.teardown)
+        self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
+        self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
+        self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
-        if units == UnitsEnum.mm:
-            self.add_comment("Setting units to mm", InstructionTypeEnum.setup)
-            self.add_instruction(SimpleInstructionUnitsMM(), InstructionTypeEnum.setup)
+        if units == "mm":
+            self.add_comment("Setting units to mm", "setup")
+            self.add_instruction(SimpleInstructionUnitsMM(), "setup")
 
-        if units == UnitsEnum.inches:
-            self.add_comment("Setting units to inches", InstructionTypeEnum.setup)
-            self.add_instruction(
-                SimpleInstructionUnitsInches(), InstructionTypeEnum.setup
-            )
+        elif units == "inches":
+            self.add_comment("Setting units to inches", "setup")
+            self.add_instruction(SimpleInstructionUnitsInches(), "setup")
 
-        self.set_feed_rate(feed_rate, InstructionTypeEnum.setup)
+        else:
+            raise ValueError("Invalid units received", units)
+
+        self.set_feed_rate(feed_rate, "setup")
 
         self.is_print_head_lowered = False
-        self.add_instruction(
-            SimpleInstructionNavigationHeight2DPlotter(), InstructionTypeEnum.setup
-        )
+        self.add_instruction(SimpleInstructionNavigationHeight2DPlotter(), "setup")
 
-        self.add_instruction(
-            SimpleInstructionProgramEnd(), InstructionTypeEnum.teardown
-        )
+        self.add_instruction(SimpleInstructionProgramEnd(), "teardown")
 
     def _update_max_and_min(self, x: float, y: float) -> None:
         """
@@ -354,7 +347,7 @@ class Layer(ABC):
     def set_feed_rate(
         self,
         feed_rate: float,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Set the speed at which the print head moves.
@@ -363,7 +356,7 @@ class Layer(ABC):
           feed_rate : float
             The feed rate to set.
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -379,14 +372,14 @@ class Layer(ABC):
     @abstractmethod
     def set_mode_to_draw(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         pass
 
     @abstractmethod
     def set_mode_to_navigation(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         pass
 
@@ -394,7 +387,7 @@ class Layer(ABC):
         self,
         x: float,
         y: float,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a point to the layer. Typically not used directly, instead use one of the other add methods.
@@ -405,7 +398,7 @@ class Layer(ABC):
           y : float
             The y-coordinate of the point.
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -417,21 +410,21 @@ class Layer(ABC):
             or x < self.plotter_x_min
             or y < self.plotter_y_min
         ):
-            if self.handle_out_of_bounds == HandleOutOfBoundsEnum.Warning:
+            if self.handle_out_of_bounds == "Warning":
                 print("Failed to add point, outside dimensions of plotter", x, y)
                 # Todo - Can this cause an error with pen up / pen down instructions?
                 return self
-            elif self.handle_out_of_bounds == HandleOutOfBoundsEnum.Error:
+            elif self.handle_out_of_bounds == "Error":
                 raise ValueError(
                     "Failed to add point, outside dimensions of plotter", x, y
                 )
-            elif self.handle_out_of_bounds == HandleOutOfBoundsEnum.Silent:
+            elif self.handle_out_of_bounds == "Silent":
                 # Typically only used in testing to keep things quiet
                 pass
             else:
                 raise ValueError(
                     "Invalid value for handle_out_of_bounds received",
-                    self.plotter.handle_out_of_bounds,
+                    self.handle_out_of_bounds,
                 )
         self.add_comment(f"Point: {x}, {y}", instruction_type)
         self._update_max_and_min(x, y)
@@ -448,7 +441,7 @@ class Layer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         points = [(x_start, y_start), (x_end, y_end)]
         self.add_comment(
@@ -460,7 +453,7 @@ class Layer(ABC):
     def add_path(
         self,
         points: List[Tuple[float, float]],
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a path layer.
@@ -469,7 +462,7 @@ class Layer(ABC):
           points : List[Tuple[float, float]
             An array of points to add
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -498,7 +491,7 @@ class Layer(ABC):
             SimpleInstructionUnitsInches,
             SimpleInstructionProgramEnd,
         ],
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a special instruction.
@@ -518,7 +511,7 @@ class Layer(ABC):
         self.instructions[instruction_type].append(instruction)
         return self
 
-    def add_comment(self, text: str, instruction_type: InstructionTypeEnum) -> Self:
+    def add_comment(self, text: str, instruction_type: TInstructionType) -> Self:
         """
         Add a comment to the layer.
 
@@ -545,7 +538,7 @@ class Layer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Adds a rectangle to the layer.
@@ -560,7 +553,7 @@ class Layer(ABC):
           y_end : float
             The y-coordinate of the ending point of the rectangle.
           instruction_type : str, optional
-            The type of instruction to use. Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use. Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -585,7 +578,7 @@ class Layer(ABC):
         y_center: float,
         radius: float,
         num_points: int = 36,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Adds a circle to the layer.
@@ -600,7 +593,7 @@ class Layer(ABC):
           num_points : int
             The number of points to use to approximate the circle. Default is 36.
           instruction_type : float
-            The type of instruction to use. Default is InstructionTypeEnum.plotting.
+            The type of instruction to use. Default is 'plotting'.
 
         Returns:
           Layer
@@ -640,7 +633,7 @@ class Layer(ABC):
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[InstructionTypeEnum.setup]
+                        for instruction in self.instructions["setup"]
                     ]
                 )
             )
@@ -648,9 +641,7 @@ class Layer(ABC):
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[
-                            InstructionTypeEnum.plotting
-                        ]
+                        for instruction in self.instructions["plotting"]
                     ]
                 )
             )
@@ -658,9 +649,7 @@ class Layer(ABC):
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[
-                            InstructionTypeEnum.teardown
-                        ]
+                        for instruction in self.instructions["teardown"]
                     ]
                 )
             )
@@ -675,17 +664,14 @@ class Layer(ABC):
             instruction strings.
         """
         return {
-            InstructionTypeEnum.setup.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[InstructionTypeEnum.setup]
+            "setup": [
+                instruction.to_g_code() for instruction in self.instructions["setup"]
             ],
-            InstructionTypeEnum.plotting.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[InstructionTypeEnum.plotting]
+            "plotting": [
+                instruction.to_g_code() for instruction in self.instructions["plotting"]
             ],
-            InstructionTypeEnum.teardown.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[InstructionTypeEnum.teardown]
+            "teardown": [
+                instruction.to_g_code() for instruction in self.instructions["teardown"]
             ],
         }
 
@@ -697,9 +683,9 @@ class Layer2d(Layer):
         y_min: float,
         x_max: float,
         y_max: float,
-        units: UnitsEnum,
+        units: TUnits,
         feed_rate: float,
-        handle_out_of_bounds: HandleOutOfBoundsEnum,
+        handle_out_of_bounds: THandleOutOfBounds,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -715,14 +701,14 @@ class Layer2d(Layer):
 
     def set_mode_to_draw(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Lower the pen. Should be used when starting a path.
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -738,14 +724,14 @@ class Layer2d(Layer):
 
     def set_mode_to_navigation(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Raise the pen. Should be used once drawing a path is complete before moving on to next path.
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -773,9 +759,9 @@ class Layer3d(Layer):
         y_max: float,
         z_drawing_height: float,
         z_navigation_height: float,
-        units: UnitsEnum,
+        units: TUnits,
         feed_rate: float,
-        handle_out_of_bounds: HandleOutOfBoundsEnum,
+        handle_out_of_bounds: THandleOutOfBounds,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -793,14 +779,14 @@ class Layer3d(Layer):
 
     def set_mode_to_draw(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Lower the pen. Should be used when starting a path.
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -816,14 +802,14 @@ class Layer3d(Layer):
 
     def set_mode_to_navigation(
         self,
-        instruction_type: InstructionTypeEnum = InstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Raise the pen. Should be used once drawing a path is complete before moving on to next path.
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to InstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer

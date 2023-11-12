@@ -16,13 +16,13 @@ class _AbstractPlotter(ABC)
 
 ```python
 def __init__(title: str,
-             units: str,
+             units: TUnits,
              x_min: float,
              x_max: float,
              y_min: float,
              y_max: float,
              feed_rate: float,
-             handle_out_of_bounds: str,
+             handle_out_of_bounds: THandleOutOfBounds,
              output_directory: str = "./output",
              include_border_layer: bool = True,
              include_preview_layer: bool = True)
@@ -185,7 +185,7 @@ class Plotter2d(_AbstractPlotter)
 def add_layer(title: str, preview_only: bool = False) -> Layer2d
 ```
 
-Add a new layer to the plotter with the given
+Add a new layer to the plotter
 
 **Arguments**:
 
@@ -219,7 +219,7 @@ class Plotter3d(_AbstractPlotter)
 def add_layer(title: str, preview_only: bool = False) -> Layer3d
 ```
 
-Add a new layer to the plotter with the given
+Add a new layer to the plotter
 
 **Arguments**:
 

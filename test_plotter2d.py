@@ -3,7 +3,6 @@
 import os
 import unittest
 from gcode2dplotterart.Plotter import Plotter2d
-from gcode2dplotterart.enums import InstructionTypeEnum
 from gcode2dplotterart.Layer import SimpleInstructionPause
 import json
 
@@ -34,9 +33,9 @@ class TestSnapshot(unittest.TestCase):
         plotter.layers[layer].add_point(30, 40).add_circle(1, 1, 10).add_rectangle(
             50, 50, 75, 75
         ).add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15).add_comment(
-            "Test comment", instruction_type=InstructionTypeEnum.teardown
+            "Test comment", instruction_type="teardown"
         ).add_instruction(
-            SimpleInstructionPause(), instruction_type=InstructionTypeEnum.setup
+            SimpleInstructionPause(), instruction_type="setup"
         )
 
         os.makedirs(snapshot_directory, exist_ok=True)

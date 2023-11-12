@@ -4,7 +4,7 @@ from typing import List, Dict, Literal, Union
 from abc import ABC, abstractmethod
 
 from .Layer import Layer2d, Layer3d
-from .enums import HandleOutOfBoundsEnum, UnitsEnum
+from .types import THandleOutOfBounds, TUnits
 
 
 class _AbstractPlotter(ABC):
@@ -18,18 +18,18 @@ class _AbstractPlotter(ABC):
     output_directory: str
     include_border_layer: bool
     include_preview_layer: bool
-    handle_out_of_bounds: HandleOutOfBoundsEnum
+    handle_out_of_bounds: THandleOutOfBounds
 
     def __init__(
         self,
         title: str,
-        units: str,
+        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: str,
+        handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
         include_border_layer: bool = True,
         include_preview_layer: bool = True,
@@ -59,7 +59,7 @@ class _AbstractPlotter(ABC):
         """
 
         self.title = title
-        self.units = UnitsEnum(units)
+        self.units = units
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -69,7 +69,7 @@ class _AbstractPlotter(ABC):
         self.output_directory = output_directory
         self.include_border_layer = include_border_layer
         self.include_preview_layer = include_preview_layer
-        self.handle_out_of_bounds = HandleOutOfBoundsEnum(handle_out_of_bounds)
+        self.handle_out_of_bounds = handle_out_of_bounds
 
     def get_min_and_max_points(
         self,
@@ -233,13 +233,13 @@ class Plotter2d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: str,
+        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: str,
+        handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
         include_border_layer: bool = True,
         include_preview_layer: bool = True,
@@ -301,7 +301,7 @@ class Plotter3d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: str,
+        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -309,7 +309,7 @@ class Plotter3d(_AbstractPlotter):
         feed_rate: float,
         z_drawing_height: float,
         z_navigation_height: float,
-        handle_out_of_bounds: str,
+        handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
         include_border_layer: bool = True,
         include_preview_layer: bool = True,
