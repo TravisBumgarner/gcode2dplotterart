@@ -1,35 +1,35 @@
 import os
 import shutil
-from typing import List, Dict, Literal
-from .Layer import Layer
-from .enums import PlotterTypeEnum, HandleOutOfBoundsEnum, UnitsEnum
+from typing import List, Dict, Literal, Union
+from abc import ABC, abstractmethod
+
+from .Layer import Layer2d, Layer3d
+from .types import THandleOutOfBounds, TUnits
 
 
-class Plotter:
-    plotter_type: PlotterTypeEnum
+class _AbstractPlotter(ABC):
     title: str
     x_min: float
     x_max: float
     y_min: float
     y_max: float
     feed_rate: float
-    layers: Dict[str, Layer]
+    layers: Dict[str, Union[Layer2d, Layer3d]]
     output_directory: str
     include_border_layer: bool
     include_preview_layer: bool
-    handle_out_of_bounds: HandleOutOfBoundsEnum
+    handle_out_of_bounds: THandleOutOfBounds
 
     def __init__(
         self,
         title: str,
-        plotter_type: PlotterTypeEnum,
-        units: str,
+        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: str,
+        handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
         include_border_layer: bool = True,
         include_preview_layer: bool = True,
@@ -39,7 +39,6 @@ class Plotter:
 
         Args:
             title (str): The title of the work of art
-            plotter_type (PlotterTypeEnum): The type of plotter. Currently
             only supports plotter_2d.
             units: ("mm", "inches"): The units of the plotter.
             x_min (float): The minimum X-coordinate of the plotter.
@@ -59,9 +58,8 @@ class Plotter:
             outlines the print area without drawing anything.
         """
 
-        self.plotter_type = plotter_type
         self.title = title
-        self.units = UnitsEnum(units)
+        self.units = units
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -71,42 +69,7 @@ class Plotter:
         self.output_directory = output_directory
         self.include_border_layer = include_border_layer
         self.include_preview_layer = include_preview_layer
-        self.handle_out_of_bounds = HandleOutOfBoundsEnum(handle_out_of_bounds)
-
-    def add_layer(self, title: str, preview_only: bool = False) -> Layer:
-        """
-        Add a new layer to the plotter with the given
-
-        Args:
-          title : str
-            The title of the layer. Used when saving a layer to G-Code.
-          preview_only : bool
-            Whether the layer is a preview layer. Preview layers show the
-            print head in motion but do not come in contact with drawing
-            surface.
-
-        Returns:
-          Layer
-            The newly created layer. Allows for chaining of the layer's add
-            methods.
-
-
-        """
-
-        # Todo - Is there a better way to prevent so much drilling?
-        self.layers[title] = Layer(
-            units=self.units,
-            plotter_type=self.plotter_type,
-            x_min=self.x_min,
-            x_max=self.x_max,
-            y_min=self.y_min,
-            y_max=self.y_max,
-            feed_rate=self.feed_rate,
-            handle_out_of_bounds=self.handle_out_of_bounds,
-            preview_only=preview_only,
-        )
-
-        return self.layers[title]
+        self.handle_out_of_bounds = handle_out_of_bounds
 
     def get_min_and_max_points(
         self,
@@ -138,6 +101,12 @@ class Plotter:
             "x_max": overall_x_max,
             "y_max": overall_y_max,
         }
+
+    @abstractmethod
+    def add_layer(
+        self, title: str, preview_only: bool = False
+    ) -> Union[Layer2d, Layer3d]:
+        pass
 
     def add_border_layer(self) -> None:
         """
@@ -258,3 +227,143 @@ class Plotter:
             layer.save(
                 os.path.join(self.output_directory, self.title, f"{title}.gcode")
             )
+
+
+class Plotter2d(_AbstractPlotter):
+    def __init__(
+        self,
+        title: str,
+        units: TUnits,
+        x_min: float,
+        x_max: float,
+        y_min: float,
+        y_max: float,
+        feed_rate: float,
+        handle_out_of_bounds: THandleOutOfBounds,
+        output_directory: str = "./output",
+        include_border_layer: bool = True,
+        include_preview_layer: bool = True,
+    ) -> None:
+        super().__init__(
+            title=title,
+            units=units,
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            output_directory=output_directory,
+            include_border_layer=include_border_layer,
+            include_preview_layer=include_preview_layer,
+        )
+
+    def add_layer(self, title: str, preview_only: bool = False) -> Layer2d:
+        """
+        Add a new layer to the plotter
+
+        Args:
+          title : str
+            The title of the layer. Used when saving a layer to G-Code.
+          preview_only : bool
+            Whether the layer is a preview layer. Preview layers show the
+            print head in motion but do not come in contact with drawing
+            surface.
+
+        Returns:
+          Layer
+            The newly created layer. Allows for chaining of the layer's add
+            methods.
+
+
+        """
+
+        # Todo - Is there a better way to prevent so much drilling?
+        new_layer = Layer2d(
+            units=self.units,
+            x_min=self.x_min,
+            x_max=self.x_max,
+            y_min=self.y_min,
+            y_max=self.y_max,
+            feed_rate=self.feed_rate,
+            handle_out_of_bounds=self.handle_out_of_bounds,
+            preview_only=preview_only,
+        )
+        self.layers[title] = new_layer
+
+        return new_layer
+
+
+class Plotter3d(_AbstractPlotter):
+    z_drawing_height: float
+    z_navigation_height: float
+
+    def __init__(
+        self,
+        title: str,
+        units: TUnits,
+        x_min: float,
+        x_max: float,
+        y_min: float,
+        y_max: float,
+        feed_rate: float,
+        z_drawing_height: float,
+        z_navigation_height: float,
+        handle_out_of_bounds: THandleOutOfBounds,
+        output_directory: str = "./output",
+        include_border_layer: bool = True,
+        include_preview_layer: bool = True,
+    ) -> None:
+        super().__init__(
+            title=title,
+            units=units,
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            output_directory=output_directory,
+            include_border_layer=include_border_layer,
+            include_preview_layer=include_preview_layer,
+        )
+        self.z_drawing_height = z_drawing_height
+        self.z_navigation_height = z_navigation_height
+
+    def add_layer(self, title: str, preview_only: bool = False) -> Layer3d:
+        """
+        Add a new layer to the plotter
+
+        Args:
+          title : str
+            The title of the layer. Used when saving a layer to G-Code.
+          preview_only : bool
+            Whether the layer is a preview layer. Preview layers show the
+            print head in motion but do not come in contact with drawing
+            surface.
+
+        Returns:
+          Layer
+            The newly created layer. Allows for chaining of the layer's add
+            methods.
+
+
+        """
+
+        # Todo - Is there a better way to prevent so much drilling?
+        new_layer = Layer3d(
+            units=self.units,
+            x_min=self.x_min,
+            x_max=self.x_max,
+            y_min=self.y_min,
+            y_max=self.y_max,
+            feed_rate=self.feed_rate,
+            handle_out_of_bounds=self.handle_out_of_bounds,
+            preview_only=preview_only,
+            z_drawing_height=self.z_drawing_height,
+            z_navigation_height=self.z_navigation_height,
+        )
+
+        self.layers[title] = new_layer
+
+        return new_layer

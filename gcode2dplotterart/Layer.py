@@ -1,14 +1,9 @@
 from typing import List, Tuple, Union, Dict
 from typing_extensions import Self
 import math
+from abc import ABC, abstractmethod
 
-from .enums import (
-    HandleOutOfBoundsEnum,
-    SpecialInstructionEnum,
-    PlottingInstructionTypeEnum,
-    UnitsEnum,
-    PlotterTypeEnum,
-)
+from .types import THandleOutOfBounds, TUnits, TInstructionType
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -71,7 +66,7 @@ class Point:
         return output
 
 
-class Comment:
+class SpecialInstructionComment:
     """
     A class representing a comment in G-Code.
 
@@ -82,6 +77,9 @@ class Comment:
 
     def __init__(self, text: str):
         self.text = text
+
+    def __str__(self) -> str:
+        return self.text
 
     def to_g_code(self) -> str:
         """
@@ -94,7 +92,7 @@ class Comment:
         return f"\n;{self.text}"
 
 
-class FeedRate:
+class SpecialInstructionFeedRate:
     """
     A class representing the feed rate in G-Code.
 
@@ -105,6 +103,10 @@ class FeedRate:
 
     def __init__(self, feed_rate: float):
         self.feed_rate = feed_rate
+
+    def __str__(self) -> str:
+        # Used for comments
+        return "Setting feed rate"
 
     def to_g_code(self) -> str:
         """
@@ -117,75 +119,24 @@ class FeedRate:
         return f"\nF{self.feed_rate}"
 
 
-class SpecialInstruction:
+class SimpleInstruction:
     """
-    A class representing the special G-Code instructions used in 2D plotter art.
+    A class representing a special instruction in G-Code.
 
     Attributes
-    plotter_type : PlotterType
-      The plotting device that was selected during Plotter setup. Certain instructions are
-      dependent upon the plotting device.
+      instruction : str
+        The instruction to use.
     """
 
-    def __init__(
-        self, plotter_type: PlotterTypeEnum, instruction: SpecialInstructionEnum
-    ):
-        self.plotter_type = plotter_type
+    def __init__(self, instruction: str, comment: str):
         self.instruction = instruction
+        self.comment = comment
 
-    @property
-    def navigation_mode(self) -> Union[str, None]:
-        """
-        Separate the drawing instrument from the drawing surface.
-        """
-        if self.plotter_type == PlotterTypeEnum.plotter_2d:
-            return "M3 S0"
-        elif self.plotter_type == PlotterTypeEnum.plotter_3d:
-            raise ValueError("3D Printer support coming soon")
-        else:
-            raise ValueError("Invalid plotter type")
+    def __str__(self) -> str:
+        # Used for comments
+        return self.comment
 
-    @property
-    def drawing_mode(self) -> Union[str, None]:
-        """
-        Connect the drawing instrument with the drawing surface.
-        """
-        if self.plotter_type == PlotterTypeEnum.plotter_2d:
-            return "M3 S1000"
-        elif self.plotter_type == PlotterTypeEnum.plotter_3d:
-            raise ValueError("3D Printer support coming soon")
-        else:
-            raise ValueError("Invalid plotter type")
-
-    @property
-    def pause(self) -> str:
-        """
-        Perform a brief pause. Useful, to reduce and prevent vibration.
-        """
-        return "G4 P0.25"
-
-    @property
-    def program_end(self) -> str:
-        """
-        Instruct the plotting device that plotting has concluded.
-        """
-        return "M2"
-
-    @property
-    def units_mm(self) -> str:
-        """
-        Set the units of the plotting device to mm.
-        """
-        return "G21"
-
-    @property
-    def units_inches(self) -> str:
-        """
-        Set the units of the plotting device to inches.
-        """
-        return "G20"
-
-    def to_g_code(self) -> Union[str, None]:
+    def to_g_code(self) -> str:
         """
         Convert instruction to G-Code.
 
@@ -193,47 +144,139 @@ class SpecialInstruction:
           string
             A special instruction in G-Code format.
         """
-        if self.instruction == SpecialInstructionEnum.navigation_mode:
-            return self.navigation_mode
-        elif self.instruction == SpecialInstructionEnum.drawing_mode:
-            return self.drawing_mode
-        elif self.instruction == SpecialInstructionEnum.pause:
-            return self.pause
-        elif self.instruction == SpecialInstructionEnum.program_end:
-            return self.program_end
-        elif self.instruction == SpecialInstructionEnum.units_mm:
-            return self.units_mm
-        elif self.instruction == SpecialInstructionEnum.units_inches:
-            return self.units_inches
-        else:
-            raise ValueError("Invalid special instruction")
+        return f"\n{self.instruction}"
 
 
-class Layer:
+class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction):
+    """
+    The height of the print head when drawing on the drawing surface.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("M3 S1000", "Connect print head to drawing surface")
+
+
+class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction):
+    """
+    The height of the print head when drawing on the drawing surface.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("M3 S0", "Separate print head from drawing surface")
+
+
+class SimpleInstructionPause(SimpleInstruction):
+    """
+    Perform a brief pause. Useful, to reduce and prevent vibration.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("G4 P0.25", "Perform a brief pause")
+
+
+class SimpleInstructionUnitsMM(SimpleInstruction):
+    """
+    Set the units of the plotting device to mm.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("G21", "Set units to mm")
+
+
+class SimpleInstructionUnitsInches(SimpleInstruction):
+    """
+    Set the units of the plotting device to inches.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("G20", "set units to inches")
+
+
+class SimpleInstructionProgramEnd(SimpleInstruction):
+    """
+    Instruct the plotting device that plotting has concluded.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("M2", "Program end")
+
+
+class SpecialInstructionDrawingHeight3DPrinter:
+    """
+    The height of the print head when drawing on the drawing surface.
+
+    Attributes
+        z_drawing_height : float
+            The height of the drawing instrument when drawing.
+    """
+
+    def __init__(self, z_drawing_height: float):
+        self.z_drawing_height = z_drawing_height
+
+    def __str__(self) -> str:
+        # Used for comments
+        return "Setting drawing height"
+
+    def to_g_code(self) -> str:
+        """
+        Convert instruction to G-Code.
+
+        Returns:
+        string
+          The drawing height in G-Code format.
+        """
+        return f"\nG1 Z{self.z_drawing_height}"
+
+
+class SpecialInstructionNavigationHeight3DPrinter:
+    """
+    The height of the print head when navigating around the drawing surface.
+
+    Attributes
+        z_navigating_height : float
+            The height of the navigating instrument when navigating.
+    """
+
+    def __init__(self, z_navigating_height: float):
+        self.z_navigating_height = z_navigating_height
+
+    def __str__(self) -> str:
+        # Used for comments
+        return "Setting navigating height"
+
+    def to_g_code(self) -> str:
+        """
+        Convert instruction to G-Code.
+
+        Returns:
+        string
+          The navigating height in G-Code format.
+        """
+        return f"\nG1 Z{self.z_navigating_height}"
+
+
+class Layer(ABC):
     def __init__(
         self,
         x_min: float,
         y_min: float,
         x_max: float,
         y_max: float,
-        units: UnitsEnum,
+        units: TUnits,
         feed_rate: float,
-        plotter_type: PlotterTypeEnum,
-        handle_out_of_bounds: HandleOutOfBoundsEnum,
+        handle_out_of_bounds: THandleOutOfBounds,
         preview_only: bool = False,
     ):
         # Todo - Better type refinement
-        self.instructions: Dict[PlottingInstructionTypeEnum, list] = {
-            PlottingInstructionTypeEnum.setup: [],
-            PlottingInstructionTypeEnum.plotting: [],
-            PlottingInstructionTypeEnum.teardown: [],
+        self.instructions: Dict[TInstructionType, list] = {
+            "setup": [],
+            "plotting": [],
+            "teardown": [],
         }
         self.preview_only = preview_only
 
         # Todo - Better type refinement
         self.plotted_points: list = []
-
-        self.plotter_type = plotter_type
 
         # For calculating if a point is out of the range of the plotter.
         self.plotter_x_min = x_min
@@ -251,38 +294,27 @@ class Layer:
 
         self.handle_out_of_bounds = handle_out_of_bounds
 
-        self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.setup)
-        self.add_comment(
-            PLOTTING_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.plotting
-        )
-        self.add_comment(
-            TEARDOWN_INSTRUCTIONS_DISPLAY, PlottingInstructionTypeEnum.teardown
-        )
+        self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
+        self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
+        self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
-        if units == UnitsEnum.mm:
-            self.add_comment("Setting units to mm", PlottingInstructionTypeEnum.setup)
-            self.add_special(
-                SpecialInstructionEnum.units_mm, PlottingInstructionTypeEnum.setup
-            )
+        if units == "mm":
+            self.add_comment("Setting units to mm", "setup")
+            self.add_instruction(SimpleInstructionUnitsMM(), "setup")
 
-        if units == UnitsEnum.inches:
-            self.add_comment(
-                "Setting units to inches", PlottingInstructionTypeEnum.setup
-            )
-            self.add_special(
-                SpecialInstructionEnum.units_inches, PlottingInstructionTypeEnum.setup
-            )
+        elif units == "inches":
+            self.add_comment("Setting units to inches", "setup")
+            self.add_instruction(SimpleInstructionUnitsInches(), "setup")
 
-        self.set_feed_rate(feed_rate, PlottingInstructionTypeEnum.setup)
+        else:
+            raise ValueError("Invalid units received", units)
+
+        self.set_feed_rate(feed_rate, "setup")
 
         self.is_print_head_lowered = False
-        self.add_special(
-            SpecialInstructionEnum.navigation_mode, PlottingInstructionTypeEnum.setup
-        )
+        self.add_instruction(SimpleInstructionNavigationHeight2DPlotter(), "setup")
 
-        self.add_special(
-            SpecialInstructionEnum.program_end, PlottingInstructionTypeEnum.teardown
-        )
+        self.add_instruction(SimpleInstructionProgramEnd(), "teardown")
 
     def _update_max_and_min(self, x: float, y: float) -> None:
         """
@@ -315,7 +347,7 @@ class Layer:
     def set_feed_rate(
         self,
         feed_rate: float,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Set the speed at which the print head moves.
@@ -324,7 +356,7 @@ class Layer:
           feed_rate : float
             The feed rate to set.
           instruction_type : str
-            The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -332,57 +364,30 @@ class Layer:
         """
 
         self.add_comment(f"Feed Rate: {feed_rate}", instruction_type)
-        self.instructions[instruction_type].append(FeedRate(feed_rate))
+        self.instructions[instruction_type].append(
+            SpecialInstructionFeedRate(feed_rate)
+        )
         return self
 
+    @abstractmethod
     def set_mode_to_draw(
         self,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Lower the pen. Should be used when starting a path.
+        pass
 
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-        self.add_special(SpecialInstructionEnum.drawing_mode, instruction_type)
-        self.add_special(SpecialInstructionEnum.pause, instruction_type)
-        self.is_print_head_lowered = True
-
-        return self
-
+    @abstractmethod
     def set_mode_to_navigation(
         self,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-
-        self.add_special(SpecialInstructionEnum.navigation_mode, instruction_type)
-        self.add_special(SpecialInstructionEnum.pause, instruction_type)
-        self.is_print_head_lowered = False
-
-        return self
+        pass
 
     def add_point(
         self,
         x: float,
         y: float,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a point to the layer. Typically not used directly, instead use one of the other add methods.
@@ -393,7 +398,7 @@ class Layer:
           y : float
             The y-coordinate of the point.
           instruction_type : str
-            The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -405,21 +410,21 @@ class Layer:
             or x < self.plotter_x_min
             or y < self.plotter_y_min
         ):
-            if self.handle_out_of_bounds == HandleOutOfBoundsEnum.Warning:
+            if self.handle_out_of_bounds == "Warning":
                 print("Failed to add point, outside dimensions of plotter", x, y)
                 # Todo - Can this cause an error with pen up / pen down instructions?
                 return self
-            elif self.handle_out_of_bounds == HandleOutOfBoundsEnum.Error:
+            elif self.handle_out_of_bounds == "Error":
                 raise ValueError(
                     "Failed to add point, outside dimensions of plotter", x, y
                 )
-            elif self.handle_out_of_bounds == HandleOutOfBoundsEnum.Silent:
+            elif self.handle_out_of_bounds == "Silent":
                 # Typically only used in testing to keep things quiet
                 pass
             else:
                 raise ValueError(
                     "Invalid value for handle_out_of_bounds received",
-                    self.plotter.handle_out_of_bounds,
+                    self.handle_out_of_bounds,
                 )
         self.add_comment(f"Point: {x}, {y}", instruction_type)
         self._update_max_and_min(x, y)
@@ -436,7 +441,7 @@ class Layer:
         y_start: float,
         x_end: float,
         y_end: float,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         points = [(x_start, y_start), (x_end, y_end)]
         self.add_comment(
@@ -448,7 +453,7 @@ class Layer:
     def add_path(
         self,
         points: List[Tuple[float, float]],
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a path layer.
@@ -457,7 +462,7 @@ class Layer:
           points : List[Tuple[float, float]
             An array of points to add
           instruction_type : str
-            The type of instruction to use.  Defaults to PlottingInstructionTypeEnum.plotting.
+            The type of instruction to use.  Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -472,10 +477,21 @@ class Layer:
         self.set_mode_to_navigation()
         return self
 
-    def add_special(
+    def add_instruction(
         self,
-        special_instruction: SpecialInstructionEnum,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction: Union[
+            SimpleInstructionPause,
+            SpecialInstructionFeedRate,
+            SpecialInstructionComment,
+            SpecialInstructionDrawingHeight3DPrinter,
+            SpecialInstructionNavigationHeight3DPrinter,
+            SimpleInstructionNavigationHeight2DPlotter,
+            SimpleInstructionDrawingHeight2DPlotter,
+            SimpleInstructionUnitsMM,
+            SimpleInstructionUnitsInches,
+            SimpleInstructionProgramEnd,
+        ],
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Add a special instruction.
@@ -491,15 +507,11 @@ class Layer:
             The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_comment(str(special_instruction), instruction_type)
-        self.instructions[instruction_type].append(
-            SpecialInstruction(self.plotter_type, special_instruction)
-        )
+        self.add_comment(str(instruction), instruction_type)
+        self.instructions[instruction_type].append(instruction)
         return self
 
-    def add_comment(
-        self, text: str, instruction_type: PlottingInstructionTypeEnum
-    ) -> Self:
+    def add_comment(self, text: str, instruction_type: TInstructionType) -> Self:
         """
         Add a comment to the layer.
 
@@ -516,7 +528,7 @@ class Layer:
 
         lines = text.split("\n")
         for line in lines:
-            self.instructions[instruction_type].append(Comment(line))
+            self.instructions[instruction_type].append(SpecialInstructionComment(line))
 
         return self
 
@@ -526,7 +538,7 @@ class Layer:
         y_start: float,
         x_end: float,
         y_end: float,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Adds a rectangle to the layer.
@@ -541,7 +553,7 @@ class Layer:
           y_end : float
             The y-coordinate of the ending point of the rectangle.
           instruction_type : str, optional
-            The type of instruction to use. Defaults to PlottingInstructionTypeEnum.plotting.
+            The type of instruction to use. Defaults to 'plotting'.
 
         Returns:
           Layer
@@ -566,7 +578,7 @@ class Layer:
         y_center: float,
         radius: float,
         num_points: int = 36,
-        instruction_type: PlottingInstructionTypeEnum = PlottingInstructionTypeEnum.plotting,
+        instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
         Adds a circle to the layer.
@@ -581,7 +593,7 @@ class Layer:
           num_points : int
             The number of points to use to approximate the circle. Default is 36.
           instruction_type : float
-            The type of instruction to use. Default is PlottingInstructionTypeEnum.plotting.
+            The type of instruction to use. Default is 'plotting'.
 
         Returns:
           Layer
@@ -594,8 +606,10 @@ class Layer:
         # Calculate angle step between points to approximate the circle
         angle_step = 360.0 / num_points
 
-        self.add_special(SpecialInstructionEnum.navigation_mode, instruction_type)
-        self.add_special(SpecialInstructionEnum.pause, instruction_type)
+        self.add_instruction(
+            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
 
         points: List[Tuple[float, float]] = []
         for point in range(num_points):
@@ -619,9 +633,7 @@ class Layer:
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[
-                            PlottingInstructionTypeEnum.setup
-                        ]
+                        for instruction in self.instructions["setup"]
                     ]
                 )
             )
@@ -629,9 +641,7 @@ class Layer:
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[
-                            PlottingInstructionTypeEnum.plotting
-                        ]
+                        for instruction in self.instructions["plotting"]
                     ]
                 )
             )
@@ -639,9 +649,7 @@ class Layer:
                 "\n".join(
                     [
                         instruction.to_g_code()
-                        for instruction in self.instructions[
-                            PlottingInstructionTypeEnum.teardown
-                        ]
+                        for instruction in self.instructions["teardown"]
                     ]
                 )
             )
@@ -656,20 +664,162 @@ class Layer:
             instruction strings.
         """
         return {
-            PlottingInstructionTypeEnum.setup.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[PlottingInstructionTypeEnum.setup]
+            "setup": [
+                instruction.to_g_code() for instruction in self.instructions["setup"]
             ],
-            PlottingInstructionTypeEnum.plotting.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[
-                    PlottingInstructionTypeEnum.plotting
-                ]
+            "plotting": [
+                instruction.to_g_code() for instruction in self.instructions["plotting"]
             ],
-            PlottingInstructionTypeEnum.teardown.value: [
-                instruction.to_g_code()
-                for instruction in self.instructions[
-                    PlottingInstructionTypeEnum.teardown
-                ]
+            "teardown": [
+                instruction.to_g_code() for instruction in self.instructions["teardown"]
             ],
         }
+
+
+class Layer2d(Layer):
+    def __init__(
+        self,
+        x_min: float,
+        y_min: float,
+        x_max: float,
+        y_max: float,
+        units: TUnits,
+        feed_rate: float,
+        handle_out_of_bounds: THandleOutOfBounds,
+        preview_only: bool = False,
+    ) -> None:
+        super().__init__(
+            x_min=x_min,
+            y_min=y_min,
+            x_max=x_max,
+            y_max=y_max,
+            units=units,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            preview_only=preview_only,
+        )
+
+    def set_mode_to_draw(
+        self,
+        instruction_type: TInstructionType = "plotting",
+    ) -> Self:
+        """
+        Lower the pen. Should be used when starting a path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to 'plotting'.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+        self.add_instruction(
+            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = True
+
+        return self
+
+    def set_mode_to_navigation(
+        self,
+        instruction_type: TInstructionType = "plotting",
+    ) -> Self:
+        """
+        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to 'plotting'.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_instruction(
+            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = False
+
+        return self
+
+
+class Layer3d(Layer):
+    z_drawing_height: float
+    z_navigation_height: float
+
+    def __init__(
+        self,
+        x_min: float,
+        y_min: float,
+        x_max: float,
+        y_max: float,
+        z_drawing_height: float,
+        z_navigation_height: float,
+        units: TUnits,
+        feed_rate: float,
+        handle_out_of_bounds: THandleOutOfBounds,
+        preview_only: bool = False,
+    ) -> None:
+        super().__init__(
+            x_min=x_min,
+            y_min=y_min,
+            x_max=x_max,
+            y_max=y_max,
+            units=units,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            preview_only=preview_only,
+        )
+        self.z_drawing_height = z_drawing_height
+        self.z_navigation_height = z_navigation_height
+
+    def set_mode_to_draw(
+        self,
+        instruction_type: TInstructionType = "plotting",
+    ) -> Self:
+        """
+        Lower the pen. Should be used when starting a path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to 'plotting'.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+        self.add_instruction(
+            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = True
+
+        return self
+
+    def set_mode_to_navigation(
+        self,
+        instruction_type: TInstructionType = "plotting",
+    ) -> Self:
+        """
+        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+
+        Args:
+          instruction_type : str
+            The type of instruction to use.  Defaults to 'plotting'.
+
+        Returns:
+          Layer
+            The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_instruction(
+            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
+        )
+        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.is_print_head_lowered = False
+
+        return self

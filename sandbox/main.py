@@ -1,5 +1,4 @@
-from gcode2dplotterart.Plotter import Plotter
-from gcode2dplotterart.enums import PlotterTypeEnum
+from gcode2dplotterart import Plotter2d
 from typing import Any
 
 """
@@ -88,8 +87,7 @@ def convert_image_to_n_grayscale_colors(filename: str, n: int) -> Any:
     return img
 
 
-plotter = Plotter(
-    plotter_type=PlotterTypeEnum.plotter_2d,
+plotter = Plotter2d(
     title="Horizontal Line Art",
     units="mm",
     x_min=0,
