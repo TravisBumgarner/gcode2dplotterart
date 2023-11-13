@@ -73,10 +73,17 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Tutorials',
+            type: 'doc',
+            docId: 'quickstart',
+            label: 'Quick Start',
+          },
+          {
+            to: '/docs/category/gallery',
+            label: 'Gallery',
+          },
+          {
+            to: '/docs/category/guides_and_tips',
+            label: 'Documentation',
           },
           {
             href: 'https://github.com/TravisBumgarner/gcode2dplotterart',
@@ -113,7 +120,7 @@ const config = {
           {
             title: 'More',
             items: [
-            
+
               {
                 label: 'Silly Side Projects',
                 href: 'https://sillysideprojects.com',

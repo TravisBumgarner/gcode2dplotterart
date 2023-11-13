@@ -6,18 +6,18 @@ sidebar_position: 2
 
 This guide covers setup for both 2D plotter and 3D printers. Instructions at certain steps will differ based on if you are using a 2D plotter or 3D printer. Additionally, 3D printers require some extra setup steps and will be noted with an additional section of **3D printer**. 
 
-## 0. Library Installation
+## 1. Library Installation
 
 Install the Python package with `pip install gcode2dplotterart`
 
 
-## 1. Setup Hardware
+## 2. Setup Hardware
 
 ### 3D Printer
 
 Follow the guide to [Convert your 3D Printer to a 2D Plotter](./guides/convert-3d-to-2d).
 
-## 2. Get Plotting Device Dimensions
+## 3. Get Plotting Device Dimensions
 
 You will need your plotting device's dimensions. If you've never used the Universal G-Code Sender application before, it is recommended you read [this article](./guides/ugs). Or if you prefer, you can jump straight to [Get your plotting device's dimensions](./guides/ugs#get-your-plotting-devicess-dimensions). Once you have your dimensions, you can enter them below. Be sure
 
@@ -67,7 +67,7 @@ plotter = Plotter3d(
 )
 ```
 
-# 3. Add a layer
+## 4. Add a layer
 
 A layer is a group of instructions that will be executed sequentially.  It usually makes sense to create layers based on the drawing instruments being used. 
 
@@ -81,7 +81,7 @@ plotter.add_layer(Layer_1)
 plotter.add_layer(Layer_2)
 ```
 
-# 4. Add lines, shapes, and paths to the layers
+## 5. Add lines, shapes, and paths to the layers
 
 Once a layer is created, start appending instructions to that layer.
 
@@ -95,7 +95,7 @@ plotter.layers[Layer_1].add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15,
 ```
  
 
-# 5. Save layers to file
+## 6. Save layers to file
 
 ```
 plotter.save()
@@ -105,13 +105,13 @@ If you navigate to the folder specified by `output_directory`, you should now se
 
 For a full description of the API, check out the [Plotter API](./api/plotter) and the [Layer API](./api/layer).
 
-# 6. Plot
+## 7. Plot
 
 TODO - Set the origin if needed
 
 Start plotting. Don't forget to return to zero.
 TODO - Can I improve the return to zero for folks without limit siwtches?
 
-7. Next steps
+## 8. Next steps
 
 Check out the [Plotting Tips](./tips/plotting_tips) and [Code Tips](./tips/code_tips). Find some inspiration in the [Plotting Gallery](./category/gallery).
