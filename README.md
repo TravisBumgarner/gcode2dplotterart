@@ -4,7 +4,7 @@
 
 # Introduction
 
-[GCode](https://marlinfw.org/meta/gcode/) wrapper to generate GCode for 2D plotter art. Add points, lines, circles, and more and get GCode instructions to send to your 2D Plotter or converted 3D Printer.
+[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or converted 3D Printer.
 
 # Installation
 
@@ -26,7 +26,7 @@ plotter = Plotter(
   y_min = 100,         # Minimum plotter location along the Y-Axis
   y_max = 0,           # Maximum plotter location along the Y-Axis
   feed_rate=10000      # Feed rate of the plotter
-  output_dir="output"  # Output directory for GCode files, defaults to `output`
+  output_dir="output"  # Output directory for G-Code files, defaults to `output`
 )
 ```
 
@@ -34,7 +34,7 @@ plotter = Plotter(
 
 ## Add `Layer`(s)
 
-A layer is a collection of plotter instructions that will be executed together. Each layer will generate a separate G-code file. It can be useful to separate layers by color. Each GCode file can be fed into UGS separately, allowing time to change the tool head.
+A layer is a collection of plotter instructions that will be executed together. Each layer will generate a separate G-code file. It can be useful to separate layers by color. Each G-Code file can be fed into UGS separately, allowing time to change the tool head.
 
 ```python
 
@@ -82,7 +82,7 @@ Note that these helper functions include `add_special` so you do not need to cal
 ```python
   plotter.add_layer('layer_1')
 
-  # Add comments anywhere in the GCode to make it more easily readable
+  # Add comments anywhere in the G-Code to make it more easily readable
   plotter.layers['layer_1'].add_comment('Draw a circle, rectangle, line, and path')
 
   # Draw a circle with center at x = 10, y = 20, and radius = 5
@@ -102,11 +102,11 @@ Note that these helper functions include `add_special` so you do not need to cal
     ])
 ```
 
-### Preview GCode
+### Preview G-Code
 
-The GCode for this project 
+The G-Code for this project 
 
 Browse the output (defaults to `./output`) directory to find the collection of files.
 
-To understand the GCode, you can read more about the instructions here:
+To understand the G-Code, you can read more about the instructions here:
 https://marlinfw.org/meta/gcode/

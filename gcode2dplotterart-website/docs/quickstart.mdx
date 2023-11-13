@@ -1,0 +1,117 @@
+---
+sidebar_position: 2
+---
+
+# Quick start
+
+This guide covers setup for both 2D plotter and 3D printers. Instructions at certain steps will differ based on if you are using a 2D plotter or 3D printer. Additionally, 3D printers require some extra setup steps and will be noted with an additional section of **3D printer**. 
+
+## 1. Library Installation
+
+Install the Python package with `pip install gcode2dplotterart`
+
+
+## 2. Setup Hardware
+
+### 3D Printer
+
+Follow the guide to [Convert your 3D Printer to a 2D Plotter](./guides/convert-3d-to-2d).
+
+## 3. Get Plotting Device Dimensions
+
+You will need your plotting device's dimensions. If you've never used the Universal G-Code Sender application before, it is recommended you read [this article](./guides/ugs). Or if you prefer, you can jump straight to [Get your plotting device's dimensions](./guides/ugs#get-your-plotting-devicess-dimensions). Once you have your dimensions, you can enter them below. Be sure
+
+:::note
+
+Be sure to import the correct class, `Plotter2d`, or `Plotter3d` depending on the device you're using.
+
+:::
+
+### 2D Plotter
+
+```python
+from gcode2dplotterart import Plotter2d
+
+plotter = Plotter2d(
+  units="mm", # Change to `inches` if you're using inches.
+  x_min = 0,
+  x_max = 0,
+  y_min = 0,
+  y_max = 0,
+  feed_rate=10000, # Depending on your plotting device, you can raise or lower this value.
+  output_directory="./output", 
+  include_border_layer=False, # Don't draw a border layer
+  include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
+  handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
+)
+```
+
+### 3D Printer
+
+```python
+from gcode2dplotterart import Plotter3d
+
+plotter = Plotter3d(
+  units="mm", # Change to `inches` if you're using inches.
+  x_min = 0,
+  x_max = 0,
+  y_min = 0,
+  y_max = 0,
+  z_drawing_height = 0,
+  z_navigation_height = 0,
+  feed_rate=10000, # Depending on your plotting device, you can raise or lower this value.
+  output_directory="./output", 
+  include_border_layer=False, # Don't draw a border layer
+  include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
+  handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
+)
+```
+
+## 4. Add a layer
+
+A layer is a group of instructions that will be executed sequentially.  It usually makes sense to create layers based on the drawing instruments being used. 
+
+You can add several layers to plot with different colors, for now we'll stick with one layer.
+```
+
+layer_1 = 'black_marker_layer'
+Layer_2 = 'blue_pen_layer'
+
+plotter.add_layer(Layer_1)
+plotter.add_layer(Layer_2)
+```
+
+## 5. Add lines, shapes, and paths to the layers
+
+Once a layer is created, start appending instructions to that layer.
+
+
+```
+plotter.layers[Layer_1].add_rectangle(x_start=25, y_start=25, x_end=50, y_end=50)
+plotter.layers[Layer_1].add_point(30, 40)
+plotter.layers[Layer_2].add_circle(1, 1, 10)
+plotter.layers[Layer_2].add_rectangle(50, 50, 75, 75)
+plotter.layers[Layer_1].add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15
+```
+ 
+
+## 6. Save layers to file
+
+```
+plotter.save()
+```
+
+If you navigate to the folder specified by `output_directory`, you should now see three files `preview.gcode`, `Layer_1.gcode`, and `Layer_2.gcode`. If you like, you can open each of the files and browse the code. The [G-Code Overview](./guides/gcode) includes explanations of all of the instructions.
+
+For a full description of the API, check out the [Plotter API](./api/plotter) and the [Layer API](./api/layer).
+
+## 7. Plot
+
+TODO - Set the origin if needed
+
+Start plotting. Don't forget to return to zero.
+TODO - Can I improve the return to zero for folks without limit siwtches?
+
+## 8. Next steps
+
+Check out the [Plotting Tips](./tips/plotting_tips) and [Code Tips](./tips/code_tips). Find some inspiration in the [Plotting Gallery](./category/gallery).

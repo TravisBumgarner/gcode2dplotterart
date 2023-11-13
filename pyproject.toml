@@ -8,7 +8,7 @@ version = "0.0.4"
 authors = [
   { name="Travis Bumgarner", email="travis@sillysideprojects.com" },
 ]
-description = "GCode Abstraction for creating 2D Plotter Art"
+description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
 readme = "README.md"
 requires-python = ">=3.0"
 classifiers = [

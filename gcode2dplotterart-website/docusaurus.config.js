@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'gcode2dplotterart',
-  tagline: 'GCode Abstraction for creating 2D Plotter Art',
+  tagline: 'Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art.',
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here
@@ -73,10 +73,17 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Tutorials',
+            type: 'doc',
+            docId: 'quickstart',
+            label: 'Quick Start',
+          },
+          {
+            to: '/docs/category/gallery',
+            label: 'Gallery',
+          },
+          {
+            to: '/docs/category/documentation',
+            label: 'Documentation',
           },
           {
             href: 'https://github.com/TravisBumgarner/gcode2dplotterart',
@@ -89,11 +96,19 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'Docs',
+            title: 'Site Links',
             items: [
               {
-                label: 'Tutorials',
-                to: '/docs/intro',
+                label: 'Quick Start',
+                to: '/docs/quickstart',
+              },
+              {
+                label: 'Gallery',
+                to: '/docs/category/gallery',
+              },
+              {
+                label: 'Documentation',
+                to: '/docs/category/documentation',
               }
             ],
           },
@@ -113,7 +128,7 @@ const config = {
           {
             title: 'More',
             items: [
-            
+
               {
                 label: 'Silly Side Projects',
                 href: 'https://sillysideprojects.com',
