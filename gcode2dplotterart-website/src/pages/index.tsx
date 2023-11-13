@@ -30,8 +30,8 @@ export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="G-Code Abstraction for creating 2D Plotter Art">
+      title="gcode2dplotterart"
+      description="Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
