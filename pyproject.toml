@@ -1,21 +1,25 @@
-[build-system]
-requires = ["hatchling", "imutils", "numpy", "opencv-python", "pydoc-markdown", "mypy", "flake8", "pytest", "matplotlib"]
-build-backend = "hatchling.build"
-
 [project]
 name = "gcode2dplotterart"
-version = "0.0.4"
+version = "0.0.1"
+description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
 authors = [
   { name="Travis Bumgarner", email="travis@sillysideprojects.com" },
 ]
-description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
-readme = "README.md"
-requires-python = ">=3.0"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+
+[build-system]
+requires = ["hatchling", "setuptools", "wheel"]
+build-backend = "hatchling.build"
+
+[tool.poetry.dependencies]
+python = "^3.11.5"
+mypy="^1.7.0"
+black="^23.10.1"
+flake8="^6.1.0"
+pytest="^7.4.3"
+matplotlib="^3.8.1"
+numpy="^1.26.1"
+setuptools = "^68.2.2"
+wheel = "^0.41.3"
 
 [project.urls]
 "Homepage" = "https://github.com/TravisBumgarner/gcode2dplotterart"

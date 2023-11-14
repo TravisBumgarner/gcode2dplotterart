@@ -210,7 +210,7 @@ class _AbstractPlotter(ABC):
                     y_values,
                     color=layer_title,
                     linestyle="-",
-                    linewidth=10.0,
+                    linewidth=5.0,
                     solid_capstyle="round",
                 )
 

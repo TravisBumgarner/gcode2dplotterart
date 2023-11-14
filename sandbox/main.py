@@ -1,4 +1,8 @@
 from gcode2dplotterart import Plotter2d
+import cv2
+import numpy as np
+from imutils import resize
+from math import floor
 from typing import Any
 
 """
@@ -152,4 +156,5 @@ for y, row in enumerate(grayscale_buckets):
 print(COLOR_LAYERS)
 print(color_counts)  #  one_off_error_this_file_will_be_empty is sometimes empty
 print(plotter.get_min_and_max_points())
+plotter.preview()
 plotter.save()
