@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import List, Dict, Literal, Union
 from abc import ABC, abstractmethod
+import matplotlib.pyplot as plt
 
 from .Layer import Layer2d, Layer3d
 from .types import THandleOutOfBounds, TUnits
@@ -194,6 +195,32 @@ class _AbstractPlotter(ABC):
             output[title] = layer.get_plotting_data()
         return output
 
+    def preview(self) -> None:
+        """
+        Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
+        Plotter. Only looks at instructions during the plotting phase.
+        """
+
+        for layer_title in self.layers:
+            preview_paths = self.layers[layer_title].preview_paths()
+            for preview_path in preview_paths:
+                x_values, y_values = zip(*preview_path)
+                plt.plot(
+                    x_values,
+                    y_values,
+                    color=layer_title,
+                    linestyle="-",
+                    linewidth=10.0,
+                    solid_capstyle="round",
+                )
+
+        plt.gca().set_aspect("equal", adjustable="box")
+
+        plt.xlim(self.x_min - 10, self.x_max + 10)
+        plt.ylim(self.y_min - 10, self.y_max + 10)
+
+        plt.show()
+
     def save(self, clear_output_before_save: bool = True) -> None:
         """
         Save all the layers to the output directory defined by the
@@ -203,7 +230,7 @@ class _AbstractPlotter(ABC):
         are set to True, they will be saved as `border.gcode` and
         `preview.gcode` respectively.
 
-        Arg:
+        Args:
           clear_output_before_save : boolean
             Whether to remove all files from the artwork output directory
             (defined as [output_directory]/[title]) before saving,
