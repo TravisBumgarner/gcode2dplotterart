@@ -1,4 +1,0 @@
--e git+ssh://git@github.com/TravisBumgarner/2d-plotter-art-gcode.git@817beaf7630b2f268fd95ad0e4f56bed194f786f#egg=gcode2dplotterart
-imutils==0.5.4
-numpy==1.26.1
-opencv-python==4.8.1.78

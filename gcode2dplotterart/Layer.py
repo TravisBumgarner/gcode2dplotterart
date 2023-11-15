@@ -1,7 +1,8 @@
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Optional
 from typing_extensions import Self
 import math
 from abc import ABC, abstractmethod
+import secrets
 
 from .types import THandleOutOfBounds, TUnits, TInstructionType
 
@@ -24,7 +25,7 @@ x = 5
 x = 10
 
 
-class Point:
+class InstructionPoint:
     """
     A class representing a point in 2D space with an optional feed rate.
 
@@ -255,7 +256,25 @@ class SpecialInstructionNavigationHeight3DPrinter:
         return f"\nG1 Z{self.z_navigating_height}"
 
 
+TInstructionUnion = Union[
+    InstructionPoint,
+    SpecialInstructionComment,
+    SpecialInstructionFeedRate,
+    SimpleInstruction,
+    SimpleInstructionDrawingHeight2DPlotter,
+    SimpleInstructionNavigationHeight2DPlotter,
+    SimpleInstructionPause,
+    SimpleInstructionUnitsMM,
+    SimpleInstructionUnitsInches,
+    SimpleInstructionProgramEnd,
+    SpecialInstructionDrawingHeight3DPrinter,
+    SpecialInstructionNavigationHeight3DPrinter,
+]
+
+
 class Layer(ABC):
+    instructions: Dict[TInstructionType, List[TInstructionUnion]]
+
     def __init__(
         self,
         x_min: float,
@@ -265,18 +284,17 @@ class Layer(ABC):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ):
-        # Todo - Better type refinement
-        self.instructions: Dict[TInstructionType, list] = {
+        self.color = color if color else f"#{secrets.token_hex(3, )}"
+
+        self.instructions: Dict[TInstructionType, TInstructionUnion] = {
             "setup": [],
             "plotting": [],
             "teardown": [],
         }
         self.preview_only = preview_only
-
-        # Todo - Better type refinement
-        self.plotted_points: list = []
 
         # For calculating if a point is out of the range of the plotter.
         self.plotter_x_min = x_min
@@ -428,10 +446,8 @@ class Layer(ABC):
                 )
         self.add_comment(f"Point: {x}, {y}", instruction_type)
         self._update_max_and_min(x, y)
-        if self.is_print_head_lowered:
-            self.plotted_points.append((x, y))
 
-        point = Point(self.feed_rate, x, y)
+        point = InstructionPoint(self.feed_rate, x, y)
         self.instructions[instruction_type].append(point)
         return self
 
@@ -654,6 +670,44 @@ class Layer(ABC):
                 )
             )
 
+    def preview_paths(self) -> List[List[Tuple[float, float]]]:
+        """
+        Generate an array of paths for the given layer. This will be used by the `Plotter`
+        to generate a preview graph of the plot. Only looks at instructions during the `plotting`
+        phase.
+        """
+        is_plotting = False  # Layer is set to initially be in navigation mode.
+        paths: List[List[Tuple[float, float]]] = []
+        current_path: List[Tuple[float, float]] = []
+        # Before the plotter begins drawing, it needs to move to a point, switch to drawing mode, and begin drawing.
+        # This will hold the most recent navigation point before the switch to drawing mode is made.
+        previous_navigation_point = None
+
+        for instruction in self.instructions["plotting"]:
+            if isinstance(
+                instruction, SimpleInstructionNavigationHeight2DPlotter
+            ) or isinstance(instruction, SpecialInstructionNavigationHeight3DPrinter):
+                is_plotting = False
+                if len(current_path) > 0:
+                    paths.append(current_path)
+                    current_path = []
+
+            if isinstance(
+                instruction, SimpleInstructionDrawingHeight2DPlotter
+            ) or isinstance(instruction, SpecialInstructionDrawingHeight3DPrinter):
+                is_plotting = True
+                if previous_navigation_point:
+                    current_path.append(previous_navigation_point)
+                    previous_navigation_point = None
+
+            if not is_plotting and isinstance(instruction, InstructionPoint):
+                previous_navigation_point = (instruction.x, instruction.y)
+
+            if is_plotting and isinstance(instruction, InstructionPoint):
+                current_path.append((instruction.x, instruction.y))
+
+        return paths
+
     def get_plotting_data(self) -> Dict[str, List[str]]:
         """
         Get current plotting data
@@ -686,6 +740,7 @@ class Layer2d(Layer):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -697,6 +752,7 @@ class Layer2d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            color=color,
         )
 
     def set_mode_to_draw(
@@ -762,6 +818,7 @@ class Layer3d(Layer):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -773,6 +830,7 @@ class Layer3d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            color=color,
         )
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height

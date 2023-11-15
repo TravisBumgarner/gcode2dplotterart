@@ -93,11 +93,25 @@ Once you find your device, please share it [here](https://github.com/TravisBumga
 These instructions assume you've read the [UGS Features](#ugs-features) section above.
 
 1. Open the Jog Controller. 
-2. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-3. If you have a 3d printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down**
-4. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
-5. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down**
-6. If you have a 3d printer, you'll need move in the opposite direction you moved in step 3. **Write this number down**
+2. Select `millimeters` or `inches`. 
+3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
+4. If you have a 3d printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
+5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
+6. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
+7. If you have a 3d printer, you'll need move in the opposite direction you moved in step 3. **Write this number down.**
+
+### Get your plotting devices's feed rate
+
+These instructions assume you've read the [UGS Features](#ugs-features) section above.
+
+1. Attach your drawing instrument to your plotting device. 
+2. Open the Jog Controller. 
+3. Select `millimeters` or `inches` for units. 
+4. Set the `Step size XY` to be about `10` for `millimeters` units and `1` for `inches` units. 
+5. Move the print head in the Z direction so that the tip of the drawing instrument is touching the drawing surface. 
+6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units or `200` for `inches`. 
+7. Click on the arrows to move the print head around the drawing surface. 
+8. Try raising and lowering the `Feed Rate` until it moves at a speed that works for your device.  **Write this number down.**
 
 ### Setting your plotting device to home
 

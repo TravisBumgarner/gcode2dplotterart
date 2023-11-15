@@ -8,9 +8,12 @@
 # Install dependencies                        #
 ###############################################
 
-# python3 -m venv gcode2dplotterart-venv
-# source ./gcode2dplotterart-venv/bin/activate
-# pip install .
+python3 -m venv sandbox-venv
+source ./sandbox-venv/bin/activate
+pip install -r requirements-sandbox.txt
+
+# Make it so Python can reference the library's live changes.
+pip install --editable .
 
 ###############################################
 # Setup the pre-commit hook script            #
