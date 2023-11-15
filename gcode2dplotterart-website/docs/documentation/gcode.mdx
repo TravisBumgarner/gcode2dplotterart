@@ -49,11 +49,12 @@ F10000
 
 ### G1
 
- Move the plotter to the specified `x` and `y` coordinates at a speed of `f` with `G1 X[x] Y[y] F[f]`.
+ Move the plotter to the specified `x` and `y` and `z` coordinates at a speed of `f` with `G1 X[x] Y[y] Z[z] F[f]`. Not all of the coordinates are required. 
 
 ```gcode
 G1 X0.000 Y0.000 F10000
-G1 X50.000 Y0.000 F10000
+G1 X50.000 F10000
+G1 Z10 F10000
 G1 X50.000 Y-50.000 F10000
 ```
 
@@ -108,7 +109,7 @@ M3 S1000
 ; Draw two lines
 G1 X50.000 Y0.000 F10000
 G1 X50.000 Y-50.000 F10000
-; Raise the print head
+; Raise the print head on a 2D Plotter, A `G1` command with `Z` height would be used here for a 3D Printer.
 M3 S0
 ```
 

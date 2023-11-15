@@ -36,10 +36,17 @@ Click the `Millimeters` button to toggle between millimeters and inches. You can
 
 ![Toolbox screenshot](/img/ugs/toolbox.png)
 
-The toolbox contains several useful features.
+The toolbox contains several useful features listed below.
 
-- `Reset Zero` - This will set the print head's current position to X = 0, Y = 0. All future movements will be made relative to this position. 
+:::danger
+
+Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
+:::
+
+- `Reset Zero` - This will set the print head's current position to `X = 0`, `Y = 0`, and optionally `Z = 0`. All future movements will be made relative to this position. 
 - `Return to Zero` - This will return the print head to the position defined by `Reset Zero`
+
+
 
 ### Macros
 
@@ -49,15 +56,12 @@ Macros let you define custom G-Code commands. I have defined some custom macros 
 
 :::caution
 
-These instructions are specific to 2d plotters. More detail on creating your own macros will be defined in the TODO
+These instructions are specific to 2D plotters. Check out the [G-Code Docs](./gcode) for other instructions that can be made.
 
 :::
 
 ![Create macro screenshot](/img/ugs/macro-create.png)
 
-### Console
-
-TODO
 
 ### Visualizer
 
@@ -90,15 +94,42 @@ Once you find your device, please share it [here](https://github.com/TravisBumga
 
 ### Get your plotting devices's dimensions
 
+:::danger
+Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
+:::
+
 These instructions assume you've read the [UGS Features](#ugs-features) section above.
 
 1. Open the Jog Controller. 
 2. Select `millimeters` or `inches`. 
 3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-4. If you have a 3d printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
-5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
+4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
+5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting.
 6. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
-7. If you have a 3d printer, you'll need move in the opposite direction you moved in step 3. **Write this number down.**
+7. If you have a 3D printer, you'll need move in the opposite direction you moved in step 3. **Write this number down.**
+
+### Reset Zero
+
+:::danger
+Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
+:::
+
+Once you've initially performed [getting your plotting device's dimensions](#get-your-plotting-devicess-dimensions), this step should be performed every time you power on your device.
+
+1. Open the Jog Controller. 
+2. Select `millimeters` or `inches`. 
+3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
+4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface.
+5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
+6. Now move the print head around in the X, Y, and optionally Z directions.
+
+:::danger
+
+Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
+:::
+
+7. Switch to the Toolbox and click `Return to Zero`. Your plotting device will return to the point that was defined by `Reset Zero`
+
 
 ### Get your plotting devices's feed rate
 
@@ -112,26 +143,6 @@ These instructions assume you've read the [UGS Features](#ugs-features) section 
 6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units or `200` for `inches`. 
 7. Click on the arrows to move the print head around the drawing surface. 
 8. Try raising and lowering the `Feed Rate` until it moves at a speed that works for your device.  **Write this number down.**
-
-### Setting your plotting device to home
-
-An important step when turning on your plotting device is to teach it where the (0,0) (also known as "home" position) is. 
-
-Some devices have limit switches. These are little switches that when pressed down, will instruct the plotting device that it is at 0 in the X-direction or 0 in the Y-direction. TODO - Finish for 3d printers. If your plotting device has limit switches, this step is complete.
-
-If your device does not have limit switches, you'll need to do the following:
-
-1. Open the Jog Controller. 
-2. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-3. Open Toolbox.
-4. Click `Reset to Zero`
-
-Now when you click the `Return to Zero` button, it'll return to this point.
-
-:::danger
-
-Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
-:::
 
 ### Open `.gcode` files
 

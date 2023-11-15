@@ -30,7 +30,7 @@ If you've never used the Universal G-Code Sender application before, it is recom
 
 ## 4. Get Plotting Device Dimensions
 
-[Get your plotting device's dimensions](./documentation/ugs#get-your-plotting-devicess-dimensions).
+[Get your plotting device's dimensions](./documentation/ugs#get-your-plotting-devicess-dimensions). 
 
 [Get your plotting device's feed rate](./documentation/ugs#get-your-plotting-devicess-feed-rate).
 
@@ -44,11 +44,16 @@ from gcode2dplotterart import Plotter2d
 plotter=Plotter2d(
   title="Plotter2d Quickstart",
   units="mm", # Change to `inches` if you're using inches.
-  x_min=0,
-  x_max=100,
-  y_min=0,
-  y_max=100,
+  
+  # The following 4 values are from the `Get your plotting device's dimensions` article above. 
+  x_min=0, # This will be the value `X-` or 0
+  x_max=100, # This will be the value `X+`
+  y_min=0, # This will be the value `Y-` or 0
+  y_max=100, # This will be the value `Y+` or 0
+  
+  # This value is from the `Get your plotting device's feed rate` article above.
   feed_rate=0,
+
   output_directory="./output", 
   include_border_layer=False, # Don't draw a border layer
   include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
@@ -64,13 +69,18 @@ from gcode2dplotterart import Plotter3d
 plotter=Plotter3d(
   title="Plotter3d Quickstart",
   units="mm", # Change to `inches` if you're using inches.
-  x_min=0,
-  x_max=100,
-  y_min=0,
-  y_max=100,
-  z_drawing_height=0,
-  z_navigation_height=0,
+
+  # The following 6 values are from the `Get your plotting device's dimensions` article above. 
+  x_min=0, # This will be the value `X-` or 0
+  x_max=100, # This will be the value `X+`
+  y_min=0, # This will be the value `Y-` or 0
+  y_max=100, # This will be the value `Y+` or 0
+  z_drawing_height=0, # This will be the value of `Z` that connects your print head to the plotting surface.
+  z_navigation_height=0, # This will be the value of `Z` that separate your print head from the plotting surface.
+
+  # This value is from the `Get your plotting device's feed rate` article above.
   feed_rate=0,
+
   output_directory="./output", 
   include_border_layer=False, # Don't draw a border layer
   include_preview_layer=True, # Include a preview layer that'll outline your print without drawing anything.
@@ -134,10 +144,14 @@ For a full description of the API, check out the [Plotter API](./api/plotter) an
 
 ## 7. Plot
 
-TODO - Set the origin if needed
+:::danger
+Be sure to [Reset Zero](documentation/ugs#reset-zero) every time you power your plotting device on.
+
+:::
 
 Start plotting. Don't forget to return to zero.
 TODO - Can I improve the return to zero for folks without limit siwtches?
+
 
 ## 8. Next steps
 
