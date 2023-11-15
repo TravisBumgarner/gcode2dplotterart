@@ -107,18 +107,18 @@ plotter = Plotter2d(
 
 # TODO - Might want to think about how the ordering here maps to the histogram bucketing.
 COLOR_LAYERS = [
-    "purplea",
-    "bluea",
-    "yellaow",
-    "oranage",
-    "read",
+    "purple",
+    "blue",
+    "yellow",
+    "orange",
+    "red",
 ]  # "one_off_error_this_file_will_be_empty"]
 for layer in COLOR_LAYERS:
-    plotter.add_layer(layer)
+    plotter.add_layer(layer, color=layer)
 
 input_filename = "landscape.jpg"
 
-# Works with color PNGs exported from Lightroom and hotoshop. Could learn some more about reading images
+# Works with color PNGs exported from Lightroom and Photoshop. Could learn some more about reading images
 grayscale_buckets = convert_image_to_n_grayscale_colors(
     input_filename, n=len(COLOR_LAYERS)
 )
