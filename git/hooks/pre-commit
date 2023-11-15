@@ -1,4 +1,4 @@
-source ./gcode2dplotterart-venv/bin/activate 
+source ./sandbox-venv/bin/activate 
 pytest &&
 flake8 --max-line-length 120 ./gcode2dplotterart && 
 black ./gcode2dplotterart --check

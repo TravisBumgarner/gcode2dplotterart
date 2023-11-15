@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from imutils import resize
 from math import floor
-from typing import Any
+from typing import List
 
 """
 Preface - numpy and cv2 are still a bit alien to me. The code here could probably be done better. 
@@ -35,9 +35,11 @@ X_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 
 
-# Todo - this algorithm seems like it's broken and not evenly distrubuting the pixels.
+# Todo - this algorithm seems like it's broken and not evenly distributing the pixels.
 # Or it might work, and it's just not good for images with lots of a single color.
-def evenly_distribute_pixels_per_color(img: Any, n: int) -> Any:
+def evenly_distribute_pixels_per_color(
+    img: cv2.typing.MatLike, n: int
+) -> List[List[int]]:
     """
     Ensures that each color has the same number of pixels.
 
@@ -46,10 +48,8 @@ def evenly_distribute_pixels_per_color(img: Any, n: int) -> Any:
     :return: image mapped
     """
     total_pixels = img.size
-    print("total pixels", total_pixels)
     pixel_bins = [0]
-    histogram, bins = np.histogram(img.ravel(), 256, [0, 256])
-    print(histogram)
+    histogram, bins = np.histogram(img.ravel(), 256, (0, 256))
     count = 0
     for pixel_value, pixel_count in enumerate(histogram):
         if count >= total_pixels / (n):
@@ -61,16 +61,15 @@ def evenly_distribute_pixels_per_color(img: Any, n: int) -> Any:
     return np.subtract(np.digitize(img, pixel_bins), 1)
 
 
-def convert_image_to_n_grayscale_colors(filename: str, n: int) -> Any:
+def convert_image_to_n_grayscale_colors(filename: str, n: int) -> List[List[int]]:
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    [width, height] = img.shape
 
     # The following math will ensure that the image is scaled to the plotter size and the remaining math
     # throughout the program will work.
     plotter_ratio = "landscape" if plotter.width > plotter.height else "portrait"
-    img_ratio = "landscape" if width > height else "portrait"
-
+    # It appears shape is (columns, rows)
+    img_ratio = "landscape" if img.shape[1] > img.shape[0] else "portrait"
     if (
         plotter_ratio == "landscape"
         and img_ratio == "landscape"
@@ -84,6 +83,7 @@ def convert_image_to_n_grayscale_colors(filename: str, n: int) -> Any:
         or plotter_ratio == "landscape"
         and img_ratio == "portrait"
     ):
+        print("resizing height")
         img = resize(img, height=floor(plotter.height * Y_PIXELS_PER_PLOTTER_UNIT))
 
     print("resized to ", img.shape)
@@ -107,30 +107,28 @@ plotter = Plotter2d(
 
 # TODO - Might want to think about how the ordering here maps to the histogram bucketing.
 COLOR_LAYERS = [
-    "purple",
-    "blue",
-    "yellow",
-    "orange",
-    "red",
+    "purplea",
+    "bluea",
+    "yellaow",
+    "oranage",
+    "read",
 ]  # "one_off_error_this_file_will_be_empty"]
 for layer in COLOR_LAYERS:
     plotter.add_layer(layer)
 
 input_filename = "landscape.jpg"
 
-# Works with color PNGs exported from lightroom and photoshop. Could learn some more about reading images
+# Works with color PNGs exported from Lightroom and hotoshop. Could learn some more about reading images
 grayscale_buckets = convert_image_to_n_grayscale_colors(
     input_filename, n=len(COLOR_LAYERS)
 )
-print(grayscale_buckets)
-print(grayscale_buckets.shape)
 
 color_counts = [0 for _ in COLOR_LAYERS]
 # Todo - I think there's a bug here with getting to the end of rows. Not sure what happened with the sunset photos.
 for y, row in enumerate(grayscale_buckets):
     y_scaled = (
         y / Y_PIXELS_PER_PLOTTER_UNIT * -1
-    )  # My plotter goes from -150 to 0, and therefore I negate all the numbers. Probably a better solution I'll need to research.
+    )  # My plotter goes y=-150 to y=0, therefore numbers are negative. Probably a better solution.
     line_start = [0, y_scaled]
     line_end = None
     current_color_value = grayscale_buckets[0][y]
@@ -153,8 +151,5 @@ for y, row in enumerate(grayscale_buckets):
     )
     color_counts[current_color_value] += 1
 
-print(COLOR_LAYERS)
-print(color_counts)  #  one_off_error_this_file_will_be_empty is sometimes empty
-print(plotter.get_min_and_max_points())
 plotter.preview()
 plotter.save()

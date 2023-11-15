@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import List, Dict, Literal, Union
+from typing import List, Dict, Literal, Union, Optional
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
@@ -105,8 +105,29 @@ class _AbstractPlotter(ABC):
 
     @abstractmethod
     def add_layer(
-        self, title: str, preview_only: bool = False
+        self, title: str, color: Optional[str] = None, preview_only: bool = False
     ) -> Union[Layer2d, Layer3d]:
+        """
+        Add a new layer to the plotter
+
+        Args:
+          title : str
+            The title of the layer. Used when saving a layer to G-Code.
+          color : str
+            A hex color (such as `#00FF00`) or human readable color name
+            (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
+            for a list of colors). Used with the `preview` method
+          preview_only : bool
+            Whether the layer is a preview layer. Preview layers show the
+            print head in motion but do not come in contact with drawing
+            surface. Defaults to `False`
+
+        Returns:
+          Layer
+            The newly created layer. Allows for chaining of the layer's add
+            methods.
+        """
+
         pass
 
     def add_border_layer(self) -> None:
@@ -208,16 +229,13 @@ class _AbstractPlotter(ABC):
                 plt.plot(
                     x_values,
                     y_values,
-                    color=layer_title,
+                    color=self.layers[layer_title].color,
                     linestyle="-",
                     linewidth=5.0,
                     solid_capstyle="round",
                 )
 
         plt.gca().set_aspect("equal", adjustable="box")
-
-        plt.xlim(self.x_min - 10, self.x_max + 10)
-        plt.ylim(self.y_min - 10, self.y_max + 10)
 
         plt.show()
 
@@ -285,26 +303,9 @@ class Plotter2d(_AbstractPlotter):
             include_preview_layer=include_preview_layer,
         )
 
-    def add_layer(self, title: str, preview_only: bool = False) -> Layer2d:
-        """
-        Add a new layer to the plotter
-
-        Args:
-          title : str
-            The title of the layer. Used when saving a layer to G-Code.
-          preview_only : bool
-            Whether the layer is a preview layer. Preview layers show the
-            print head in motion but do not come in contact with drawing
-            surface.
-
-        Returns:
-          Layer
-            The newly created layer. Allows for chaining of the layer's add
-            methods.
-
-
-        """
-
+    def add_layer(
+        self, title: str, color: Optional[str] = None, preview_only: bool = False
+    ) -> Layer2d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer2d(
             units=self.units,
@@ -315,6 +316,7 @@ class Plotter2d(_AbstractPlotter):
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
+            color=color,
         )
         self.layers[title] = new_layer
 
@@ -357,26 +359,9 @@ class Plotter3d(_AbstractPlotter):
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height
 
-    def add_layer(self, title: str, preview_only: bool = False) -> Layer3d:
-        """
-        Add a new layer to the plotter
-
-        Args:
-          title : str
-            The title of the layer. Used when saving a layer to G-Code.
-          preview_only : bool
-            Whether the layer is a preview layer. Preview layers show the
-            print head in motion but do not come in contact with drawing
-            surface.
-
-        Returns:
-          Layer
-            The newly created layer. Allows for chaining of the layer's add
-            methods.
-
-
-        """
-
+    def add_layer(
+        self, title: str, color: Optional[str] = None, preview_only: bool = False
+    ) -> Layer3d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer3d(
             units=self.units,
@@ -389,6 +374,7 @@ class Plotter3d(_AbstractPlotter):
             preview_only=preview_only,
             z_drawing_height=self.z_drawing_height,
             z_navigation_height=self.z_navigation_height,
+            color=color,
         )
 
         self.layers[title] = new_layer

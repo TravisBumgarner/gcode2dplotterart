@@ -1,7 +1,8 @@
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Optional
 from typing_extensions import Self
 import math
 from abc import ABC, abstractmethod
+import secrets
 
 from .types import THandleOutOfBounds, TUnits, TInstructionType
 
@@ -283,8 +284,11 @@ class Layer(ABC):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ):
+        self.color = color if color else f"#{secrets.token_hex(3, )}"
+
         self.instructions: Dict[TInstructionType, TInstructionUnion] = {
             "setup": [],
             "plotting": [],
@@ -736,6 +740,7 @@ class Layer2d(Layer):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -747,6 +752,7 @@ class Layer2d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            color=color,
         )
 
     def set_mode_to_draw(
@@ -812,6 +818,7 @@ class Layer3d(Layer):
         units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
+        color: Optional[str],
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -823,6 +830,7 @@ class Layer3d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            color=color,
         )
         self.z_drawing_height = z_drawing_height
         self.z_navigation_height = z_navigation_height
