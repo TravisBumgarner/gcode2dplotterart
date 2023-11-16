@@ -231,7 +231,7 @@ class _AbstractPlotter(ABC):
                     y_values,
                     color=self.layers[layer_title].color,
                     linestyle="-",
-                    linewidth=5.0,
+                    linewidth=2.0,
                     solid_capstyle="round",
                 )
 

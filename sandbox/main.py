@@ -3,10 +3,11 @@ import cv2
 import numpy as np
 from imutils import resize
 from math import floor
-from typing import List
+from typing import List, Tuple
+from random import shuffle
 
 """
-Preface - numpy and cv2 are still a bit alien to me. The code here could probably be done better. 
+Preface - numpy and cv2 are still a bit alien to me. The code here could be done better.
 
 1. Take in an image.
 2. Grayscale all of the pixels so that each pixel is represented by a number from 0 to 255.
@@ -35,20 +36,24 @@ X_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 
 
-# Todo - this algorithm seems like it's broken and not evenly distributing the pixels.
-# Or it might work, and it's just not good for images with lots of a single color.
 def evenly_distribute_pixels_per_color(
     img: cv2.typing.MatLike, n: int
 ) -> List[List[int]]:
     """
     Ensures that each color has the same number of pixels.
 
-    :param img: Image to process
-    :param n: Number of buckets to distribute pixels into
-    :return: image mapped
+    Arg:
+        `img` : cv2.typing.MatLike
+            The image to process
+        `n` : Number of colors to distribute pixels into
+
+    Returns
+    `   img` : List[List[int]]
+           Image mapped to n colors
     """
+
     total_pixels = img.size
-    pixel_bins = [0]
+    pixel_bins = []
     histogram, bins = np.histogram(img.ravel(), 256, (0, 256))
     count = 0
     for pixel_value, pixel_count in enumerate(histogram):
@@ -56,12 +61,11 @@ def evenly_distribute_pixels_per_color(
             count = 0
             pixel_bins.append(pixel_value)
         count += pixel_count
-    # No idea why this function returns starting at value of 1 indexed.
-    # Example code shows it starting at 0 indexed.
-    return np.subtract(np.digitize(img, pixel_bins), 1)
+
+    return np.subtract(np.digitize(img, pixel_bins), 0)
 
 
-def convert_image_to_n_grayscale_colors(filename: str, n: int) -> List[List[int]]:
+def resize_image_for_plotter(filename: str) -> List[List[int]]:
     img = cv2.imread(filename)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -87,7 +91,6 @@ def convert_image_to_n_grayscale_colors(filename: str, n: int) -> List[List[int]
         img = resize(img, height=floor(plotter.height * Y_PIXELS_PER_PLOTTER_UNIT))
 
     print("resized to ", img.shape)
-    img = evenly_distribute_pixels_per_color(img, n)
     return img
 
 
@@ -96,8 +99,8 @@ plotter = Plotter2d(
     units="mm",
     x_min=0,
     x_max=200,
-    y_min=-140,  # Note - My plotting goes from -150 to 0.
-    y_max=0,
+    y_min=0,  # Note - My plotting goes from -150 to 0.
+    y_max=200,
     feed_rate=10000,
     output_directory="./output",
     include_border_layer=True,
@@ -105,51 +108,114 @@ plotter = Plotter2d(
     handle_out_of_bounds="Warning",  # It appears that some points end up outside of bounds so scale down.
 )
 
-# TODO - Might want to think about how the ordering here maps to the histogram bucketing.
 COLOR_LAYERS = [
-    "purple",
-    "blue",
-    "yellow",
-    "orange",
-    "red",
-]  # "one_off_error_this_file_will_be_empty"]
+    "#000000",
+    "#111111",
+    "#222222",
+    "#333333",
+    "#444444",
+    "#555555",
+    "#666666",
+    "#777777",
+    "#888888",
+    "#999999",
+    "#AAAAAA",
+    "#BBBBBB",
+    "#CCCCCC",
+    "#DDDDDD",
+    "#EEEEEE",
+]
 for layer in COLOR_LAYERS:
     plotter.add_layer(layer, color=layer)
 
-input_filename = "landscape.jpg"
+input_filename = "test.jpg"
 
 # Works with color PNGs exported from Lightroom and Photoshop. Could learn some more about reading images
-grayscale_buckets = convert_image_to_n_grayscale_colors(
-    input_filename, n=len(COLOR_LAYERS)
+resized_image = resize_image_for_plotter(input_filename)
+color_reduced_image = evenly_distribute_pixels_per_color(
+    resized_image, n=len(COLOR_LAYERS)
 )
 
-color_counts = [0 for _ in COLOR_LAYERS]
-# Todo - I think there's a bug here with getting to the end of rows. Not sure what happened with the sunset photos.
-for y, row in enumerate(grayscale_buckets):
-    y_scaled = (
-        y / Y_PIXELS_PER_PLOTTER_UNIT * -1
-    )  # My plotter goes y=-150 to y=0, therefore numbers are negative. Probably a better solution.
-    line_start = [0, y_scaled]
-    line_end = None
-    current_color_value = grayscale_buckets[0][y]
 
-    for x, color_value in enumerate(row):
-        x_scaled = x / X_PIXELS_PER_PLOTTER_UNIT
-        if color_value == current_color_value:
-            continue
+remaining_points_to_process = set()
+for row_index, row in enumerate(color_reduced_image):
+    for col_index, value in enumerate(row):
+        remaining_points_to_process.add((row_index, col_index))
 
-        line_end = [x_scaled, y_scaled]
-        plotter.layers[COLOR_LAYERS[current_color_value]].add_line(
-            line_start[0], line_start[1], line_end[0], line_end[1]
-        )
-        color_counts[current_color_value] += 1
-        line_start = line_end
-        current_color_value = color_value
-    line_end = [x_scaled, y_scaled]
-    plotter.layers[COLOR_LAYERS[current_color_value]].add_line(
-        line_start[0], line_start[1], line_end[0], line_end[1]
+
+def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, int]]:
+    """
+    Gets the neighboring points of a given point. The neighboring points are shuffled so that the order
+    in which they are checked is random. Will not return points outside of teh plotter bounds.
+
+    Args:
+        `row_index` : int
+            The row index of the point
+        `col_index` : int
+            The column index of the point
+
+    Returns:
+        `neighboring_points` : List[Tuple[int, int]]
+            The neighboring points, in the format of `(row_index, col_index)`.
+    """
+
+    total_rows, total_cols = color_reduced_image.shape
+
+    neighboring_points = []
+    for row in range(-1, 2):
+        for col in range(-1, 2):
+            if row == 0 and col == 0:
+                continue
+
+            if (
+                row_index + row < 0
+                or row_index + row + 1 >= total_rows
+                or col_index + col < 0
+                or col_index + col + 1 >= total_cols
+            ):
+                continue
+
+            neighboring_points.append((row_index + row, col_index + col))
+    shuffle(neighboring_points)
+    return neighboring_points
+
+
+current_point = remaining_points_to_process.pop()
+current_path = [current_point]
+
+current_color = color_reduced_image[current_point[1]][
+    current_point[0]
+]  # Todo this might be wrong
+while len(remaining_points_to_process) > 0:
+    print(len(remaining_points_to_process))
+
+    row_index, col_index = current_point
+    potential_next_points = get_neighboring_points(
+        row_index=row_index, col_index=col_index
     )
-    color_counts[current_color_value] += 1
+
+    for potential_row_index, potential_col_index in potential_next_points:
+        if (
+            color_reduced_image[potential_row_index, potential_col_index]
+            == current_color
+        ):
+            # `add_path` takes in values as (x, y) so we need to flip the row and column indices.
+            current_path.append((potential_row_index, potential_col_index))
+            current_point = (potential_row_index, potential_col_index)
+            break
+
+    current_point = remaining_points_to_process.pop()
+    current_point_row_index, current_point_col_index = current_point
+
+    is_deadend = current_point not in remaining_points_to_process
+    had_no_match = len(current_path) == 1
+
+    if is_deadend or had_no_match:
+        plotter.layers[COLOR_LAYERS[current_color]].add_path(current_path)
+        current_path = [current_point]
+        current_color = color_reduced_image[current_point_row_index][
+            current_point_col_index
+        ]
+
 
 plotter.preview()
-plotter.save()
