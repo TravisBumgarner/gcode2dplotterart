@@ -42,10 +42,11 @@ Note
 
 # These numbers can be changed in combination with the image size. Adds a bit of spacing since I use thicker
 # pens and they'd overlap.
-X_PIXELS_PER_PLOTTER_UNIT = 1 / 3
-Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
+X_PIXELS_PER_PLOTTER_UNIT = 1 / 4
+Y_PIXELS_PER_PLOTTER_UNIT = 1 / 4
 
 
+# This function does not seem to bucket into each color.
 def evenly_distribute_pixels_per_nth_percent_of_grayscale_range(
     img: cv2.typing.MatLike, n: int
 ) -> List[List[int]]:
@@ -61,13 +62,23 @@ def evenly_distribute_pixels_per_nth_percent_of_grayscale_range(
     `   img` : List[List[int]]
            Image mapped to n colors
     """
-    bucket_segments = 255 / (n - 1)
-    grayscale_buckets = np.round(np.divide(img, bucket_segments)).astype(np.uint8)
-    grayscale_buckets.astype(np.uint8)
+    bucket_segments = np.linspace(
+        0, 256, n + 1
+    )  # Use linspace to create evenly spaced buckets
+    grayscale_buckets = np.digitize(img, bucket_segments[:-1]) - 1
+
     print(grayscale_buckets)
+
+    max_val = np.amax(grayscale_buckets)
+    print(max_val)
+
+    min_val = np.amin(grayscale_buckets)
+    print(min_val)
+
     return grayscale_buckets
 
 
+# Something is off here. Might not be the kmeans algo, but something is.
 def kmeans_color_reduction(img: cv2.typing.MatLike, n: int) -> List[List[int]]:
     colors = [hex_to_rgb(color_layer["color"]) for color_layer in COLOR_LAYERS]
     h, w = img.shape
@@ -161,19 +172,20 @@ plotter = Plotter2d(
 # The title is the type of marker used to plot that.
 COLOR_LAYERS = [
     {"color": "#ff0000", "title": "Red"},
+    {"color": "#ff8000", "title": "Orange"},
+    {"color": "#ffff00", "title": "Yellow"},
     {"color": "#00ff00", "title": "Green"},
     {"color": "#0000ff", "title": "Blue"},
+    {"color": "#8000ff", "title": "Purple"},
 ]
 for index, layer in enumerate(COLOR_LAYERS):
     plotter.add_layer(layer["title"], color=layer["color"])
 
-input_filename = "test.jpg"
+input_filename = "test.png"
 
 # Works with color PNGs exported from Lightroom and Photoshop. Could learn some more about reading images
 resized_image = resize_image_for_plotter(input_filename)
-color_reduced_image = evenly_distribute_pixels_per_color(
-    resized_image, n=len(COLOR_LAYERS)
-)
+color_reduced_image = kmeans_color_reduction(resized_image, n=len(COLOR_LAYERS))
 
 
 def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, int]]:
@@ -225,7 +237,6 @@ def add_path_to_plotter(path: List[Point], color: str):
         for row, col in path
     ]
     plotter.layers[COLOR_LAYERS[current_color_index]["title"]].add_path(scaled_path)
-    print("added path", len(path))
 
 
 remaining_points_to_process = set()
