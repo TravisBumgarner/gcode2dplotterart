@@ -6,6 +6,13 @@ from math import floor
 from typing import List, Tuple
 from random import shuffle
 from collections import namedtuple
+from sklearn.cluster import KMeans
+
+
+def hex_to_rgb(hex: str):
+    hex = hex.lstrip("#")
+    return tuple(int(hex[i : i + 2], 16) for i in (0, 2, 4))
+
 
 Point = namedtuple("Point", ["row", "col"])
 
@@ -59,6 +66,22 @@ def evenly_distribute_pixels_per_nth_percent_of_grayscale_range(
     grayscale_buckets.astype(np.uint8)
     print(grayscale_buckets)
     return grayscale_buckets
+
+
+def kmeans_color_reduction(img: cv2.typing.MatLike, n: int) -> List[List[int]]:
+    colors = [hex_to_rgb(color_layer["color"]) for color_layer in COLOR_LAYERS]
+    h, w = img.shape
+    image_reshaped = img.reshape((h * w, 1))
+
+    # Use KMeans to find the closest colors
+    kmeans = KMeans(n_clusters=len(colors), random_state=0)
+    kmeans.fit(image_reshaped)
+    labels = kmeans.predict(image_reshaped)
+
+    # Replace each pixel with its closest color index
+    quantized_image_array = labels.reshape((h, w))
+
+    return quantized_image_array
 
 
 def evenly_distribute_pixels_per_color(
@@ -133,9 +156,16 @@ plotter = Plotter2d(
     handle_out_of_bounds="Warning",  # It appears that some points end up outside of bounds so scale down.
 )
 
-COLOR_LAYERS = ["red", "orange", "yellow", "blue", "purple", "hotpink"]
+# Note to self - I'm currently using the K-Means Algorithm to handle the colors.
+# The `color` key below should match the original image's colors to result in successful clustering.
+# The title is the type of marker used to plot that.
+COLOR_LAYERS = [
+    {"color": "#ff0000", "title": "Red"},
+    {"color": "#00ff00", "title": "Green"},
+    {"color": "#0000ff", "title": "Blue"},
+]
 for index, layer in enumerate(COLOR_LAYERS):
-    plotter.add_layer(layer, color=layer)
+    plotter.add_layer(layer["title"], color=layer["color"])
 
 input_filename = "test.jpg"
 
@@ -144,12 +174,6 @@ resized_image = resize_image_for_plotter(input_filename)
 color_reduced_image = evenly_distribute_pixels_per_color(
     resized_image, n=len(COLOR_LAYERS)
 )
-
-
-remaining_points_to_process = set()
-for row_index, row in enumerate(color_reduced_image):
-    for col_index, value in enumerate(row):
-        remaining_points_to_process.add(Point(row_index, col_index))
 
 
 def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, int]]:
@@ -189,22 +213,31 @@ def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, in
     return neighboring_points
 
 
+def add_path_to_plotter(path: List[Point], color: str):
+    """
+    The plotter expects the points to be in the format of (x, y) and the image is in the format of (row, col)
+    Additionally the image was scaled down to get less lines, now we need to scale it back up to take the total
+    space of the plotter.
+
+    """
+    scaled_path = [
+        (col / Y_PIXELS_PER_PLOTTER_UNIT, row / X_PIXELS_PER_PLOTTER_UNIT)
+        for row, col in path
+    ]
+    plotter.layers[COLOR_LAYERS[current_color_index]["title"]].add_path(scaled_path)
+    print("added path", len(path))
+
+
+remaining_points_to_process = set()
+for row_index, row in enumerate(color_reduced_image):
+    for col_index, value in enumerate(row):
+        remaining_points_to_process.add(Point(row_index, col_index))
+
 current_point = remaining_points_to_process.pop()
 current_path = [current_point]
 current_color_index = color_reduced_image[current_point.row][current_point.col]
 
-
-def add_path_to_plotter(path: List[Point], color: str):
-    scaled_path = [
-        (row / X_PIXELS_PER_PLOTTER_UNIT, col / Y_PIXELS_PER_PLOTTER_UNIT)
-        for row, col in current_path
-    ]
-    plotter.layers[COLOR_LAYERS[current_color_index]].add_path(scaled_path)
-    print("added path", COLOR_LAYERS[current_color_index], scaled_path)
-
-
 while len(remaining_points_to_process) > 0:
-    print(len(remaining_points_to_process))
     potential_next_points = get_neighboring_points(
         row_index=current_point.row, col_index=current_point.col
     )
