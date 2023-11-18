@@ -2,12 +2,12 @@
 
 # gcode2dplotterart/Layer
 
-<a id="gcode2dplotterart/Layer.Point"></a>
+<a id="gcode2dplotterart/Layer.InstructionPoint"></a>
 
-## Point Objects
+## InstructionPoint Objects
 
 ```python
-class Point()
+class InstructionPoint()
 ```
 
 A class representing a point in 2D space with an optional feed rate.
@@ -25,7 +25,7 @@ The y-coordinate of the point.
   ValueError
   If x or y is not provided.
 
-<a id="gcode2dplotterart/Layer.Point.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.InstructionPoint.to_g_code"></a>
 
 #### to\_g\_code
 
@@ -166,16 +166,6 @@ class SimpleInstructionUnitsMM(SimpleInstruction)
 ```
 
 Set the units of the plotting device to mm.
-
-<a id="gcode2dplotterart/Layer.SimpleInstructionUnitsInches"></a>
-
-## SimpleInstructionUnitsInches Objects
-
-```python
-class SimpleInstructionUnitsInches(SimpleInstruction)
-```
-
-Set the units of the plotting device to inches.
 
 <a id="gcode2dplotterart/Layer.SimpleInstructionProgramEnd"></a>
 
@@ -357,7 +347,6 @@ def add_instruction(instruction: Union[
     SimpleInstructionNavigationHeight2DPlotter,
     SimpleInstructionDrawingHeight2DPlotter,
     SimpleInstructionUnitsMM,
-    SimpleInstructionUnitsInches,
     SimpleInstructionProgramEnd,
 ],
                     instruction_type: TInstructionType = "plotting") -> Self
@@ -481,6 +470,18 @@ Saves the layer instructions to a file at the specified file path.
 
   string
   The path to the file where the layer instructions will be saved.
+
+<a id="gcode2dplotterart/Layer.Layer.preview_paths"></a>
+
+#### preview\_paths
+
+```python
+def preview_paths() -> List[List[Tuple[float, float]]]
+```
+
+Generate an array of paths for the given layer. This will be used by the `Plotter`
+to generate a preview graph of the plot. Only looks at instructions during the `plotting`
+phase.
 
 <a id="gcode2dplotterart/Layer.Layer.get_plotting_data"></a>
 

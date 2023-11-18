@@ -30,8 +30,6 @@ Be careful in this section. Start with small movements of your plotting device. 
 
 The jog controller lets you control your plotting device in real time. You can move your print head in the X and Y direction. If you're using a 3D printer, you can raise and lower the Z direction. The jog controller, in conjunction with the controller state, will be used to setup the gcode2dplotterart library. 
 
-Click the `Millimeters` button to toggle between millimeters and inches. You can see the current units at the bottom of the screen next to `Step size`. It'll either say `mm` for millimeters or `"` for inches. 
-
 ### Toolbox
 
 ![Toolbox screenshot](/img/ugs/toolbox.png)
@@ -101,7 +99,7 @@ Failure to correctly perform this step can result in motors trying to force the 
 These instructions assume you've read the [UGS Features](#ugs-features) section above.
 
 1. Open the Jog Controller. 
-2. Select `millimeters` or `inches`. 
+2. Select `millimeters`.
 3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
 4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
 5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting.
@@ -117,7 +115,7 @@ Failure to correctly perform this step can result in motors trying to force the 
 Once you've initially performed [getting your plotting device's dimensions](#get-your-plotting-devicess-dimensions), this step should be performed every time you power on your device.
 
 1. Open the Jog Controller. 
-2. Select `millimeters` or `inches`. 
+2. Select `millimeters`.
 3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
 4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface.
 5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
@@ -137,10 +135,10 @@ These instructions assume you've read the [UGS Features](#ugs-features) section 
 
 1. Attach your drawing instrument to your plotting device. 
 2. Open the Jog Controller. 
-3. Select `millimeters` or `inches` for units. 
-4. Set the `Step size XY` to be about `10` for `millimeters` units and `1` for `inches` units. 
+3. Select `millimeters`. 
+4. Set the `Step size XY` to be about `10` for `millimeters`. 
 5. Move the print head in the Z direction so that the tip of the drawing instrument is touching the drawing surface. 
-6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units or `200` for `inches`. 
+6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units.
 7. Click on the arrows to move the print head around the drawing surface. 
 8. Try raising and lowering the `Feed Rate` until it moves at a speed that works for your device.  **Write this number down.**
 

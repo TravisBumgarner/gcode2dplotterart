@@ -20,7 +20,6 @@ The `plotter` stores parameters about the plotter you'll be using.
 
 ``` python
 plotter = Plotter( 
-  units="mm",          # Units of the plotter in `mm` or `inches`
   x_min = 0,           # Minimum plotter location along the X-Axis
   x_max = 100,         # Maximum plotter location along the X-Axis
   y_min = 100,         # Minimum plotter location along the Y-Axis
@@ -46,7 +45,7 @@ def four_squares():
   GREEN_LAYER = 'green'
   BLUE_LAYER = 'blue'
 
-  plotter = Plotter(units="mm", x_min = 0, x_max = 280, y_min = -200, y_max = 0, feed_rate=10000)
+  plotter = Plotter(x_min = 0, x_max = 280, y_min = -200, y_max = 0, feed_rate=10000)
   
   plotter.add_layer(RED_LAYER)
   plotter.add_layer(GREEN_LAYER)

@@ -17,8 +17,7 @@ A class for configuring and controlling a plotter.
 #### \_\_init\_\_
 
 ```python
-def __init__(units,
-             x_min,
+def __init__(x_min,
              x_max,
              y_min,
              y_max,

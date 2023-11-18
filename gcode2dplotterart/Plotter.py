@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 from .Layer import Layer2d, Layer3d
-from .types import THandleOutOfBounds, TUnits
+from .types import THandleOutOfBounds
 
 
 class _AbstractPlotter(ABC):
@@ -24,7 +24,6 @@ class _AbstractPlotter(ABC):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -41,7 +40,6 @@ class _AbstractPlotter(ABC):
         Args:
             title (str): The title of the work of art
             only supports plotter_2d.
-            units: ("mm", "inches"): The units of the plotter.
             x_min (float): The minimum X-coordinate of the plotter.
             y_min (float): The minimum Y-coordinate of the plotter.
             x_max (float): The maximum X-coordinate of the plotter.
@@ -60,7 +58,6 @@ class _AbstractPlotter(ABC):
         """
 
         self.title = title
-        self.units = units
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -283,7 +280,6 @@ class Plotter2d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -296,7 +292,6 @@ class Plotter2d(_AbstractPlotter):
     ) -> None:
         super().__init__(
             title=title,
-            units=units,
             x_min=x_min,
             x_max=x_max,
             y_min=y_min,
@@ -317,7 +312,6 @@ class Plotter2d(_AbstractPlotter):
     ) -> Layer2d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer2d(
-            units=self.units,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -340,7 +334,6 @@ class Plotter3d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -355,7 +348,6 @@ class Plotter3d(_AbstractPlotter):
     ) -> None:
         super().__init__(
             title=title,
-            units=units,
             x_min=x_min,
             x_max=x_max,
             y_min=y_min,
@@ -378,7 +370,6 @@ class Plotter3d(_AbstractPlotter):
     ) -> Layer3d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer3d(
-            units=self.units,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
