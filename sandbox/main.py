@@ -191,40 +191,56 @@ def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, in
 
 current_point = remaining_points_to_process.pop()
 current_path = [current_point]
-current_color = color_reduced_image[current_point.row][current_point.col]
+current_color_index = color_reduced_image[current_point.row][current_point.col]
+
+
+def add_path_to_plotter(path: List[Point], color: str):
+    scaled_path = [
+        (row / X_PIXELS_PER_PLOTTER_UNIT, col / Y_PIXELS_PER_PLOTTER_UNIT)
+        for row, col in current_path
+    ]
+    plotter.layers[COLOR_LAYERS[current_color_index]].add_path(scaled_path)
+    print("added path", COLOR_LAYERS[current_color_index], scaled_path)
+
 
 while len(remaining_points_to_process) > 0:
     print(len(remaining_points_to_process))
-    print(current_point)
     potential_next_points = get_neighboring_points(
         row_index=current_point.row, col_index=current_point.col
     )
 
-    for potential_point in potential_next_points:
-        if color_reduced_image[current_point.row][current_point.col] == current_color:
-            current_path.append(potential_point)
-            current_point = potential_point
-            break
+    for potential_next_point in potential_next_points:
+        current_point = None
 
-    is_dead_end = current_point not in remaining_points_to_process
-    had_no_match = len(current_path) == 1
+        if (
+            color_reduced_image[potential_next_point.row][potential_next_point.col]
+            == current_color_index
+        ):
+            current_point = potential_next_point
 
-    if not is_dead_end:
-        remaining_points_to_process.remove(current_point)
+            if current_point in remaining_points_to_process:
+                # Prefer a point that hasn't been added to a path. This should make paths, on average, longer.
+                break
 
-    if is_dead_end or had_no_match:
-        # Need to add the flipping of x,y here
-        scaled_path = [
-            (row / X_PIXELS_PER_PLOTTER_UNIT, col / Y_PIXELS_PER_PLOTTER_UNIT)
-            for row, col in current_path
-        ]
-        plotter.layers[COLOR_LAYERS[current_color]].add_path(scaled_path)
-
+    if current_point is None:
+        add_path_to_plotter(current_path, current_color_index)
         current_point = remaining_points_to_process.pop()
         current_path = [current_point]
+        current_color_index = color_reduced_image[current_point.row][current_point.col]
+        continue
 
-        current_color = color_reduced_image[current_point.row][current_point.col]
+    if current_point and current_point not in remaining_points_to_process:
+        current_path.append(current_point)
+        add_path_to_plotter(current_path, current_color_index)
+        current_point = remaining_points_to_process.pop()
+        current_path = [current_point]
+        current_color_index = color_reduced_image[current_point.row][current_point.col]
+        continue
 
+    if current_point and current_point in remaining_points_to_process:
+        current_path.append(current_point)
+        remaining_points_to_process.remove(current_point)
+        continue
 
 plotter.preview()
 plotter.save()
