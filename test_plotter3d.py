@@ -15,7 +15,6 @@ class TestSnapshot(unittest.TestCase):
 
         plotter = Plotter3d(
             title="plotter3d_test",
-            units="inches",
             x_min=-100,
             x_max=0,
             y_min=-100,

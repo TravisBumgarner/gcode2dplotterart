@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 from .Layer import Layer2d, Layer3d
-from .types import THandleOutOfBounds, TUnits
+from .types import THandleOutOfBounds
 
 
 class _AbstractPlotter(ABC):
@@ -24,7 +24,6 @@ class _AbstractPlotter(ABC):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -41,7 +40,6 @@ class _AbstractPlotter(ABC):
         Args:
             title (str): The title of the work of art
             only supports plotter_2d.
-            units: ("mm", "inches"): The units of the plotter.
             x_min (float): The minimum X-coordinate of the plotter.
             y_min (float): The minimum Y-coordinate of the plotter.
             x_max (float): The maximum X-coordinate of the plotter.
@@ -60,7 +58,6 @@ class _AbstractPlotter(ABC):
         """
 
         self.title = title
-        self.units = units
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -116,7 +113,10 @@ class _AbstractPlotter(ABC):
           color : str
             A hex color (such as `#00FF00`) or human readable color name
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
-            for a list of colors). Used with the `preview` method
+            for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
+          line_width : Optional[float]
+            The width of the line to be drawn with the `preview` method. Some experimentation is required to match the
+            `line_width` to the thickness of the drawing instrument. Defaults to 2.0
           preview_only : bool
             Whether the layer is a preview layer. Preview layers show the
             print head in motion but do not come in contact with drawing
@@ -231,7 +231,7 @@ class _AbstractPlotter(ABC):
                     y_values,
                     color=self.layers[layer_title].color,
                     linestyle="-",
-                    linewidth=2.0,
+                    linewidth=self.layers[layer_title].line_width,
                     solid_capstyle="round",
                 )
 
@@ -280,7 +280,6 @@ class Plotter2d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -293,7 +292,6 @@ class Plotter2d(_AbstractPlotter):
     ) -> None:
         super().__init__(
             title=title,
-            units=units,
             x_min=x_min,
             x_max=x_max,
             y_min=y_min,
@@ -306,11 +304,14 @@ class Plotter2d(_AbstractPlotter):
         )
 
     def add_layer(
-        self, title: str, color: Optional[str] = None, preview_only: bool = False
+        self,
+        title: str,
+        color: Optional[str] = None,
+        line_width: float = 2.0,
+        preview_only: bool = False,
     ) -> Layer2d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer2d(
-            units=self.units,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -318,6 +319,7 @@ class Plotter2d(_AbstractPlotter):
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             color=color,
         )
         self.layers[title] = new_layer
@@ -332,7 +334,6 @@ class Plotter3d(_AbstractPlotter):
     def __init__(
         self,
         title: str,
-        units: TUnits,
         x_min: float,
         x_max: float,
         y_min: float,
@@ -347,7 +348,6 @@ class Plotter3d(_AbstractPlotter):
     ) -> None:
         super().__init__(
             title=title,
-            units=units,
             x_min=x_min,
             x_max=x_max,
             y_min=y_min,
@@ -362,11 +362,14 @@ class Plotter3d(_AbstractPlotter):
         self.z_navigation_height = z_navigation_height
 
     def add_layer(
-        self, title: str, color: Optional[str] = None, preview_only: bool = False
+        self,
+        title: str,
+        color: Optional[str] = None,
+        line_width: float = 2.0,
+        preview_only: bool = False,
     ) -> Layer3d:
         # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer3d(
-            units=self.units,
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -374,6 +377,7 @@ class Plotter3d(_AbstractPlotter):
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             z_drawing_height=self.z_drawing_height,
             z_navigation_height=self.z_navigation_height,
             color=color,

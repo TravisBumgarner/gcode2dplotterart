@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
-from .types import THandleOutOfBounds, TUnits, TInstructionType
+from .types import THandleOutOfBounds, TInstructionType
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -184,15 +184,6 @@ class SimpleInstructionUnitsMM(SimpleInstruction):
         super().__init__("G21", "Set units to mm")
 
 
-class SimpleInstructionUnitsInches(SimpleInstruction):
-    """
-    Set the units of the plotting device to inches.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("G20", "set units to inches")
-
-
 class SimpleInstructionProgramEnd(SimpleInstruction):
     """
     Instruct the plotting device that plotting has concluded.
@@ -265,7 +256,6 @@ TInstructionUnion = Union[
     SimpleInstructionNavigationHeight2DPlotter,
     SimpleInstructionPause,
     SimpleInstructionUnitsMM,
-    SimpleInstructionUnitsInches,
     SimpleInstructionProgramEnd,
     SpecialInstructionDrawingHeight3DPrinter,
     SpecialInstructionNavigationHeight3DPrinter,
@@ -281,10 +271,10 @@ class Layer(ABC):
         y_min: float,
         x_max: float,
         y_max: float,
-        units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
@@ -312,20 +302,14 @@ class Layer(ABC):
 
         self.handle_out_of_bounds = handle_out_of_bounds
 
+        self.line_width = line_width
+
         self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
         self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
-        if units == "mm":
-            self.add_comment("Setting units to mm", "setup")
-            self.add_instruction(SimpleInstructionUnitsMM(), "setup")
-
-        elif units == "inches":
-            self.add_comment("Setting units to inches", "setup")
-            self.add_instruction(SimpleInstructionUnitsInches(), "setup")
-
-        else:
-            raise ValueError("Invalid units received", units)
+        self.add_comment("Setting units to mm", "setup")
+        self.add_instruction(SimpleInstructionUnitsMM(), "setup")
 
         self.set_feed_rate(feed_rate, "setup")
 
@@ -504,7 +488,6 @@ class Layer(ABC):
             SimpleInstructionNavigationHeight2DPlotter,
             SimpleInstructionDrawingHeight2DPlotter,
             SimpleInstructionUnitsMM,
-            SimpleInstructionUnitsInches,
             SimpleInstructionProgramEnd,
         ],
         instruction_type: TInstructionType = "plotting",
@@ -737,10 +720,10 @@ class Layer2d(Layer):
         y_min: float,
         x_max: float,
         y_max: float,
-        units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -748,10 +731,10 @@ class Layer2d(Layer):
             y_min=y_min,
             x_max=x_max,
             y_max=y_max,
-            units=units,
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             color=color,
         )
 
@@ -815,10 +798,10 @@ class Layer3d(Layer):
         y_max: float,
         z_drawing_height: float,
         z_navigation_height: float,
-        units: TUnits,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -826,10 +809,10 @@ class Layer3d(Layer):
             y_min=y_min,
             x_max=x_max,
             y_max=y_max,
-            units=units,
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             color=color,
         )
         self.z_drawing_height = z_drawing_height

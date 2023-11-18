@@ -14,7 +14,6 @@ class TestSnapshot(unittest.TestCase):
         layer = "black"
         plotter = Plotter2d(
             title="test",
-            units="mm",
             x_min=0,
             x_max=100,
             y_min=0,

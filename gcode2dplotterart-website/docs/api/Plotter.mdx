@@ -16,7 +16,6 @@ class _AbstractPlotter(ABC)
 
 ```python
 def __init__(title: str,
-             units: TUnits,
              x_min: float,
              x_max: float,
              y_min: float,
@@ -34,7 +33,6 @@ Initialize a new Plotter instance.
 
 - `title` _str_ - The title of the work of art
   only supports plotter_2d.
-- `units` - ("mm", "inches"): The units of the plotter.
 - `x_min` _float_ - The minimum X-coordinate of the plotter.
 - `y_min` _float_ - The minimum Y-coordinate of the plotter.
 - `x_max` _float_ - The maximum X-coordinate of the plotter.
@@ -65,6 +63,42 @@ Find the min and max plot points of the plotter.
 Returns
   {x_min: float, y_min: float, x_max: float, y_max: float}
     A dictionary containing the min and max plot points of the plotter.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.add_layer"></a>
+
+#### add\_layer
+
+```python
+@abstractmethod
+def add_layer(title: str,
+              color: Optional[str] = None,
+              preview_only: bool = False) -> Union[Layer2d, Layer3d]
+```
+
+Add a new layer to the plotter
+
+**Arguments**:
+
+  title : str
+  The title of the layer. Used when saving a layer to G-Code.
+  color : str
+  A hex color (such as `00FF00`) or human readable color name
+  (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
+  for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
+  line_width : Optional[float]
+  The width of the line to be drawn with the `preview` method. Some experimentation is required to match the
+  `line_width` to the thickness of the drawing instrument. Defaults to 2.0
+  preview_only : bool
+  Whether the layer is a preview layer. Preview layers show the
+  print head in motion but do not come in contact with drawing
+  surface. Defaults to `False`
+  
+
+**Returns**:
+
+  Layer
+  The newly created layer. Allows for chaining of the layer's add
+  methods.
 
 <a id="gcode2dplotterart/Plotter._AbstractPlotter.add_border_layer"></a>
 
@@ -148,6 +182,17 @@ Get current plotting data.
   A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
   G-Code instruction strings per layer. Mostly used for testing purposes.
 
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.preview"></a>
+
+#### preview
+
+```python
+def preview() -> None
+```
+
+Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
+Plotter. Only looks at instructions during the plotting phase.
+
 <a id="gcode2dplotterart/Plotter._AbstractPlotter.save"></a>
 
 #### save
@@ -159,81 +204,14 @@ def save(clear_output_before_save: bool = True) -> None
 Save all the layers to the output directory defined by the
 `output_directory` Plotter param. Each layer will be saved
 as an individual file with the filename defined by
-`{layer_name}.gcode`. If include_border_layer or include_preview_layer
+`{layer_number}_{layer_title}.gcode`. If include_border_layer or include_preview_layer
 are set to True, they will be saved as `border.gcode` and
 `preview.gcode` respectively.
 
-Arg:
+**Arguments**:
+
   clear_output_before_save : boolean
-    Whether to remove all files from the artwork output directory
-    (defined as [output_directory]/[title]) before saving,
-    defaults to True.
-
-<a id="gcode2dplotterart/Plotter.Plotter2d"></a>
-
-## Plotter2d Objects
-
-```python
-class Plotter2d(_AbstractPlotter)
-```
-
-<a id="gcode2dplotterart/Plotter.Plotter2d.add_layer"></a>
-
-#### add\_layer
-
-```python
-def add_layer(title: str, preview_only: bool = False) -> Layer2d
-```
-
-Add a new layer to the plotter
-
-**Arguments**:
-
-  title : str
-  The title of the layer. Used when saving a layer to G-Code.
-  preview_only : bool
-  Whether the layer is a preview layer. Preview layers show the
-  print head in motion but do not come in contact with drawing
-  surface.
-  
-
-**Returns**:
-
-  Layer
-  The newly created layer. Allows for chaining of the layer's add
-  methods.
-
-<a id="gcode2dplotterart/Plotter.Plotter3d"></a>
-
-## Plotter3d Objects
-
-```python
-class Plotter3d(_AbstractPlotter)
-```
-
-<a id="gcode2dplotterart/Plotter.Plotter3d.add_layer"></a>
-
-#### add\_layer
-
-```python
-def add_layer(title: str, preview_only: bool = False) -> Layer3d
-```
-
-Add a new layer to the plotter
-
-**Arguments**:
-
-  title : str
-  The title of the layer. Used when saving a layer to G-Code.
-  preview_only : bool
-  Whether the layer is a preview layer. Preview layers show the
-  print head in motion but do not come in contact with drawing
-  surface.
-  
-
-**Returns**:
-
-  Layer
-  The newly created layer. Allows for chaining of the layer's add
-  methods.
+  Whether to remove all files from the artwork output directory
+  (defined as [output_directory]/[title]) before saving,
+  defaults to True.
 

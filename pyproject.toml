@@ -10,6 +10,13 @@ authors = [
 requires = ["hatchling", "setuptools", "wheel"]
 build-backend = "hatchling.build"
 
+[tool.poetry]
+name = "gcode2dplotterart"
+authors = ["Travis Bumgarner"]
+version = "0.0.1"
+description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
+
+
 [tool.poetry.dependencies]
 python = "^3.11.5"
 mypy="^1.7.0"
@@ -20,6 +27,7 @@ matplotlib="^3.8.1"
 numpy="^1.26.1"
 setuptools = "^68.2.2"
 wheel = "^0.41.3"
+pydoc-markdown = "^4.8.2"
 
 [project.urls]
 "Homepage" = "https://github.com/TravisBumgarner/gcode2dplotterart"
