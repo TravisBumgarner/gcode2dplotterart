@@ -36,6 +36,28 @@ X_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 Y_PIXELS_PER_PLOTTER_UNIT = 1 / 3
 
 
+def evenly_distribute_pixels_per_nth_percent_of_grayscale_range(
+    img: cv2.typing.MatLike, n: int
+) -> List[List[int]]:
+    """
+    Take the range of grayscale (0 -> 255) and bucket it such that n% of the range is a bucket.
+
+    Arg:
+        `img` : cv2.typing.MatLike
+            The image to process
+        `n` : Number of colors to distribute pixels into
+
+    Returns
+    `   img` : List[List[int]]
+           Image mapped to n colors
+    """
+    bucket_segments = 255 / (n - 1)
+    grayscale_buckets = np.round(np.divide(img, bucket_segments)).astype(np.uint8)
+    grayscale_buckets.astype(np.uint8)
+    print(grayscale_buckets)
+    return grayscale_buckets
+
+
 def evenly_distribute_pixels_per_color(
     img: cv2.typing.MatLike, n: int
 ) -> List[List[int]]:
@@ -98,9 +120,9 @@ plotter = Plotter2d(
     title="Horizontal Line Art",
     units="mm",
     x_min=0,
-    x_max=200,
-    y_min=0,  # Note - My plotting goes from -150 to 0.
-    y_max=200,
+    x_max=240,
+    y_min=0,
+    y_max=170,
     feed_rate=10000,
     output_directory="./output",
     include_border_layer=True,
@@ -108,24 +130,8 @@ plotter = Plotter2d(
     handle_out_of_bounds="Warning",  # It appears that some points end up outside of bounds so scale down.
 )
 
-COLOR_LAYERS = [
-    "#000000",
-    "#111111",
-    "#222222",
-    "#333333",
-    "#444444",
-    "#555555",
-    "#666666",
-    "#777777",
-    "#888888",
-    "#999999",
-    "#AAAAAA",
-    "#BBBBBB",
-    "#CCCCCC",
-    "#DDDDDD",
-    "#EEEEEE",
-]
-for layer in COLOR_LAYERS:
+COLOR_LAYERS = ["red", "orange", "yellow", "blue", "purple", "hotpink"]
+for index, layer in enumerate(COLOR_LAYERS):
     plotter.add_layer(layer, color=layer)
 
 input_filename = "test.jpg"
@@ -196,7 +202,7 @@ while len(remaining_points_to_process) > 0:
 
     for potential_row_index, potential_col_index in potential_next_points:
         if (
-            color_reduced_image[potential_row_index, potential_col_index]
+            color_reduced_image[potential_row_index][potential_col_index]
             == current_color
         ):
             # `add_path` takes in values as (x, y) so we need to flip the row and column indices.
@@ -204,18 +210,27 @@ while len(remaining_points_to_process) > 0:
             current_point = (potential_row_index, potential_col_index)
             break
 
-    current_point = remaining_points_to_process.pop()
-    current_point_row_index, current_point_col_index = current_point
-
-    is_deadend = current_point not in remaining_points_to_process
+    is_dead_end = current_point not in remaining_points_to_process
     had_no_match = len(current_path) == 1
 
-    if is_deadend or had_no_match:
-        plotter.layers[COLOR_LAYERS[current_color]].add_path(current_path)
+    if not is_dead_end:
+        remaining_points_to_process.remove(current_point)
+
+    if is_dead_end or had_no_match:
+        scaled_path = [
+            (x / X_PIXELS_PER_PLOTTER_UNIT, y / Y_PIXELS_PER_PLOTTER_UNIT)
+            for x, y in current_path
+        ]
+        plotter.layers[COLOR_LAYERS[current_color]].add_path(scaled_path)
+
+        current_point = remaining_points_to_process.pop()
         current_path = [current_point]
+
+        current_point_row_index, current_point_col_index = current_point
         current_color = color_reduced_image[current_point_row_index][
             current_point_col_index
         ]
 
 
 plotter.preview()
+plotter.save()

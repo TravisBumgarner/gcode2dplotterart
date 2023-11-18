@@ -244,7 +244,7 @@ class _AbstractPlotter(ABC):
         Save all the layers to the output directory defined by the
         `output_directory` Plotter param. Each layer will be saved
         as an individual file with the filename defined by
-        `{layer_name}.gcode`. If include_border_layer or include_preview_layer
+        `{layer_number}_{layer_title}.gcode`. If include_border_layer or include_preview_layer
         are set to True, they will be saved as `border.gcode` and
         `preview.gcode` respectively.
 
@@ -268,9 +268,11 @@ class _AbstractPlotter(ABC):
             # Creates a new layer titled preview
             self.add_preview_layer()
 
-        for title, layer in self.layers.items():
-            layer.save(
-                os.path.join(self.output_directory, self.title, f"{title}.gcode")
+        for index, title in enumerate(self.layers.keys()):
+            self.layers[title].save(
+                os.path.join(
+                    self.output_directory, self.title, f"{index}_{title}.gcode"
+                )
             )
 
 
