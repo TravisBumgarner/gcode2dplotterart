@@ -285,6 +285,7 @@ class Layer(ABC):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
@@ -311,6 +312,8 @@ class Layer(ABC):
         self.feed_rate = feed_rate
 
         self.handle_out_of_bounds = handle_out_of_bounds
+
+        self.line_width = line_width
 
         self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
@@ -741,6 +744,7 @@ class Layer2d(Layer):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -752,6 +756,7 @@ class Layer2d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             color=color,
         )
 
@@ -819,6 +824,7 @@ class Layer3d(Layer):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
+        line_width: float,
         preview_only: bool = False,
     ) -> None:
         super().__init__(
@@ -830,6 +836,7 @@ class Layer3d(Layer):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
+            line_width=line_width,
             color=color,
         )
         self.z_drawing_height = z_drawing_height
