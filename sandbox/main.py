@@ -5,6 +5,9 @@ from imutils import resize
 from math import floor
 from typing import List, Tuple
 from random import shuffle
+from collections import namedtuple
+
+Point = namedtuple("Point", ["row", "col"])
 
 """
 Preface - numpy and cv2 are still a bit alien to me. The code here could be done better.
@@ -146,7 +149,7 @@ color_reduced_image = evenly_distribute_pixels_per_color(
 remaining_points_to_process = set()
 for row_index, row in enumerate(color_reduced_image):
     for col_index, value in enumerate(row):
-        remaining_points_to_process.add((row_index, col_index))
+        remaining_points_to_process.add(Point(row_index, col_index))
 
 
 def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, int]]:
@@ -181,33 +184,26 @@ def get_neighboring_points(row_index: int, col_index: int) -> List[Tuple[int, in
             ):
                 continue
 
-            neighboring_points.append((row_index + row, col_index + col))
+            neighboring_points.append(Point(row_index + row, col_index + col))
     shuffle(neighboring_points)
     return neighboring_points
 
 
 current_point = remaining_points_to_process.pop()
 current_path = [current_point]
+current_color = color_reduced_image[current_point.row][current_point.col]
 
-current_color = color_reduced_image[current_point[1]][
-    current_point[0]
-]  # Todo this might be wrong
 while len(remaining_points_to_process) > 0:
     print(len(remaining_points_to_process))
-
-    row_index, col_index = current_point
+    print(current_point)
     potential_next_points = get_neighboring_points(
-        row_index=row_index, col_index=col_index
+        row_index=current_point.row, col_index=current_point.col
     )
 
-    for potential_row_index, potential_col_index in potential_next_points:
-        if (
-            color_reduced_image[potential_row_index][potential_col_index]
-            == current_color
-        ):
-            # `add_path` takes in values as (x, y) so we need to flip the row and column indices.
-            current_path.append((potential_row_index, potential_col_index))
-            current_point = (potential_row_index, potential_col_index)
+    for potential_point in potential_next_points:
+        if color_reduced_image[current_point.row][current_point.col] == current_color:
+            current_path.append(potential_point)
+            current_point = potential_point
             break
 
     is_dead_end = current_point not in remaining_points_to_process
@@ -217,19 +213,17 @@ while len(remaining_points_to_process) > 0:
         remaining_points_to_process.remove(current_point)
 
     if is_dead_end or had_no_match:
+        # Need to add the flipping of x,y here
         scaled_path = [
-            (x / X_PIXELS_PER_PLOTTER_UNIT, y / Y_PIXELS_PER_PLOTTER_UNIT)
-            for x, y in current_path
+            (row / X_PIXELS_PER_PLOTTER_UNIT, col / Y_PIXELS_PER_PLOTTER_UNIT)
+            for row, col in current_path
         ]
         plotter.layers[COLOR_LAYERS[current_color]].add_path(scaled_path)
 
         current_point = remaining_points_to_process.pop()
         current_path = [current_point]
 
-        current_point_row_index, current_point_col_index = current_point
-        current_color = color_reduced_image[current_point_row_index][
-            current_point_col_index
-        ]
+        current_color = color_reduced_image[current_point.row][current_point.col]
 
 
 plotter.preview()
