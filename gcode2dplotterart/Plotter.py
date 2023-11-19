@@ -52,9 +52,9 @@ class _AbstractPlotter(ABC):
             output_directory (str): The directory where G-code files will be
             saved.
             include_border_layer (bool): Whether to include a border layer,
-            outlines the plotting area, drawing a border.
+            outlines the plotting area, plotting a border.
             include_preview_layer (bool): Whether to include a preview layer,
-            outlines the plotting area without drawing anything.
+            outlines the plotting area without plotting anything.
         """
 
         self.title = title
@@ -115,11 +115,11 @@ class _AbstractPlotter(ABC):
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
           line_width : Optional[float]
-            The width of the line to be drawn with the `preview` method. Some experimentation is required to match the
-            `line_width` to the thickness of the drawing instrument. Defaults to 2.0
+            The width of the line to be plotted with the `preview` method. Some experimentation is required to match the
+            `line_width` to the thickness of the plotting instrument. Defaults to 2.0
           preview_only : bool
             Whether the layer is a preview layer. Preview layers show the
-            plotter head in motion but do not come in contact with drawing
+            plotter head in motion but do not come in contact with plotting
             surface. Defaults to `False`
 
         Returns:
@@ -133,7 +133,7 @@ class _AbstractPlotter(ABC):
     def add_border_layer(self) -> None:
         """
         Creates a new layer titled border. The border layer outlines the print
-        area, drawing a border.
+        area, plotting a border.
         """
 
         points = self.get_min_and_max_points()
@@ -146,8 +146,8 @@ class _AbstractPlotter(ABC):
     def add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
-        plotting area and draws an X through the middle without drawing anything.
-        Useful for checking the the drawing surface is flat.
+        plotting area and plots an X through the middle without plotting anything.
+        Useful for checking the the plotting surface is flat.
         """
         points = self.get_min_and_max_points()
 
@@ -328,7 +328,7 @@ class Plotter2D(_AbstractPlotter):
 
 
 class Plotter3D(_AbstractPlotter):
-    z_drawing_height: float
+    z_plotting_height: float
     z_navigation_height: float
 
     def __init__(
@@ -339,7 +339,7 @@ class Plotter3D(_AbstractPlotter):
         y_min: float,
         y_max: float,
         feed_rate: float,
-        z_drawing_height: float,
+        z_plotting_height: float,
         z_navigation_height: float,
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
@@ -358,7 +358,7 @@ class Plotter3D(_AbstractPlotter):
             include_border_layer=include_border_layer,
             include_preview_layer=include_preview_layer,
         )
-        self.z_drawing_height = z_drawing_height
+        self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
 
     def add_layer(
@@ -378,7 +378,7 @@ class Plotter3D(_AbstractPlotter):
             handle_out_of_bounds=self.handle_out_of_bounds,
             preview_only=preview_only,
             line_width=line_width,
-            z_drawing_height=self.z_drawing_height,
+            z_plotting_height=self.z_plotting_height,
             z_navigation_height=self.z_navigation_height,
             color=color,
         )

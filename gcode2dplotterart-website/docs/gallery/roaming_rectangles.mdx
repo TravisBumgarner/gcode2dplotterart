@@ -55,7 +55,7 @@ def calculate_next_move(start_point, end_point):
 
   next_point_start = choice(next_point_start_options)
 
-  # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't draw on top.
+  # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't plot on top.
   movement_x = randint(MIN_MOVEMENT_X, MAX_MOVEMENT_X) * choice([-1, 1])
   movement_y = randint(MIN_MOVEMENT_Y, MAX_MOVEMENT_Y) * choice([-1, 1])
 
@@ -63,7 +63,7 @@ def calculate_next_move(start_point, end_point):
 
   return [next_point_start, next_point_end]
 
-# Starting rectangle is a rectangle drawn around the center point.
+# Starting rectangle is a rectangle plotted around the center point.
 CENTER_POINT = [(plotter.x_max + plotter.x_min) / 2, (plotter.y_max + plotter.y_min) / 2]
 start_point = [CENTER_POINT[0] - plotter.width * 0.05, CENTER_POINT[1] - plotter.height * 0.05]
 end_point = [CENTER_POINT[0] + (plotter.x_max - plotter.x_min) * 0.05, CENTER_POINT[1] + (plotter.y_max - plotter.y_min) * 0.05 ]

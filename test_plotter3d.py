@@ -24,7 +24,7 @@ class TestSnapshot(unittest.TestCase):
             include_border_layer=False,
             include_preview_layer=False,
             handle_out_of_bounds="Silent",
-            z_drawing_height=0,
+            z_plotting_height=0,
             z_navigation_height=10,
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)

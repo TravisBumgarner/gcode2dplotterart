@@ -54,8 +54,8 @@ plotter=Plotter2D(
   feed_rate=0,
 
   output_directory="./output", 
-  include_border_layer=False, # Don't draw a border layer
-  include_preview_layer=True, # Include a preview layer that'll outline the print without drawing anything.
+  include_border_layer=False, # Don't plot a border layer
+  include_preview_layer=True, # Include a preview layer that'll outline the print without plotting anything.
   handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
 )
 ```
@@ -73,22 +73,22 @@ plotter=Plotter3D(
   x_max=200, # This will be the value `X+`
   y_min=0, # This will be the value `Y-` or 0
   y_max=200, # This will be the value `Y+` or 0
-  z_drawing_height=0, # This will be the value of `Z` that connects the plotter head to the plotting surface.
+  z_plotting_height=0, # This will be the value of `Z` that connects the plotter head to the plotting surface.
   z_navigation_height=0, # This will be the value of `Z` that separate the plotter head from the plotting surface.
 
   # This value is from the `Get the plotting device's feed rate` article above.
   feed_rate=0,
 
   output_directory="./output", 
-  include_border_layer=False, # Don't draw a border layer
-  include_preview_layer=True, # Include a preview layer that'll outline the print without drawing anything.
+  include_border_layer=False, # Don't plot a border layer
+  include_preview_layer=True, # Include a preview layer that'll outline the print without plotting anything.
   handle_out_of_bounds='Warning' # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
 )
 ```
 
 ## 5. Add a layer
 
-A layer is a group of instructions that will be executed sequentially.  It usually makes sense to create layers based on the drawing instruments being used. 
+A layer is a group of instructions that will be executed sequentially.  It usually makes sense to create layers based on the plotting instruments being used. 
 
 Several layers can be added to plot with different colors. The `color` value is used to generate a preview before plotting. A hex color (such as `#00FF00`) or human readable color name (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors) for list of supported color names) can be used. 
 
