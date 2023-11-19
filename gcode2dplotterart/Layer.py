@@ -293,10 +293,10 @@ class Layer(ABC):
         self.plotter_y_max = y_max
 
         # For plotting a bounding box before printing.
-        self.border_x_min = x_max
-        self.border_x_max = x_min
-        self.border_y_min = y_max
-        self.border_y_max = y_min
+        self.layer_x_min = x_max
+        self.layer_x_max = x_min
+        self.layer_y_min = y_max
+        self.layer_y_max = y_min
 
         self.feed_rate = feed_rate
 
@@ -321,14 +321,14 @@ class Layer(ABC):
         """
         Updates the current max and min values for the bounding box of the layer.
         """
-        if x < self.border_x_min:
-            self.border_x_min = x
-        if x > self.border_x_max:
-            self.border_x_max = x
-        if y < self.border_y_min:
-            self.border_y_min = y
-        if y > self.border_y_max:
-            self.border_y_max = y
+        if x < self.layer_x_min:
+            self.layer_x_min = x
+        if x > self.layer_x_max:
+            self.layer_x_max = x
+        if y < self.layer_y_min:
+            self.layer_y_min = y
+        if y > self.layer_y_max:
+            self.layer_y_max = y
 
     def get_min_and_max_points(self) -> Dict[str, float]:
         """
@@ -339,10 +339,10 @@ class Layer(ABC):
             A dictionary containing the max and min plot points of the layer.
         """
         return {
-            "x_min": self.border_x_min,
-            "y_min": self.border_y_min,
-            "x_max": self.border_x_max,
-            "y_max": self.border_y_max,
+            "x_min": self.layer_x_min,
+            "y_min": self.layer_y_min,
+            "x_max": self.layer_x_max,
+            "y_max": self.layer_y_max,
         }
 
     def set_feed_rate(

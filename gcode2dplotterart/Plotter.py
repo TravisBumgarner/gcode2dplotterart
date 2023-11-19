@@ -17,8 +17,6 @@ class _AbstractPlotter(ABC):
     feed_rate: float
     layers: Dict[str, Union[Layer2d, Layer3d]]
     output_directory: str
-    include_border_layer: bool
-    include_preview_layer: bool
     handle_out_of_bounds: THandleOutOfBounds
 
     def __init__(
@@ -31,30 +29,29 @@ class _AbstractPlotter(ABC):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
-        include_border_layer: bool = True,
-        include_preview_layer: bool = True,
     ):
         """
-          Initialize a new Plotter instance.
+        Initialize a new Plotter instance.
 
         Args:
-            title (str): The title of the work of art
-            only supports plotter_2d.
-            x_min (float): The minimum X-coordinate of the plotter.
-            y_min (float): The minimum Y-coordinate of the plotter.
-            x_max (float): The maximum X-coordinate of the plotter.
-            y_max (float): The maximum Y-coordinate of the plotter.
-            feed_rate (float): The feed rate for the plotter.
-            handle_out_of_bounds ("Warning", "Error", "Silent"): How to handle
-            out-of-bounds points. "Warning" will print a warning, skip the
-            point, continue, "Error" will throw an error and stop. "Silent"
-            will skip the point and continue.
-            output_directory (str): The directory where G-code files will be
-            saved.
-            include_border_layer (bool): Whether to include a border layer,
-            outlines the plotting area, plotting a border.
-            include_preview_layer (bool): Whether to include a preview layer,
-            outlines the plotting area without plotting anything.
+            title : str
+                The title of the work of art
+            x_min : float
+                The minimum X-coordinate of the plotter.
+            y_min : float
+                The minimum Y-coordinate of the plotter.
+            x_max : float
+                The maximum X-coordinate of the plotter.
+            y_max : float
+                The maximum Y-coordinate of the plotter.
+            feed_rate : float
+                The feed rate for the plotter.
+            handle_out_of_bounds : `Warning`, `Error`, `Silent`
+                How to handle out-of-bounds points. `Warning` will print a warning, skip the
+                point, continue, `Error` will throw an error and stop. `Silent` will skip the
+                point and continue.
+            output_directory : str
+                The directory where G-code files will be saved.
         """
 
         self.title = title
@@ -65,8 +62,6 @@ class _AbstractPlotter(ABC):
         self.feed_rate = feed_rate
         self.layers = {}
         self.output_directory = output_directory
-        self.include_border_layer = include_border_layer
-        self.include_preview_layer = include_preview_layer
         self.handle_out_of_bounds = handle_out_of_bounds
 
     def get_min_and_max_points(
@@ -130,19 +125,6 @@ class _AbstractPlotter(ABC):
 
         pass
 
-    def add_border_layer(self) -> None:
-        """
-        Creates a new layer titled border. The border layer outlines the print
-        area, plotting a border.
-        """
-
-        points = self.get_min_and_max_points()
-
-        self.add_layer("border", preview_only=False)
-        self.layers["border"].add_rectangle(
-            points["x_min"], points["y_min"], points["x_max"], points["y_max"]
-        )
-
     def add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
@@ -203,13 +185,9 @@ class _AbstractPlotter(ABC):
             A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
             G-Code instruction strings per layer. Mostly used for testing purposes.
         """
-        if self.include_border_layer:
-            # Creates a new layer titled border
-            self.add_border_layer()
 
-        if self.include_preview_layer:
-            # Creates a new layer titled preview
-            self.add_preview_layer()
+        # Creates a new layer titled preview
+        self.add_preview_layer()
 
         output = {}
         for title, layer in self.layers.items():
@@ -244,9 +222,7 @@ class _AbstractPlotter(ABC):
         Save all the layers to the output directory defined by the
         `output_directory` Plotter param. Each layer will be saved
         as an individual file with the filename defined by
-        `{layer_number}_{layer_title}.gcode`. If include_border_layer or include_preview_layer
-        are set to True, they will be saved as `border.gcode` and
-        `preview.gcode` respectively.
+        `{layer_number}_{layer_title}.gcode`.
 
         Args:
           clear_output_before_save : boolean
@@ -260,13 +236,7 @@ class _AbstractPlotter(ABC):
         if not os.path.exists(artwork_directory):
             os.makedirs(artwork_directory)
 
-        if self.include_border_layer:
-            # Creates a new layer titled border
-            self.add_border_layer()
-
-        if self.include_preview_layer:
-            # Creates a new layer titled preview
-            self.add_preview_layer()
+        self.add_preview_layer()
 
         for index, title in enumerate(self.layers.keys()):
             self.layers[title].save(
@@ -287,8 +257,6 @@ class Plotter2D(_AbstractPlotter):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
-        include_border_layer: bool = True,
-        include_preview_layer: bool = True,
     ) -> None:
         super().__init__(
             title=title,
@@ -299,8 +267,6 @@ class Plotter2D(_AbstractPlotter):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             output_directory=output_directory,
-            include_border_layer=include_border_layer,
-            include_preview_layer=include_preview_layer,
         )
 
     def add_layer(
@@ -343,8 +309,6 @@ class Plotter3D(_AbstractPlotter):
         z_navigation_height: float,
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str = "./output",
-        include_border_layer: bool = True,
-        include_preview_layer: bool = True,
     ) -> None:
         super().__init__(
             title=title,
@@ -355,8 +319,6 @@ class Plotter3D(_AbstractPlotter):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             output_directory=output_directory,
-            include_border_layer=include_border_layer,
-            include_preview_layer=include_preview_layer,
         )
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height

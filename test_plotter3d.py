@@ -21,8 +21,6 @@ class TestSnapshot(unittest.TestCase):
             y_max=0,
             feed_rate=20000,
             output_directory="./snapshots",
-            include_border_layer=False,
-            include_preview_layer=False,
             handle_out_of_bounds="Silent",
             z_plotting_height=0,
             z_navigation_height=10,

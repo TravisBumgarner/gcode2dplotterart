@@ -155,8 +155,6 @@ plotter = Plotter2D(
     y_max=170,
     feed_rate=10000,
     output_directory="./output",
-    include_border_layer=True,
-    include_preview_layer=True,
     handle_out_of_bounds="Warning",  # It appears that some points end up outside of bounds so scale down.
 )
 
