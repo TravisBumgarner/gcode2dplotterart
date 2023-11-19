@@ -20,20 +20,14 @@ Start a discussion on the [GitHub Discussion](https://github.com/TravisBumgarner
 
 Start a discussion on the [GitHub Discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions) page.
 
-## Why is my plotting device drawing when I don't expect it to?
-
-TODO - Define Me.
-
 ## Why is my plotting device running into the wall?
 
 Plotting devices can be pretty dumb machines. 
 
-So what's happening? When you turn on your plotting device, it has no memory of where the print head previously was. Therefore, it's important, when you first turn on your device, to let it know where it is. 
+So what's happening? When the plotting device is turned on, it has no memory of where the plotter head previously was. Therefore, it's important, when first turning on the device, to let it know where it is.
 
-Some plotting devices include limit switches which help prevent your device from running into the wall, others do not. This issue is more prevalent with plotting devices without limit switches.
+The most likely situation is that [reset zero](./ugs#reset-zero) has not been performed.
 
+## UGS says it's connected, but the plotting device is doing nothing.
 
-
-## UGS says it's connected but my plotting device is doing nothing.
-
-Click the `Connect or Disconnect` button twice to reestablish a connection with your plotting device.
+Click the `Connect or Disconnect` button twice to reestablish a connection with the plotting device.

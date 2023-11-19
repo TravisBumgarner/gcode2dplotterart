@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from gcode2dplotterart.Plotter import Plotter3d
+from gcode2dplotterart.Plotter import Plotter3D
 from gcode2dplotterart.Layer import SimpleInstructionPause
 import json
 
@@ -13,7 +13,7 @@ class TestSnapshot(unittest.TestCase):
     def testSnapshot(self) -> None:
         layer = "black"
 
-        plotter = Plotter3d(
+        plotter = Plotter3D(
             title="plotter3d_test",
             x_min=-100,
             x_max=0,

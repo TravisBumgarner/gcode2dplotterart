@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'gcode2dplotterart',
-  tagline: 'Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art.',
+  tagline: 'Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art.',
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here

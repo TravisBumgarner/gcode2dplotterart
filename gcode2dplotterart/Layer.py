@@ -150,20 +150,20 @@ class SimpleInstruction:
 
 class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction):
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when drawing on the drawing surface.
     """
 
     def __init__(self) -> None:
-        super().__init__("M3 S1000", "Connect print head to drawing surface")
+        super().__init__("M3 S1000", "Connect plotter head to drawing surface")
 
 
 class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction):
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when drawing on the drawing surface.
     """
 
     def __init__(self) -> None:
-        super().__init__("M3 S0", "Separate print head from drawing surface")
+        super().__init__("M3 S0", "Separate plotter head from drawing surface")
 
 
 class SimpleInstructionPause(SimpleInstruction):
@@ -195,7 +195,7 @@ class SimpleInstructionProgramEnd(SimpleInstruction):
 
 class SpecialInstructionDrawingHeight3DPrinter:
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when drawing on the drawing surface.
 
     Attributes
         z_drawing_height : float
@@ -222,7 +222,7 @@ class SpecialInstructionDrawingHeight3DPrinter:
 
 class SpecialInstructionNavigationHeight3DPrinter:
     """
-    The height of the print head when navigating around the drawing surface.
+    The height of the plotter head when navigating around the drawing surface.
 
     Attributes
         z_navigating_height : float
@@ -313,7 +313,6 @@ class Layer(ABC):
 
         self.set_feed_rate(feed_rate, "setup")
 
-        self.is_print_head_lowered = False
         self.add_instruction(SimpleInstructionNavigationHeight2DPlotter(), "setup")
 
         self.add_instruction(SimpleInstructionProgramEnd(), "teardown")
@@ -352,7 +351,7 @@ class Layer(ABC):
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
-        Set the speed at which the print head moves.
+        Set the speed at which the plotter head moves.
 
         Args:
           feed_rate : float
@@ -757,7 +756,6 @@ class Layer2d(Layer):
             SimpleInstructionDrawingHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = True
 
         return self
 
@@ -781,7 +779,6 @@ class Layer2d(Layer):
             SimpleInstructionNavigationHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = False
 
         return self
 
@@ -837,7 +834,6 @@ class Layer3d(Layer):
             SimpleInstructionDrawingHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = True
 
         return self
 
@@ -861,6 +857,5 @@ class Layer3d(Layer):
             SimpleInstructionNavigationHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = False
 
         return self

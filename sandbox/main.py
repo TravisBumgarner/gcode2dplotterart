@@ -1,4 +1,4 @@
-from gcode2dplotterart import Plotter2d
+from gcode2dplotterart import Plotter2D
 import cv2
 import numpy as np
 from imutils import resize
@@ -146,7 +146,7 @@ def resize_image_for_plotter(filename: str) -> List[List[int]]:
     return img
 
 
-plotter = Plotter2d(
+plotter = Plotter2D(
     title="Horizontal Line Art",
     units="mm",
     x_min=0,

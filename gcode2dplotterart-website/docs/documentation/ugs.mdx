@@ -16,7 +16,7 @@ Below are a collection of features referenced in other parts of the documentatio
 
 ![Controller screenshot](/img/ugs/controllerstate.png)
 
-The controller state contains various details about the plotting device. Of interest is the X position, `0.000` and the Y position, `10.000`. These coordinates will be used with the Jog Controller to figure out the coordinates of your plotting device. Additionally, for those with 3D Printers, the Z position will be used to define the print head's lowered and raised positions.
+The controller state contains various details about the plotting device. Of interest is the X position, `0.000` and the Y position, `10.000`. These coordinates will be used with the Jog Controller to figure out the coordinates of your plotting device. Additionally, for those with 3D printers, the Z position will be used to define the plotter head's lowered and raised positions.
 
 ### Jog Controller
 
@@ -28,7 +28,7 @@ Be careful in this section. Start with small movements of your plotting device. 
 
 :::
 
-The jog controller lets you control your plotting device in real time. You can move your print head in the X and Y direction. If you're using a 3D printer, you can raise and lower the Z direction. The jog controller, in conjunction with the controller state, will be used to setup the gcode2dplotterart library. 
+The jog controller lets you control your plotting device in real time. You can move your plotter head in the X and Y direction. If you're using a 3D printer, you can raise and lower the Z direction. The jog controller, in conjunction with the controller state, will be used to setup the gcode2dplotterart library. 
 
 ### Toolbox
 
@@ -41,8 +41,8 @@ The toolbox contains several useful features listed below.
 Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
 :::
 
-- `Reset Zero` - This will set the print head's current position to `X = 0`, `Y = 0`, and optionally `Z = 0`. All future movements will be made relative to this position. 
-- `Return to Zero` - This will return the print head to the position defined by `Reset Zero`
+- `Reset Zero` - This will set the plotter head's current position to `X = 0`, `Y = 0`, and optionally `Z = 0`. All future movements will be made relative to this position. 
+- `Return to Zero` - This will return the plotter head to the position defined by `Reset Zero`
 
 
 
@@ -50,7 +50,7 @@ Do not click `Return to Zero` if you have not followed the steps above. Your plo
 
 ![Macros screenshot](/img/ugs/macros.png)
 
-Macros let you define custom G-Code commands. I have defined some custom macros `Raise Print Head` and `Lower Print Head`. You can right click on this section to create your own macros.
+Macros let you define custom G-Code commands. I have defined some custom macros `Raise plotter head` and `Lower plotter head`. You can right click on this section to create your own macros.
 
 :::caution
 
@@ -90,7 +90,7 @@ Device naming may not be intuitive. If your device is not listed above, an easy 
 
 Once you find your device, please share it [here](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/3) to help improve documentation.
 
-### Get your plotting devices's dimensions
+### Get the plotting devices's dimensions
 
 :::danger
 Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
@@ -100,10 +100,10 @@ These instructions assume you've read the [UGS Features](#ugs-features) section 
 
 1. Open the Jog Controller. 
 2. Select `millimeters`.
-3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
+3. Move the plotter head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
+4. If you have a 3D printer, attach your drawing instrument to the plotter head. Move your plotter head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
 5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting.
-6. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
+6. Switch back to the Jog Controller. Move the plotter head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
 7. If you have a 3D printer, you'll need move in the opposite direction you moved in step 3. **Write this number down.**
 
 ### Reset Zero
@@ -112,14 +112,14 @@ These instructions assume you've read the [UGS Features](#ugs-features) section 
 Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
 :::
 
-Once you've initially performed [getting your plotting device's dimensions](#get-your-plotting-devicess-dimensions), this step should be performed every time you power on your device.
+Once you've initially performed [getting your plotting device's dimensions](#get-the-plotting-devicess-dimensions), this step should be performed every time you power on your device.
 
 1. Open the Jog Controller. 
 2. Select `millimeters`.
-3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface.
+3. Move the plotter head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
+4. If you have a 3D printer, attach your drawing instrument to the plotter head. Move your plotter head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface.
 5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
-6. Now move the print head around in the X, Y, and optionally Z directions.
+6. Now move the plotter head around in the X, Y, and optionally Z directions.
 
 :::danger
 
@@ -129,7 +129,7 @@ Do not click `Return to Zero` if you have not followed the steps above. Your plo
 7. Switch to the Toolbox and click `Return to Zero`. Your plotting device will return to the point that was defined by `Reset Zero`
 
 
-### Get your plotting devices's feed rate
+### Get the plotting devices's feed rate
 
 These instructions assume you've read the [UGS Features](#ugs-features) section above.
 
@@ -137,9 +137,9 @@ These instructions assume you've read the [UGS Features](#ugs-features) section 
 2. Open the Jog Controller. 
 3. Select `millimeters`. 
 4. Set the `Step size XY` to be about `10` for `millimeters`. 
-5. Move the print head in the Z direction so that the tip of the drawing instrument is touching the drawing surface. 
+5. Move the plotter head in the Z direction so that the tip of the drawing instrument is touching the drawing surface. 
 6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units.
-7. Click on the arrows to move the print head around the drawing surface. 
+7. Click on the arrows to move the plotter head around the drawing surface. 
 8. Try raising and lowering the `Feed Rate` until it moves at a speed that works for your device.  **Write this number down.**
 
 ### Open `.gcode` files

@@ -52,9 +52,9 @@ class _AbstractPlotter(ABC):
             output_directory (str): The directory where G-code files will be
             saved.
             include_border_layer (bool): Whether to include a border layer,
-            outlines the print area, drawing a border.
+            outlines the plotting area, drawing a border.
             include_preview_layer (bool): Whether to include a preview layer,
-            outlines the print area without drawing anything.
+            outlines the plotting area without drawing anything.
         """
 
         self.title = title
@@ -119,7 +119,7 @@ class _AbstractPlotter(ABC):
             `line_width` to the thickness of the drawing instrument. Defaults to 2.0
           preview_only : bool
             Whether the layer is a preview layer. Preview layers show the
-            print head in motion but do not come in contact with drawing
+            plotter head in motion but do not come in contact with drawing
             surface. Defaults to `False`
 
         Returns:
@@ -146,7 +146,7 @@ class _AbstractPlotter(ABC):
     def add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
-        print area and draws an X through the middle without drawing anything.
+        plotting area and draws an X through the middle without drawing anything.
         Useful for checking the the drawing surface is flat.
         """
         points = self.get_min_and_max_points()
@@ -219,7 +219,7 @@ class _AbstractPlotter(ABC):
     def preview(self) -> None:
         """
         Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
-        Plotter. Only looks at instructions during the plotting phase.
+        `Plotter`. Only looks at instructions during the plotting phase.
         """
 
         for layer_title in self.layers:
@@ -276,7 +276,7 @@ class _AbstractPlotter(ABC):
             )
 
 
-class Plotter2d(_AbstractPlotter):
+class Plotter2D(_AbstractPlotter):
     def __init__(
         self,
         title: str,
@@ -327,7 +327,7 @@ class Plotter2d(_AbstractPlotter):
         return new_layer
 
 
-class Plotter3d(_AbstractPlotter):
+class Plotter3D(_AbstractPlotter):
     z_drawing_height: float
     z_navigation_height: float
 
