@@ -1,3 +1,28 @@
+---
+sidebar_position: 0
+description: Convert an image into a wandering of parallel lines wandering where each line is one of N colors.
+---
+
+# 2023-7-15 Bunch of Lines
+
+## Description
+
+Take in a color. Plot a bunch of lines in a grid with a fixed length and a variable slope.
+
+## Images
+
+![example of plotted code](/img/gallery/bunch_of_lines/example1.jpg)
+![example of plotted code](/img/gallery/bunch_of_lines/example2.jpg)
+
+
+## Plotter Preview
+
+![preview screenshot](/img/gallery/bunch_of_lines/preview.png)
+
+
+## Code
+
+```
 from gcode2dplotterart import Plotter2D
 from math import sin
 from random import randint
@@ -42,3 +67,5 @@ for x0 in range(plotter.x_min, plotter.x_max, 10):
 
 plotter.preview()
 plotter.save()
+
+```
