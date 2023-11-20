@@ -150,20 +150,20 @@ class SimpleInstruction:
 
 class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction):
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when plotting on the plotting surface.
     """
 
     def __init__(self) -> None:
-        super().__init__("M3 S1000", "Connect print head to drawing surface")
+        super().__init__("M3 S1000", "Connect plotter head to plotting surface")
 
 
 class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction):
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when plotting on the plotting surface.
     """
 
     def __init__(self) -> None:
-        super().__init__("M3 S0", "Separate print head from drawing surface")
+        super().__init__("M3 S0", "Separate plotter head from plotting surface")
 
 
 class SimpleInstructionPause(SimpleInstruction):
@@ -195,19 +195,19 @@ class SimpleInstructionProgramEnd(SimpleInstruction):
 
 class SpecialInstructionDrawingHeight3DPrinter:
     """
-    The height of the print head when drawing on the drawing surface.
+    The height of the plotter head when plotting on the plotting surface.
 
     Attributes
-        z_drawing_height : float
-            The height of the drawing instrument when drawing.
+        z_plotting_height : float
+            The height of the plotting instrument when plotting.
     """
 
-    def __init__(self, z_drawing_height: float):
-        self.z_drawing_height = z_drawing_height
+    def __init__(self, z_plotting_height: float):
+        self.z_plotting_height = z_plotting_height
 
     def __str__(self) -> str:
         # Used for comments
-        return "Setting drawing height"
+        return "Setting plotting height"
 
     def to_g_code(self) -> str:
         """
@@ -215,14 +215,14 @@ class SpecialInstructionDrawingHeight3DPrinter:
 
         Returns:
         string
-          The drawing height in G-Code format.
+          The plotting height in G-Code format.
         """
-        return f"\nG1 Z{self.z_drawing_height}"
+        return f"\nG1 Z{self.z_plotting_height}"
 
 
 class SpecialInstructionNavigationHeight3DPrinter:
     """
-    The height of the print head when navigating around the drawing surface.
+    The height of the plotter head when navigating around the plotting surface.
 
     Attributes
         z_navigating_height : float
@@ -292,11 +292,11 @@ class Layer(ABC):
         self.plotter_y_min = y_min
         self.plotter_y_max = y_max
 
-        # For drawing a bounding box before printing.
-        self.border_x_min = x_max
-        self.border_x_max = x_min
-        self.border_y_min = y_max
-        self.border_y_max = y_min
+        # For plotting a bounding box before printing.
+        self.layer_x_min = x_max
+        self.layer_x_max = x_min
+        self.layer_y_min = y_max
+        self.layer_y_max = y_min
 
         self.feed_rate = feed_rate
 
@@ -313,7 +313,6 @@ class Layer(ABC):
 
         self.set_feed_rate(feed_rate, "setup")
 
-        self.is_print_head_lowered = False
         self.add_instruction(SimpleInstructionNavigationHeight2DPlotter(), "setup")
 
         self.add_instruction(SimpleInstructionProgramEnd(), "teardown")
@@ -322,14 +321,14 @@ class Layer(ABC):
         """
         Updates the current max and min values for the bounding box of the layer.
         """
-        if x < self.border_x_min:
-            self.border_x_min = x
-        if x > self.border_x_max:
-            self.border_x_max = x
-        if y < self.border_y_min:
-            self.border_y_min = y
-        if y > self.border_y_max:
-            self.border_y_max = y
+        if x < self.layer_x_min:
+            self.layer_x_min = x
+        if x > self.layer_x_max:
+            self.layer_x_max = x
+        if y < self.layer_y_min:
+            self.layer_y_min = y
+        if y > self.layer_y_max:
+            self.layer_y_max = y
 
     def get_min_and_max_points(self) -> Dict[str, float]:
         """
@@ -340,10 +339,10 @@ class Layer(ABC):
             A dictionary containing the max and min plot points of the layer.
         """
         return {
-            "x_min": self.border_x_min,
-            "y_min": self.border_y_min,
-            "x_max": self.border_x_max,
-            "y_max": self.border_y_max,
+            "x_min": self.layer_x_min,
+            "y_min": self.layer_y_min,
+            "x_max": self.layer_x_max,
+            "y_max": self.layer_y_max,
         }
 
     def set_feed_rate(
@@ -352,7 +351,7 @@ class Layer(ABC):
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
-        Set the speed at which the print head moves.
+        Set the speed at which the plotter head moves.
 
         Args:
           feed_rate : float
@@ -372,7 +371,7 @@ class Layer(ABC):
         return self
 
     @abstractmethod
-    def set_mode_to_draw(
+    def set_mode_to_plotting(
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
@@ -473,7 +472,7 @@ class Layer(ABC):
         for index, [x, y] in enumerate(points):
             self.add_point(x, y, instruction_type)
             if index == 0 and not self.preview_only:
-                self.set_mode_to_draw()
+                self.set_mode_to_plotting()
         self.set_mode_to_navigation()
         return self
 
@@ -662,8 +661,8 @@ class Layer(ABC):
         is_plotting = False  # Layer is set to initially be in navigation mode.
         paths: List[List[Tuple[float, float]]] = []
         current_path: List[Tuple[float, float]] = []
-        # Before the plotter begins drawing, it needs to move to a point, switch to drawing mode, and begin drawing.
-        # This will hold the most recent navigation point before the switch to drawing mode is made.
+        # Before the plotter begins plotting, it needs to move to a point, switch to plotting mode, and begin plotting.
+        # This will hold the most recent navigation point before the switch to plotting mode is made.
         previous_navigation_point = None
 
         for instruction in self.instructions["plotting"]:
@@ -738,7 +737,7 @@ class Layer2d(Layer):
             color=color,
         )
 
-    def set_mode_to_draw(
+    def set_mode_to_plotting(
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
@@ -757,7 +756,6 @@ class Layer2d(Layer):
             SimpleInstructionDrawingHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = True
 
         return self
 
@@ -766,7 +764,7 @@ class Layer2d(Layer):
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
-        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+        Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
         Args:
           instruction_type : str
@@ -781,13 +779,12 @@ class Layer2d(Layer):
             SimpleInstructionNavigationHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = False
 
         return self
 
 
 class Layer3d(Layer):
-    z_drawing_height: float
+    z_plotting_height: float
     z_navigation_height: float
 
     def __init__(
@@ -796,7 +793,7 @@ class Layer3d(Layer):
         y_min: float,
         x_max: float,
         y_max: float,
-        z_drawing_height: float,
+        z_plotting_height: float,
         z_navigation_height: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
@@ -815,10 +812,10 @@ class Layer3d(Layer):
             line_width=line_width,
             color=color,
         )
-        self.z_drawing_height = z_drawing_height
+        self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
 
-    def set_mode_to_draw(
+    def set_mode_to_plotting(
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
@@ -837,7 +834,6 @@ class Layer3d(Layer):
             SimpleInstructionDrawingHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = True
 
         return self
 
@@ -846,7 +842,7 @@ class Layer3d(Layer):
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
         """
-        Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+        Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
         Args:
           instruction_type : str
@@ -861,6 +857,5 @@ class Layer3d(Layer):
             SimpleInstructionNavigationHeight2DPlotter(), instruction_type
         )
         self.add_instruction(SimpleInstructionPause(), instruction_type)
-        self.is_print_head_lowered = False
 
         return self

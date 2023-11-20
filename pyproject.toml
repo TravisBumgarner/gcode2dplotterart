@@ -1,7 +1,7 @@
 [project]
 name = "gcode2dplotterart"
 version = "0.0.1"
-description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
+description = "Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art."
 authors = [
   { name="Travis Bumgarner", email="travis@sillysideprojects.com" },
 ]
@@ -14,7 +14,7 @@ build-backend = "hatchling.build"
 name = "gcode2dplotterart"
 authors = ["Travis Bumgarner"]
 version = "0.0.1"
-description = "Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art."
+description = "Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art."
 
 
 [tool.poetry.dependencies]

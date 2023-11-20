@@ -135,7 +135,7 @@ Convert instruction to G-Code.
 class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction)
 ```
 
-The height of the print head when drawing on the drawing surface.
+The height of the plotter head when plotting on the plotting surface.
 
 <a id="gcode2dplotterart/Layer.SimpleInstructionNavigationHeight2DPlotter"></a>
 
@@ -145,7 +145,7 @@ The height of the print head when drawing on the drawing surface.
 class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction)
 ```
 
-The height of the print head when drawing on the drawing surface.
+The height of the plotter head when plotting on the plotting surface.
 
 <a id="gcode2dplotterart/Layer.SimpleInstructionPause"></a>
 
@@ -185,11 +185,11 @@ Instruct the plotting device that plotting has concluded.
 class SpecialInstructionDrawingHeight3DPrinter()
 ```
 
-The height of the print head when drawing on the drawing surface.
+The height of the plotter head when plotting on the plotting surface.
 
 Attributes
-    z_drawing_height : float
-        The height of the drawing instrument when drawing.
+    z_plotting_height : float
+        The height of the plotting instrument when plotting.
 
 <a id="gcode2dplotterart/Layer.SpecialInstructionDrawingHeight3DPrinter.to_g_code"></a>
 
@@ -204,7 +204,7 @@ Convert instruction to G-Code.
 **Returns**:
 
   string
-  The drawing height in G-Code format.
+  The plotting height in G-Code format.
 
 <a id="gcode2dplotterart/Layer.SpecialInstructionNavigationHeight3DPrinter"></a>
 
@@ -214,7 +214,7 @@ Convert instruction to G-Code.
 class SpecialInstructionNavigationHeight3DPrinter()
 ```
 
-The height of the print head when navigating around the drawing surface.
+The height of the plotter head when navigating around the plotting surface.
 
 Attributes
     z_navigating_height : float
@@ -267,7 +267,7 @@ def set_feed_rate(feed_rate: float,
                   instruction_type: TInstructionType = "plotting") -> Self
 ```
 
-Set the speed at which the print head moves.
+Set the speed at which the plotter head moves.
 
 **Arguments**:
 
@@ -507,12 +507,13 @@ Get current plotting data
 class Layer2d(Layer)
 ```
 
-<a id="gcode2dplotterart/Layer.Layer2d.set_mode_to_draw"></a>
+<a id="gcode2dplotterart/Layer.Layer2d.set_mode_to_plotting"></a>
 
-#### set\_mode\_to\_draw
+#### set\_mode\_to\_plotting
 
 ```python
-def set_mode_to_draw(instruction_type: TInstructionType = "plotting") -> Self
+def set_mode_to_plotting(
+        instruction_type: TInstructionType = "plotting") -> Self
 ```
 
 Lower the pen. Should be used when starting a path.
@@ -537,7 +538,7 @@ def set_mode_to_navigation(
         instruction_type: TInstructionType = "plotting") -> Self
 ```
 
-Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
 **Arguments**:
 
@@ -558,12 +559,13 @@ Raise the pen. Should be used once drawing a path is complete before moving on t
 class Layer3d(Layer)
 ```
 
-<a id="gcode2dplotterart/Layer.Layer3d.set_mode_to_draw"></a>
+<a id="gcode2dplotterart/Layer.Layer3d.set_mode_to_plotting"></a>
 
-#### set\_mode\_to\_draw
+#### set\_mode\_to\_plotting
 
 ```python
-def set_mode_to_draw(instruction_type: TInstructionType = "plotting") -> Self
+def set_mode_to_plotting(
+        instruction_type: TInstructionType = "plotting") -> Self
 ```
 
 Lower the pen. Should be used when starting a path.
@@ -588,7 +590,7 @@ def set_mode_to_navigation(
         instruction_type: TInstructionType = "plotting") -> Self
 ```
 
-Raise the pen. Should be used once drawing a path is complete before moving on to next path.
+Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
 **Arguments**:
 

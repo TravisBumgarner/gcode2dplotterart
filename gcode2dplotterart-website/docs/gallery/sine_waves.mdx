@@ -15,11 +15,11 @@ Series of sine waves plotted with increasing amplitude
 
 ```python
 import math
-from gcode2dplotterart import Plotter2d
+from gcode2dplotterart import Plotter2D
 
 LAYER_1 = 'black'
 
-plotter = Plotter2d(
+plotter = Plotter2D(
   title="Sine Waves",
   x_min = 0,
   x_max = 220,
@@ -27,8 +27,6 @@ plotter = Plotter2d(
   y_max = 0,
   feed_rate=10000,
   output_directory="./output",
-  include_border_layer=True,
-  include_preview_layer=True,
   handle_out_of_bounds='Warning' # Some points will be out of bounds for this, that's ok.
 )
 

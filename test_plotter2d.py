@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from gcode2dplotterart.Plotter import Plotter2d
+from gcode2dplotterart.Plotter import Plotter2D
 from gcode2dplotterart.Layer import SimpleInstructionPause
 import json
 
@@ -12,7 +12,7 @@ INDENT = 4
 class TestSnapshot(unittest.TestCase):
     def testSnapshot(self) -> None:
         layer = "black"
-        plotter = Plotter2d(
+        plotter = Plotter2D(
             title="test",
             x_min=0,
             x_max=100,
@@ -20,8 +20,6 @@ class TestSnapshot(unittest.TestCase):
             y_max=100,
             feed_rate=10000,
             output_directory="./snapshots",
-            include_border_layer=True,
-            include_preview_layer=True,
             handle_out_of_bounds="Silent",
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)

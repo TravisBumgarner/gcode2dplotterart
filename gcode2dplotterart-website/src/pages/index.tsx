@@ -31,7 +31,7 @@ export default function Home(): JSX.Element {
   return (
     <Layout
       title="gcode2dplotterart"
-      description="Easily generate plotter art with your 2D Plotter or 3D Printer. This library abstracts away G-Code so you can focus on making art.">
+      description="Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

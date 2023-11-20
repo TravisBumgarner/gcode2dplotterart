@@ -6,34 +6,34 @@ sidebar_position: 1
 
 ## What does this word mean?
 
-Check out the [Terminology page](./terminology).
+Check out the [terminology](./terminology) page.
 
 ## Where do I report a bug?
 
-Open a [GitHub Issue](https://github.com/TravisBumgarner/gcode2dplotterart/issues).
+Open an [issue](https://github.com/TravisBumgarner/gcode2dplotterart/issues).
 
 ## Where can I get help?
 
-Start a discussion on the [GitHub Discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions) page.
+Start a [discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions).
 
 ## How do I make a feature request?
 
-Start a discussion on the [GitHub Discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions) page.
+Create a [suggestion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/20).
 
-## Why is my plotting device drawing when I don't expect it to?
+## Why is the plotting device running into the wall?
 
-TODO - Define Me.
+When the plotting device is turned on, it has no memory of where the plotter head previously was. Furthermore, the plotting device has no idea of its bounds. 
 
-## Why is my plotting device running into the wall?
+Therefore, it's important, when first turning on the device, to let it know where it is. 
 
-Plotting devices can be pretty dumb machines. 
+The first step is to define the lower and upper bounds of the plotting area. This involves manually moving the plotter head to the bottom left, to the most `-X` and `-Y` position, then hitting the [reset zero](./ugs#reset-zero) button in UGS. 
 
-So what's happening? When you turn on your plotting device, it has no memory of where the print head previously was. Therefore, it's important, when you first turn on your device, to let it know where it is. 
+With the lower bound defined, it is also important to know the upper bound. Move the plotting head to the top right corner. The [controller state](./ugs#controller-state) values for `X0` will display the width, and `Y0` will display the height. 
 
-Some plotting devices include limit switches which help prevent your device from running into the wall, others do not. This issue is more prevalent with plotting devices without limit switches.
+**Do not plot outside of these bounds.** If the plotting device's width is 200 and an instruction is sent to it for moving the X position to 250 the plotting device will happily grind the motors in an attempt to move it there. If at any time a point is plotted outside of the bounds of the plotting device, it's important to repeat these steps. 
 
+The `Plotter` class has built in support for preventing this from happening.
 
+## UGS says it's connected, but the plotting device is doing nothing.
 
-## UGS says it's connected but my plotting device is doing nothing.
-
-Click the `Connect or Disconnect` button twice to reestablish a connection with your plotting device.
+Click the `Connect or Disconnect` button twice to reestablish a connection with the plotting device.

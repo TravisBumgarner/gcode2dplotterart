@@ -7,7 +7,7 @@ sidebar_position: 3
 ## What is G-Code
 
 
-G-Code is the programming language of 2D Plotters and 3D Printers. It is a lower level programming language and therefore is typically difficult to understand. Below is a snippet of code to draw a rectangle. This library aims to abstract away these instructions so that more user friendly code, such as Python, can be used instead to generate G-Code. For more information on G
+G-Code is the programming language of 2D plotters and 3D printers. It is a lower level programming language and therefore is typically difficult to understand. Below is a snippet of code to plot a rectangle. This library aims to abstract away these instructions so that more user friendly code, such as Python, can be used instead to generate G-Code. For more information on G
 
 ``` gcode
 G21
@@ -32,7 +32,7 @@ The square braces indicate a variable that can be passed to the specific G-Code 
 
 ### Comment
 
-Add a comment with a line starting with `;`. This instruction is not read by the 2D Plotter.
+Add a comment with a line starting with `;`. This instruction is not read by the plotting device.
 
 ```gcode
 ;The following instruction lifts the pen up.
@@ -41,7 +41,7 @@ M3 S0
 
 ### F
 
-Set the movement speed `f` of the plotter with `F[f]`. Can also be attached to individual [G1](#g1) commands. 
+Set the movement speed `f` of the plotting device with `F[f]`. Can also be attached to individual [G1](#g1) commands. 
 
 ```gcode
 F10000
@@ -49,7 +49,7 @@ F10000
 
 ### G1
 
- Move the plotter to the specified `x` and `y` and `z` coordinates at a speed of `f` with `G1 X[x] Y[y] Z[z] F[f]`. Not all of the coordinates are required. 
+ Move the plotting device to the specified `x` and `y` and `z` coordinates at a speed of `f` with `G1 X[x] Y[y] Z[z] F[f]`. Not all of the coordinates are required. 
 
 ```gcode
 G1 X0.000 Y0.000 F10000
@@ -60,10 +60,10 @@ G1 X50.000 Y-50.000 F10000
 
 ### G4
 
-Pause for a period of time `p` with `G4 P[p]`. This command is useful in combination with a move command. A pause after moving will give the plotter a chance to stop any vibrating that might impact the plotting quality. 
+Pause for a period of time `p` with `G4 P[p]`. This command is useful in combination with a move command. A pause after moving will give the plotting device a chance to stop any vibrating that might impact the plotting quality. 
 
 ```gcode
-; Lower print head
+; Lower plotter head
 M3 S1000
 ; Pause for 0.25 seconds
 G4 P0.25
@@ -93,19 +93,19 @@ M2
 
 ### M3
 
-For 2D plotters, used to raise and lower the print head. `M3 S0` will raise the print and `M3 S1000` will lower the print head.
+For 2D plotters, used to raise and lower the plotter head. `M3 S0` will raise the print and `M3 S1000` will lower the plotter head.
 
 ```gcode
-; Raise print head
+; Raise plotter head
 M3 S0
 ; Move to first coordinate
 G1 X0.000 Y0.000 F10000
-; Lower the print head
+; Lower the plotter head
 M3 S1000
 ; Draw two lines
 G1 X50.000 Y0.000 F10000
 G1 X50.000 Y-50.000 F10000
-; Raise the print head on a 2D Plotter, A `G1` command with `Z` height would be used here for a 3D Printer.
+; Raise the plotter head on a 2D plotter, A `G1` command with `Z` height would be used here for a 3D printer.
 M3 S0
 ```
 

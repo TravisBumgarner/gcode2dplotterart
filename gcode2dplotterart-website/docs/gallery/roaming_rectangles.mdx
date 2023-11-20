@@ -15,12 +15,12 @@ Series of rectangles where one is connected to the next one, of varying colors a
 
 ```python
 from random import randint, choice
-from gcode2dplotterart import Plotter2d
+from gcode2dplotterart import Plotter2D
 
 BLACK_LAYER = 'thin_black'
 COLOR_LAYERS=['thick_red', 'thick_yellow', 'thick_blue']
 
-plotter = Plotter2d(
+plotter = Plotter2D(
   title="Roaming Rectangles",
   x_min = 0,
   x_max = 220,
@@ -28,8 +28,6 @@ plotter = Plotter2d(
   y_max = 0,
   feed_rate=10000,
   output_directory="./output",
-  include_border_layer=True,
-  include_preview_layer=True,
   handle_out_of_bounds='Warning' # Some points will be out of bounds for this, that's ok.
 )
 
@@ -55,7 +53,7 @@ def calculate_next_move(start_point, end_point):
 
   next_point_start = choice(next_point_start_options)
 
-  # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't draw on top.
+  # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't plot on top.
   movement_x = randint(MIN_MOVEMENT_X, MAX_MOVEMENT_X) * choice([-1, 1])
   movement_y = randint(MIN_MOVEMENT_Y, MAX_MOVEMENT_Y) * choice([-1, 1])
 
@@ -63,7 +61,7 @@ def calculate_next_move(start_point, end_point):
 
   return [next_point_start, next_point_end]
 
-# Starting rectangle is a rectangle drawn around the center point.
+# Starting rectangle is a rectangle plotted around the center point.
 CENTER_POINT = [(plotter.x_max + plotter.x_min) / 2, (plotter.y_max + plotter.y_min) / 2]
 start_point = [CENTER_POINT[0] - plotter.width * 0.05, CENTER_POINT[1] - plotter.height * 0.05]
 end_point = [CENTER_POINT[0] + (plotter.x_max - plotter.x_min) * 0.05, CENTER_POINT[1] + (plotter.y_max - plotter.y_min) * 0.05 ]

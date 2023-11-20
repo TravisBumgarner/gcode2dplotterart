@@ -4,9 +4,93 @@ sidebar_position: 1
 
 # Universal G-Code Sender (UGS)
 
+:::danger
+
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+
+:::
+
 ## What is UGS?
 
-UGS is the go to software for interacting with your plotting device. It offers a bunch of helpful tools to get started and can be used to send G-Code instructions and G-Code files to your device. 
+UGS is the go to software for interacting with [plotting devices](./terminology#plotting-device). It offers a bunch of helpful tools to get started and can be used to send [G-Code](./gcode) instructions and G-Code files to plotting devices. 
+
+## Setup
+
+### Installation
+
+Navigate to the [UGS](https://winder.github.io/ugs_website/download/) download page to get the software. 
+
+### Connect the plotting device
+
+![Connect screenshot](/img/ugs/connect.png)
+
+1. Open UGS and connect the plotting device to the computer, most likely via USB.
+2. Click the refresh button next to `Port`. 
+3. From the `Port` drop down menu select the plotting device. Once the plotting device is successfully connected, the `Connect or Disconnect` button will turn orange. 
+
+**Finding the plotting device**
+
+Device naming may not be intuitive. An easy way to figure out which device is the plotting device is to select a device from the drop down menu, and click the `Connect or Disconnect` button. Repeat until a successful connection is made. Note that the plotting device might have a different name depending on the USB port it is connected to. For help finding the plotting device, check out the [GitHub discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/3).
+
+### Get the plotting devices's dimensions
+
+:::danger
+
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+
+:::
+
+1. Open the [jog controller](#jog-controller). 
+1. Select `millimeters` for units.
+1. Set the `Step size XY` to 10, `Step size Z` to 1, `Feed Rate` to 1,000. (For information on setting feed rate, check the [Get the plotting devices's feed rate](#get-the-plotting -devicess-feed-rate) section)
+1. Move the [plotter head](./terminology#plotter-head) to the most negative X direction (`X-`) and most negative Y direction (`Y-`). 
+1. **For 3D printers only**, attach the [plotting instrument](./terminology#plotting-instrument) to the plotter head. (For help with 3D printer setup, check out [Convert a 3D printer to 2D plotter](convert-3d-to-2d) guide) Move the plotter head in the Z Direction (`Z-` or `Z+` depending on the 3D printer) until the point of the plotting instrument is about 5mm separated from the [plotting surface](./terminology#plotting-surface). **Write this numbers down.**
+1. Switch to the [Toolbox](#toolbox) and Click `Reset Zero`. This defines the `X = 0`, `Y = 0`, and for 3D printers only, the `Z = 0` starting point for the plotting device as the plotter head's current location.
+1. Switch back to the Jog Controller. Move the plotter head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
+1. **For 3D printers only**, move the plotting head so that the plotting instrument's point is comfortably touching the plotting surface. **Write this number down.**
+
+### Reset Zero
+
+:::danger
+
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+
+:::
+
+This step should be performed every time the plotting device is turned on. Additionally, it should be performed any time the plotter head is accidentally given coordinates that are outside of the bounds of the plotting device. 
+
+Repeat steps 1 through 6 from the [getting the plotting device's dimensions](#get-the-plotting -devicess-dimensions) section.
+
+### Get the plotting devices's feed rate
+
+:::danger
+
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+
+:::
+
+1. Open the [jog controller](#jog-controller). 
+1. Select `millimeters` for units.
+1. Set the `Step size XY` to 10, `Step size Z` to 1, `Feed Rate` to 1,000. (For information on setting feed rate, check the [Get the plotting devices's feed rate](#get-the-plotting -devicess-feed-rate) section)
+
+7. Click on the arrows to move the plotter head around the plotting surface. 
+8. Raise and lower the `Feed Rate` until it moves at a speed that results in clean and fast plotting . This may take some experimentation to pick a good number. **Write this number down.**
+
+### Creating Macros
+
+[Macros](#macros) are a way to turn repeated interactions in UGS into clickable buttons. To create a macro, in UGS, click on the `Machine` menu item and then click `Edit macros...`.
+
+Below are some commonly used macros. Check out the [G-Code Overview](./gcode) for more inspiration. To test that macros work, isntructions can be sent by typing them into the [console](#console).
+
+**2D Plotter Macros**
+
+The plotter head can be raised by sending the G-Code command `M3 S0` and lowered by sending the code `M3 1000`.
+
+**3D Printer Macros**
+
+Follow the [Get the plotting devices's dimensions](#get-the-plotting-devicess-dimensions) section to get the Z heights for the 3d printer. The [instruction](./terminology#instruction) for moving the Z Axis looks like `G1 Z123`. Replace `123` with the recorded values to make macros for raising and lowering the plotting head.
+
+
 
 ## UGS Features
 
@@ -16,19 +100,13 @@ Below are a collection of features referenced in other parts of the documentatio
 
 ![Controller screenshot](/img/ugs/controllerstate.png)
 
-The controller state contains various details about the plotting device. Of interest is the X position, `0.000` and the Y position, `10.000`. These coordinates will be used with the Jog Controller to figure out the coordinates of your plotting device. Additionally, for those with 3D Printers, the Z position will be used to define the print head's lowered and raised positions.
+The controller state contains various details about the plotting device. Of interest are the X position (`0.000`) and the Y position (`10.000`). These coordinates will be used with the [jog controller](#jog-controller) to determine the plotting device's coordinates. For 3D printers, the Z position will define the plotter head's lowered and raised positions.
 
 ### Jog Controller
 
 ![Jog controller screenshot](/img/ugs/jogcontroller.png)
 
-:::danger
-
-Be careful in this section. Start with small movements of your plotting device. If your device does not have limit switches, be careful. 
-
-:::
-
-The jog controller lets you control your plotting device in real time. You can move your print head in the X and Y direction. If you're using a 3D printer, you can raise and lower the Z direction. The jog controller, in conjunction with the controller state, will be used to setup the gcode2dplotterart library. 
+The jog controller controls the plotting device in real time. Instructions can be sent to move the plotter head in the X and Y directions. For 3D printers it'll also control the Z direction.
 
 ### Toolbox
 
@@ -36,21 +114,14 @@ The jog controller lets you control your plotting device in real time. You can m
 
 The toolbox contains several useful features listed below.
 
-:::danger
-
-Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
-:::
-
-- `Reset Zero` - This will set the print head's current position to `X = 0`, `Y = 0`, and optionally `Z = 0`. All future movements will be made relative to this position. 
-- `Return to Zero` - This will return the print head to the position defined by `Reset Zero`
-
-
+- `Reset Zero` - This will set the plotter head's current position to `X = 0`, `Y = 0`, and optionally `Z = 0`. All future movements will be made relative to this position. 
+- `Return to Zero` - This will return the plotter head to the position defined by `Reset Zero`. Do not click this before reading the [reset zero](#reset-zero) section.
 
 ### Macros
 
 ![Macros screenshot](/img/ugs/macros.png)
 
-Macros let you define custom G-Code commands. I have defined some custom macros `Raise Print Head` and `Lower Print Head`. You can right click on this section to create your own macros.
+Macros are custom G-Code commands. Two examples here include `Raise plotter head` and `Lower plotter head`. 
 
 :::caution
 
@@ -60,90 +131,8 @@ These instructions are specific to 2D plotters. Check out the [G-Code Docs](./gc
 
 ![Create macro screenshot](/img/ugs/macro-create.png)
 
+### Console
 
-### Visualizer
+![Consoles screenshot](/img/ugs/console.png)
 
-The visualizer can be used to preview G-Code instructions before they are plotted. To use the visualizer, load a G-Code file into UGS. Then click the icon of the box with the shading on the top. This'll give a top down view of what's being plotted. It may not be a completely accurate representation of what you're plotting but it should give a rough preview.
-
-![Visualizer screenshot](/img/ugs/preview.png)
-
-
-## Setup
-
-Navigate to the [UGS](https://winder.github.io/ugs_website/download/) download page to get the software for your operating system. 
-
-### Connect your plotting device
-
-![Connect screenshot](/img/ugs/connect.png)
-
-1. Open UGS and connect your plotting device to your computer, most likely via USB.
-2. Click the refresh button next to `Port`. 
-3. From the `Port` drop down menu select your device. Once you've successfully connected your device, the `Connect or Disconnect` button will turn orange. 
-
-**Finding your device**
-
-Your device might be listed below, keep reading.
-
-- Doesbot A4 - `cu.usbserial-110`, `cu-usbserial-10`
-
-Device naming may not be intuitive. If your device is not listed above, an easy way to figure out which device is the plotter is to select a device from the drop down menu, and click the `Connect or Disconnect` button. Repeat until you make a successful connection. Note that your device might have a different name each time you change USB ports. For example, on my computer, the plotting device will be called `cu.usbserial-110` or `cu-usbserial-10` depending on which port I plug it into.  If you can't figure out your device, check out this [GitHub discussion](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/3).
-
-Once you find your device, please share it [here](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/3) to help improve documentation.
-
-### Get your plotting devices's dimensions
-
-:::danger
-Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
-:::
-
-These instructions assume you've read the [UGS Features](#ugs-features) section above.
-
-1. Open the Jog Controller. 
-2. Select `millimeters`.
-3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface. **Write this number down.**
-5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting.
-6. Switch back to the Jog Controller. Move the print head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
-7. If you have a 3D printer, you'll need move in the opposite direction you moved in step 3. **Write this number down.**
-
-### Reset Zero
-
-:::danger
-Failure to correctly perform this step can result in motors trying to force the printing head where it shouldn't go.
-:::
-
-Once you've initially performed [getting your plotting device's dimensions](#get-your-plotting-devicess-dimensions), this step should be performed every time you power on your device.
-
-1. Open the Jog Controller. 
-2. Select `millimeters`.
-3. Move the print head to the most negative X direction (`X-`) and most negative Y direction (`Y-`) it can go. 
-4. If you have a 3D printer, attach your drawing instrument to the print head. Move your print head in the negative Z Direction (`Z-`) until your pen is not touching the drawing surface. Note - Your 3D printer might have its Z Axis flipped. You instead might need to move in the positive Z Direction (`Z+`) to move the drawing instrument away from the drawing surface.
-5. Switch to the Toolbox tab and Click `Reset Zero`. Now we have our starting point for all plotting. 
-6. Now move the print head around in the X, Y, and optionally Z directions.
-
-:::danger
-
-Do not click `Return to Zero` if you have not followed the steps above. Your plotting device might run into the walls and make some bad sounding grinding noises.
-:::
-
-7. Switch to the Toolbox and click `Return to Zero`. Your plotting device will return to the point that was defined by `Reset Zero`
-
-
-### Get your plotting devices's feed rate
-
-These instructions assume you've read the [UGS Features](#ugs-features) section above.
-
-1. Attach your drawing instrument to your plotting device. 
-2. Open the Jog Controller. 
-3. Select `millimeters`. 
-4. Set the `Step size XY` to be about `10` for `millimeters`. 
-5. Move the print head in the Z direction so that the tip of the drawing instrument is touching the drawing surface. 
-6. Select a starting `Feed rate` to experiment with. `5000` is a good starting point for `millimeters` units.
-7. Click on the arrows to move the print head around the drawing surface. 
-8. Try raising and lowering the `Feed Rate` until it moves at a speed that works for your device.  **Write this number down.**
-
-### Open `.gcode` files
-
-Once you have output from the `gcode2dplotterart` library, they can be opened in UGS. Once opened, you can preview what will be plotted. 
-
-After executing your Python script, you'll receive one or many G-Code files in the `output` directory. In GCS, click the "Open" button in the top left corner to load one of the files. 
+The console is used for sending commands to the plotting device.
