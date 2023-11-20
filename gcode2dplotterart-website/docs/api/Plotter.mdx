@@ -1,0 +1,215 @@
+<a id="gcode2dplotterart/Plotter"></a>
+
+# gcode2dplotterart/Plotter
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter"></a>
+
+## \_AbstractPlotter Objects
+
+```python
+class _AbstractPlotter(ABC)
+```
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.__init__"></a>
+
+#### \_\_init\_\_
+
+```python
+def __init__(title: str,
+             x_min: float,
+             x_max: float,
+             y_min: float,
+             y_max: float,
+             feed_rate: float,
+             handle_out_of_bounds: THandleOutOfBounds,
+             output_directory: str = "./output")
+```
+
+Initialize a new Plotter instance.
+
+**Arguments**:
+
+- `title` _str_ - The title of the work of art
+  only supports plotter_2d.
+- `x_min` _float_ - The minimum X-coordinate of the plotter.
+- `y_min` _float_ - The minimum Y-coordinate of the plotter.
+- `x_max` _float_ - The maximum X-coordinate of the plotter.
+- `y_max` _float_ - The maximum Y-coordinate of the plotter.
+- `feed_rate` _float_ - The feed rate for the plotter.
+- `handle_out_of_bounds` _"Warning", "Error", "Silent"_ - How to handle
+  out-of-bounds points. "Warning" will print a warning, skip the
+  point, continue, "Error" will throw an error and stop. "Silent"
+  will skip the point and continue.
+- `output_directory` _str_ - The directory where G-code files will be
+  saved.
+- `include_border_layer` _bool_ - Whether to include a border layer,
+  outlines the plotting area, plotting a border.
+- `include_preview_layer` _bool_ - Whether to include a preview layer,
+  outlines the plotting area without plotting anything.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.get_min_and_max_points"></a>
+
+#### get\_min\_and\_max\_points
+
+```python
+def get_min_and_max_points(
+) -> Dict[Literal["x_min", "y_min", "x_max", "y_max"], float]
+```
+
+Find the min and max plot points of the plotter.
+
+Returns
+  {x_min: float, y_min: float, x_max: float, y_max: float}
+    A dictionary containing the min and max plot points of the plotter.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.add_layer"></a>
+
+#### add\_layer
+
+```python
+@abstractmethod
+def add_layer(title: str,
+              color: Optional[str] = None,
+              preview_only: bool = False) -> Union[Layer2d, Layer3d]
+```
+
+Add a new layer to the plotter
+
+**Arguments**:
+
+  title : str
+  The title of the layer. Used when saving a layer to G-Code.
+  color : str
+  A hex color (such as `00FF00`) or human readable color name
+  (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
+  for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
+  line_width : Optional[float]
+  The width of the line to be plotted with the `preview` method. Some experimentation is required to match the
+  `line_width` to the thickness of the plotting instrument. Defaults to 2.0
+  preview_only : bool
+  Whether the layer is a preview layer. Preview layers show the
+  plotter head in motion but do not come in contact with plotting
+  surface. Defaults to `False`
+  
+
+**Returns**:
+
+  Layer
+  The newly created layer. Allows for chaining of the layer's add
+  methods.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.add_border_layer"></a>
+
+#### add\_border\_layer
+
+```python
+def add_border_layer() -> None
+```
+
+Creates a new layer titled border. The border layer outlines the print
+area, plotting a border.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.add_preview_layer"></a>
+
+#### add\_preview\_layer
+
+```python
+def add_preview_layer() -> None
+```
+
+Creates a new layer titled preview. The preview layer outlines the
+plotting area and plots an X through the middle without plotting anything.
+Useful for checking the the plotting surface is flat.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.width"></a>
+
+#### width
+
+```python
+@property
+def width() -> float
+```
+
+Width of the plotting area
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.height"></a>
+
+#### height
+
+```python
+@property
+def height() -> float
+```
+
+Height of the plotting area
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.is_point_in_bounds"></a>
+
+#### is\_point\_in\_bounds
+
+```python
+def is_point_in_bounds(x: float, y: float) -> bool
+```
+
+Whether the point to be potted is within the plotter bounds
+
+**Arguments**:
+
+  x : float
+  The x-coordinate of the point to be plotted
+  y : float
+  The y-coordinate of the point to be plotted
+  
+  Returns
+  boolean
+  Whether the point to be plotted is within the plotter bounds
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.get_plotting_data"></a>
+
+#### get\_plotting\_data
+
+```python
+def get_plotting_data() -> Dict[str, Dict[str, List[str]]]
+```
+
+Get current plotting data.
+
+**Returns**:
+
+  {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+  A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
+  G-Code instruction strings per layer. Mostly used for testing purposes.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.preview"></a>
+
+#### preview
+
+```python
+def preview() -> None
+```
+
+Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
+`Plotter`. Only looks at instructions during the plotting phase.
+
+<a id="gcode2dplotterart/Plotter._AbstractPlotter.save"></a>
+
+#### save
+
+```python
+def save(clear_output_before_save: bool = True) -> None
+```
+
+Save all the layers to the output directory defined by the
+`output_directory` Plotter param. Each layer will be saved
+as an individual file with the filename defined by
+`{layer_number}_{layer_title}.gcode`. If include_border_layer or include_preview_layer
+are set to True, they will be saved as `border.gcode` and
+`preview.gcode` respectively.
+
+**Arguments**:
+
+  clear_output_before_save : boolean
+  Whether to remove all files from the artwork output directory
+  (defined as [output_directory]/[title]) before saving,
+  defaults to True.
+

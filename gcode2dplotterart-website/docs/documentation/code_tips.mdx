@@ -1,0 +1,19 @@
+---
+sidebar_position: 4
+---
+
+# Coding Tips
+
+## Chaining Instructions
+
+All instructions can be chained.
+
+```python
+plotter.layers[LAYER_1]\
+  .add_rectangle(x_start=25, y_start=25, x_end=50, y_end=50)\
+  .add_circle(x_center=10, y_center=10, radius=10)
+```
+
+## `add_path`
+
+All of the plotting methods - `add_rectangle`, `add_line`, `add_circle`, `add_point`, etc. all use `add_path` under the hood. `add_path` takes an array of `(x,y)` values.
