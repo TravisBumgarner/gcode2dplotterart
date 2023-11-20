@@ -1,27 +1,3 @@
----
-sidebar_position: 1
-description: Series of sine waves plotted with increasing amplitude
----
-
-# 2023-06-20 Sine Waves
-
-## Description
-
-Series of sine waves plotted with increasing amplitude
-
-## Images
-
-![example of code](/img/gallery//sine_waves/example1.jpg)
-
-
-## Plotter Preview
-
-![preview screenshot](/img/gallery//sine_waves/preview.png)
-
-
-## Code
-
-```python
 import math
 from gcode2dplotterart import Plotter2D
 
@@ -76,4 +52,3 @@ for index, i in enumerate(OFFSETS):
 
 plotter.preview()
 plotter.save()
-```
