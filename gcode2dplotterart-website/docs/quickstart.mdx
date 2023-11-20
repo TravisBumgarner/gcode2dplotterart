@@ -30,9 +30,9 @@ If the Universal G-Code Sender application has never been used before, it is rec
 
 ## 4. Get Plotting Device Dimensions and Feed Rate
 
-The plotting device's dimensions act as a constraint to make sure anything that is plotted in code will physically fit within the bounds of the plotting device. [Get the plotting device's dimensions](./documentation/ugs#get-the-plotting-devicess-dimensions). 
+The [plotting device](./documentation/terminology#plotting-device)'s dimensions act as a constraint to make sure anything that is plotted in code will physically fit within the bounds of the plotting device. [Get the plotting device's dimensions](./documentation/ugs#get-the-plotting-devicess-dimensions). 
 
-The feed rate is a measure of how quickly the plotter head can move. It's good to tweak this so that the plotting device moves not too fast that it'll create imperfections and not too slow that plotting takes forever. [Get the plotting device's feed rate](./documentation/ugs#get-the-plotting-devicess-feed-rate).
+The feed rate is a measure of how quickly the [plotter head](./documentation/terminology#plotter-head) can move. It's good to tweak this so that the plotting device moves not too fast that it'll create imperfections and not too slow that plotting takes forever. [Get the plotting device's feed rate](./documentation/ugs#get-the-plotting-devicess-feed-rate).
 
 Fill in the plotting device's dimensions and feed rate below. 
 
@@ -84,7 +84,7 @@ plotter=Plotter3D(
 
 ## 5. Add a layer
 
-A layer is a group of instructions that will be executed sequentially.  It usually makes sense to create layers based on the plotting instruments being used. 
+A layer is a group of [instructions](./documentation/terminology#instruction) that will be executed sequentially.  It usually makes sense to create layers based on the [plotting instruments](./documentation/terminology#plotting-instrument) being used. 
 
 Several layers can be added to plot with different colors. The `color` value is used to generate a preview before plotting. A hex color (such as `#00FF00`) or human readable color name (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors) for list of supported color names) can be used. 
 
