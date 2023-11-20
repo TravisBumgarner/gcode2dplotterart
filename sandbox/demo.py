@@ -1,17 +1,3 @@
-![https://pypi.org/project/gcode2dplotterart/](https://img.shields.io/pypi/dm/gcode2dplotterart.svg)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/gcode2dplotterart)
-![GitHub](https://img.shields.io/github/license/TravisBumgarner/gcode2dplotterart?logo=github)
-
-# Introduction
-
-[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or converted 3D Printer.
-
-# Quick Start
-
-Below is a quick start example to get you up and running. For more examples, check out the TODO.
-
-```python
-
 from gcode2dplotterart import Plotter2D
 
 plotter = Plotter2D(
@@ -53,6 +39,3 @@ plotter.preview()
 
 # Output creation to G-Code files to be used in plotting.
 plotter.save()
-
-
-```

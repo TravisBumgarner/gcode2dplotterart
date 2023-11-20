@@ -103,17 +103,11 @@ plotter.add_layer(green_marker_layer, color="#027F00", line_width=4.0)
 Once a layer is created, start appending instructions to that layer. Note that the points should fit inside the plotting device's bounds, or else warnings will be seen when executing the script
 
 ```python
-plotter.layers[black_pen_layer].add_rectangle(
-    x_start=10, y_start=15, x_end=40, y_end=50
-)
 plotter.layers[black_pen_layer].add_point(x=30, y=40)
 plotter.layers[blue_marker_layer].add_circle(x_center=10, y_center=30, radius=10)
-plotter.layers[blue_marker_layer].add_rectangle(
-    x_start=50, y_start=50, x_end=75, y_end=75
-)
-plotter.layers[green_marker_layer].add_path(
-    [(10, 10), (20, 25), (30, 15), (1, 100)]
-).add_line(x_start=70, y_start=80, x_end=70, y_end=15)
+plotter.layers[blue_marker_layer].add_rectangle(x_start=50, y_start=50, x_end=75, y_end=75)
+plotter.layers[green_marker_layer].add_path([(10, 10), (20, 25), (30, 15), (1, 100)])
+plotter.layers[green_marker_layer].add_line(x_start=70, y_start=80, x_end=70, y_end=15)
 ```
  
 ## 7. Generate a preview
