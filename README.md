@@ -53,6 +53,4 @@ plotter.preview()
 
 # Output creation to G-Code files to be used in plotting.
 plotter.save()
-
-
 ```

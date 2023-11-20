@@ -11,6 +11,14 @@ Convert an image into a series of parallel lines where each line is one of N col
 
 ## Images
 
+![example of plotted code](/img/gallery/image_lines/example1.jpg)
+![example of plotted code](/img/gallery/image_lines/example2.jpg)
+
+
+## Plotter Preview
+
+![preview screenshot](/img/gallery/image_lines/preview.png)
+
 ## Code
 
 ```python
@@ -162,6 +170,7 @@ for y_index, row in enumerate(color_reduced_image):
         line_start[0], line_start[1], line_end[0], line_end[1]
     )
 
+plotter.preview()
 plotter.save()
 
 ```

@@ -1,54 +1,109 @@
-import math
+from random import randint, choice
 from gcode2dplotterart import Plotter2D
 
-magic_mark_eraser = "magic_marker_eraser"
-color1 = "color1"
-color2 = "color2"
+BLACK_LAYER = "thin_black"
+COLOR_LAYERS = ["thick_red", "thick_yellow", "thick_blue"]
 
 plotter = Plotter2D(
-    title="Sine Waves",
+    title="Roaming Rectangles",
     x_min=0,
     x_max=220,
-    y_min=0,
-    y_max=150,
+    y_min=-150,  # Note - My plotting goes from -150 to 0.
+    y_max=0,
     feed_rate=10000,
     output_directory="./output",
-    handle_out_of_bounds="Warning",
+    handle_out_of_bounds="Warning",  # Some points will be out of bounds for this, that's ok.
 )
 
-plotter.add_layer(magic_mark_eraser, color="red")
-plotter.add_layer(color1, color="green")
-plotter.add_layer(color2, color="blue")
+for layer in COLOR_LAYERS:
+    plotter.add_layer(layer)
+plotter.add_layer(BLACK_LAYER)
+
+# Min movement is 10% of the total width/height
+MIN_MOVEMENT_X = round((plotter.x_max - plotter.x_min) * 0.10)
+MIN_MOVEMENT_Y = round((plotter.y_max - plotter.y_min) * 0.10)
+
+# Max movement is 20% of the total width/height
+MAX_MOVEMENT_X = round((plotter.x_max - plotter.x_min) * 0.20)
+MAX_MOVEMENT_Y = round((plotter.y_max - plotter.y_min) * 0.20)
 
 
-def plot_sine_wave(y_offset, amplitude, wavelength):
-    path = []
-    scale_up = 10
-    scale_down = 1 / scale_up
+def calculate_next_move(start_point, end_point):
+    # Don't start the next rectangle where the current rectangle started, don't include (start_point[0], start_point[1])
+    next_point_start_options = [
+        (start_point[0], end_point[1]),
+        (end_point[0], start_point[1]),
+        (end_point[0], end_point[1]),
+    ]
 
-    for step in range(plotter.x_min * scale_up, plotter.x_max * scale_up):
-        x = step * scale_down
-        y = amplitude * math.sin((2 * math.pi * x) / wavelength)
-        y += y_offset
-        path.append((x, y))
+    next_point_start = choice(next_point_start_options)
 
-    return path
+    # Future improvement - Could optimize here so that choice([-1,1]) factors in the previous rectangle and doesn't plot on top.
+    movement_x = randint(MIN_MOVEMENT_X, MAX_MOVEMENT_X) * choice([-1, 1])
+    movement_y = randint(MIN_MOVEMENT_Y, MAX_MOVEMENT_Y) * choice([-1, 1])
+
+    next_point_end = (
+        next_point_start[0] + movement_x,
+        next_point_start[1] + movement_y,
+    )
+
+    return [next_point_start, next_point_end]
 
 
-OFFSETS = [i for i in range(10, 110, 5)]
+# Starting rectangle is a rectangle plotted around the center point.
+CENTER_POINT = [
+    (plotter.x_max + plotter.x_min) / 2,
+    (plotter.y_max + plotter.y_min) / 2,
+]
+start_point = [
+    CENTER_POINT[0] - plotter.width * 0.05,
+    CENTER_POINT[1] - plotter.height * 0.05,
+]
+end_point = [
+    CENTER_POINT[0] + (plotter.x_max - plotter.x_min) * 0.05,
+    CENTER_POINT[1] + (plotter.y_max - plotter.y_min) * 0.05,
+]
 
-for index, i in enumerate(OFFSETS):
-    path = plot_sine_wave(y_offset=i, amplitude=index / 2, wavelength=40)
-    plotter.layers[color1].add_path(path)
+current_layer_index = 0
+plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(
+    start_point[0], start_point[1], end_point[0], end_point[1]
+)
+plotter.layers[BLACK_LAYER].add_rectangle(
+    start_point[0], start_point[1], end_point[0], end_point[1]
+)
 
-for index, i in enumerate(reversed(OFFSETS)):
-    path = plot_sine_wave(y_offset=i, amplitude=index / 2, wavelength=40)
-    plotter.layers[color2].add_path(path)
+TOTAL_RECTANGLES = 100
+current_rectangle_count = 0
 
-for index, i in enumerate(OFFSETS):
-    path = plot_sine_wave(y_offset=i, amplitude=5, wavelength=80)
-    plotter.layers[magic_mark_eraser].add_path(path)
+while True:
+    # With 3 colors being plotted, the next rectangle plotted should not be the same color as the previous.
+    current_layer_index_choices = [
+        index
+        for [index, value] in enumerate(COLOR_LAYERS)
+        if index != current_layer_index
+    ]
+    current_layer_index = choice(current_layer_index_choices)
 
+    while True:
+        # Lazy solution to prevent plotter from going out of bounds
+        [next_start_point, next_end_point] = calculate_next_move(start_point, end_point)
+        if plotter.is_point_in_bounds(
+            next_start_point[0], next_start_point[1]
+        ) and plotter.is_point_in_bounds(next_end_point[0], next_end_point[1]):
+            break
+
+    plotter.layers[COLOR_LAYERS[current_layer_index]].add_rectangle(
+        next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1]
+    )
+    plotter.layers[BLACK_LAYER].add_rectangle(
+        next_start_point[0], next_start_point[1], next_end_point[0], next_end_point[1]
+    )
+    start_point = next_start_point
+    end_point = next_end_point
+
+    current_rectangle_count += 1
+    if current_rectangle_count == TOTAL_RECTANGLES:
+        break
 
 plotter.preview()
 plotter.save()
