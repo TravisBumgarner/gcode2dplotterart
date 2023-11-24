@@ -4,7 +4,7 @@ contourpy==1.2.0
 cycler==0.12.1
 flake8==6.1.0
 fonttools==4.44.1
--e git+ssh://git@github.com/TravisBumgarner/2d-plotter-art-gcode.git@e33992dd250f308412b984f9e595b25f9e25f3f0#egg=gcode2dplotterart
+-e git+ssh://git@github.com/TravisBumgarner/2d-plotter-art-gcode.git@02deec2d41ec39664e2c353e6f99406d6de5e599#egg=gcode2dplotterart
 imutils==0.5.4
 iniconfig==2.0.0
 joblib==1.3.2

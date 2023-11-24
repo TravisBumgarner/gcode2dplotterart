@@ -110,8 +110,8 @@ class Layer(ABC):
         Updates the current max and min values for the bounding box of the layer.
 
         Args:
-          - x : (float) The x-coordinate of the point to add.
-          - y : (float) The y-coordinate of the point to add.
+        - x : (float) The x-coordinate of the point to add.
+        - y : (float) The y-coordinate of the point to add.
         """
         if x < self.layer_x_min:
             self.layer_x_min = x
@@ -127,7 +127,7 @@ class Layer(ABC):
         Find the min and max plot points of the layer.
 
         Returns:
-          - dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
+        - dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
             A dictionary containing the min and max plot points of the layer.
         """
 
@@ -146,11 +146,11 @@ class Layer(ABC):
         """Set the speed at which the plotter head moves.
 
         Args:
-          - feed_rate (float) : The feed rate to set.
-          - plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+        - feed_rate (float) : The feed rate to set.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(
@@ -168,10 +168,10 @@ class Layer(ABC):
         Connect plotting instrument to plotting surface. Should be used when starting a path.
 
         Args:
-          - plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         pass
@@ -186,7 +186,7 @@ class Layer(ABC):
         complete before moving on to the next path.
 
         Args:
-          plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+          plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
           Layer : The Layer object. Allows for chaining of add methods.
@@ -234,12 +234,12 @@ class Layer(ABC):
         Add a point to the layer.
 
         Args:
-          - x (float) : The x-coordinate of the point.
-          - y (float) : The y-coordinate of the point.
-          - plotting_phase (str, optional): The type of instruction to use. Defaults to `plotting`.
+        - x (float) : The x-coordinate of the point.
+        - y (float) : The y-coordinate of the point.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(f"Point: {x}, {y}", plotting_phase)
@@ -262,7 +262,7 @@ class Layer(ABC):
           y_start (float) : The y-coordinate of the starting point of the line.
           x_end (float) : The x-coordinate of the ending point of the line.
           y_end (float) : The y-coordinate of the ending point of the line.
-          plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+          plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
@@ -281,11 +281,11 @@ class Layer(ABC):
         Add a path to the layer. A path is a series of points that are connected by lines.
 
         Args:
-          - points (List[Tuple[float, float]]) : An array of points to add.
-          - plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+        - points (List[Tuple[float, float]]) : An array of points to add.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(f"Path: {points}", plotting_phase)
@@ -315,11 +315,11 @@ class Layer(ABC):
         Add a special instruction.
 
         Args:
-          - special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
-          - plotting_phase (str, optional) : The type of instruction to use.
+        - special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to.
 
         Returns:
-          - Layer: The Layer object. Allows for chaining of add methods.
+        - Layer: The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(str(instruction), plotting_phase)
@@ -330,11 +330,11 @@ class Layer(ABC):
         """Add a comment to the layer.
 
         Args:
-          - text (str): The text to add.
-          - plotting_phase (str, optional): The type of instruction to use.
+        - text (str): The text to add.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to.
 
         Returns:
-          - Layer: The Layer object. Allows for chaining of add methods.
+        - Layer: The Layer object. Allows for chaining of add methods.
         """
 
         lines = text.split("\n")
@@ -355,14 +355,14 @@ class Layer(ABC):
         Adds a rectangle to the layer.
 
         Args:
-          - x_start (float) : The x-coordinate of the starting point of the rectangle.
-          - y_start (float) : The y-coordinate of the starting point of the rectangle.
-          - x_end (float) : The x-coordinate of the ending point of the rectangle.
-          - y_end (float) : The y-coordinate of the ending point of the rectangle.
-          - plotting_phase (str, optional) : The type of instruction to use. Defaults to `plotting`.
+        - x_start (float) : The x-coordinate of the starting point of the rectangle.
+        - y_start (float) : The y-coordinate of the starting point of the rectangle.
+        - x_end (float) : The x-coordinate of the ending point of the rectangle.
+        - y_end (float) : The y-coordinate of the ending point of the rectangle.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send theinstruction to. Defaults to `plotting`.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
         self.add_comment(
             f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", plotting_phase
@@ -389,14 +389,14 @@ class Layer(ABC):
         Adds a circle to the layer.
 
         Args:
-          - x_center (float) : The x-coordinate of the center of the circle.
-          - y_center (float) : The y-coordinate of the center of the circle.
-          - radius (float) : The radius of the circle.
-          - num_points (int) : The number of points to use to approximate the circle. Default is 36.
-          - plotting_phase (float) : The type of instruction to use. Default is 'plotting'.
+        - x_center (float) : The x-coordinate of the center of the circle.
+        - y_center (float) : The y-coordinate of the center of the circle.
+        - radius (float) : The radius of the circle.
+        - num_points (int) : The number of points to use to approximate the circle. Default is 36.
+        - plotting_phase (float) : The phase of plotting to send the instruction to. Default is 'plotting'.
 
         Returns:
-          - Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(
@@ -423,7 +423,7 @@ class Layer(ABC):
         Saves the layer instructions to a file at the specified file path.
 
         Args:
-          - file_path (str) : The path to the file where the layer instructions will be saved.
+        - file_path (str) : The path to the file where the layer instructions will be saved.
         """
         with open(file_path, "w") as file:
             file.write(
@@ -458,7 +458,7 @@ class Layer(ABC):
         phase.
 
         Returns:
-          - List[List[Tuple[float, float]]]
+        - List[List[Tuple[float, float]]]
             An array of paths for the given layer.
         """
         is_plotting = False  # Layer is set to initially be in navigation mode.
@@ -498,7 +498,7 @@ class Layer(ABC):
         Get current plotting data.
 
         Returns:
-          - dict: {"setup": [], "plotting": [], "teardown": []}
+        - dict: {"setup": [], "plotting": [], "teardown": []}
             A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code
             instruction strings.
         """
@@ -530,21 +530,21 @@ class Layer2D(Layer):
     ) -> None:
         """
         Args:
-            - title (str) : The title of the work of art.
-            - x_min (float) : The minimum X-coordinate of the plotter.
-            - y_min (float) : The minimum Y-coordinate of the plotter.
-            - x_max (float) : The maximum X-coordinate of the plotter.
-            - y_max (float) : The maximum Y-coordinate of the plotter.
-            - feed_rate (float) : The feed rate for the plotter.
-            - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+          - title (str) : The title of the work of art.
+          - x_min (float) : The minimum X-coordinate of the plotter.
+          - y_min (float) : The minimum Y-coordinate of the plotter.
+          - x_max (float) : The maximum X-coordinate of the plotter.
+          - y_max (float) : The maximum Y-coordinate of the plotter.
+          - feed_rate (float) : The feed rate for the plotter.
+          - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
               `Silent` will skip the point and continue.
               Defaults to `Warning`.
-            - color (str, optional) : The color of the layer. Defaults to a random color.
-            - line_width (float) : The width of the line
-            - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+          - color (str, optional) : The color of the layer. Defaults to a random color.
+          - line_width (float) : The width of the line
+          - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
             x_min=x_min,
@@ -600,23 +600,23 @@ class Layer3D(Layer):
     ) -> None:
         """
         Args:
-            - title (str) : The title of the work of art.
-            - x_min (float) : The minimum X-coordinate of the plotter.
-            - y_min (float) : The minimum Y-coordinate of the plotter.
-            - x_max (float) : The maximum X-coordinate of the plotter.
-            - y_max (float) : The maximum Y-coordinate of the plotter.
-            - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
-            - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
-            - feed_rate (float) : The feed rate for the plotter.
-            - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+          - title (str) : The title of the work of art.
+          - x_min (float) : The minimum X-coordinate of the plotter.
+          - y_min (float) : The minimum Y-coordinate of the plotter.
+          - x_max (float) : The maximum X-coordinate of the plotter.
+          - y_max (float) : The maximum Y-coordinate of the plotter.
+          - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
+          - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
+          - feed_rate (float) : The feed rate for the plotter.
+          - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
               `Silent` will skip the point and continue.
               Defaults to `Warning`.
-            - color (str, optional) : The color of the layer. Defaults to a random color.
-            - line_width (float) : The width of the line
-            - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+          - color (str, optional) : The color of the layer. Defaults to a random color.
+          - line_width (float) : The width of the line
+          - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
             x_min=x_min,

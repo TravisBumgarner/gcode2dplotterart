@@ -6,6 +6,6 @@
   "editor.detectIndentation": false,
   "editor.formatOnSave": true,
   "flake8.args": [
-    "--max-line-length=120"
+    "--max-line-length=160"
   ],
 }

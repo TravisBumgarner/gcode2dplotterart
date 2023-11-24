@@ -6,9 +6,16 @@ from gcode2dplotterart.Layer import Layer3D, Layer2D
 
 def method_to_markdown(class_obj, method_name):
     method = getattr(class_obj, method_name)
-    signature = inspect.signature(method)
+    signature = str(inspect.signature(method))
 
-    return f"```python\n{method_name}{signature}\n```\n"
+    signature = signature.replace("(", "")
+    signature = signature.replace(")", "")
+
+    [params_value, return_value] = signature.split("->")
+
+    params = "".join([f"  {param.strip()}\n" for param in params_value.split(",")])
+
+    return f"```python\n{method_name}(\n{params})\n -> {return_value}\n```\n\n"
 
 
 def class_to_markdown(class_name, class_obj):
@@ -19,6 +26,10 @@ def class_to_markdown(class_name, class_obj):
             continue
         if inspect.isfunction(member):
             docstring = inspect.getdoc(member)
+            docstring = docstring.replace("Args:", "**Args:** ")
+            docstring = docstring.replace("Returns:", "**Returns:** ")
+            docstring = docstring.replace("Raises:", "**Raises:** ")
+
             markdown_content += f"## {name}\n\n"
             markdown_content += method_to_markdown(class_obj, name)
             markdown_content += f"{docstring}\n\n"
