@@ -488,6 +488,13 @@ class Layer(ABC):
 
 
 class Layer2D(Layer):
+    """
+    `Layer2D` is a layer for a 2D plotter.
+    It is used in conjunction with a `Plotter2D` to generate a plot. Layers are added via the `Plotter2D.add_layer` method.
+
+    `Layer2D` extends from the abstract class `Layer`.
+    """
+
     def __init__(
         self,
         x_min: float,
@@ -552,6 +559,13 @@ class Layer2D(Layer):
 
 
 class Layer3D(Layer):
+    """
+    `Layer3D` is a layer for a 3D plotter.
+    It is used in conjunction with a `Plotter3D` to generate a plot. Layers are added via the `Plotter3D.add_layer` method.
+
+    `Layer3D` extends from the abstract class `Layer`.
+    """
+
     z_plotting_height: float
     z_navigation_height: float
 
