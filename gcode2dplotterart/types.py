@@ -1,5 +1,5 @@
 from typing import Union, Literal
 
-THandleOutOfBounds = Union[Literal["Warning"], Literal["Error"], Literal["Silent"]]
+THandleOutOfBounds = Union[Literal["Warning"], Literal["Error"]]
 
-TInstructionType = Union[Literal["setup"], Literal["plotting"], Literal["teardown"]]
+TPlottingPhase = Union[Literal["setup"], Literal["plotting"], Literal["teardown"]]

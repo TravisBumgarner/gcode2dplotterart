@@ -1,0 +1,159 @@
+# Plotter2D
+
+Overview of the Plotter2D class.
+
+## __init__
+
+```python
+__init__(
+  self
+  title: str
+  x_min: float
+  x_max: float
+  y_min: float
+  y_max: float
+  feed_rate: float
+  handle_out_of_bounds: Union[Literal['Warning']
+  Literal['Error']] = 'Warning'
+  output_directory: str = './output'
+)
+ ->  None
+```
+
+**Args:** 
+  - title (str) : The title of the work of art.
+  - x_min (float) : The minimum X-coordinate of the plotter.
+  - y_min (float) : The minimum Y-coordinate of the plotter.
+  - x_max (float) : The maximum X-coordinate of the plotter.
+  - y_max (float) : The maximum Y-coordinate of the plotter.
+  - feed_rate (float) : The feed rate for the plotter.
+  - handle_out_of_bounds (`Warning` | `Error`, optional):
+      How to handle out-of-bounds points.
+      `Warning` will print a warning, skip the point, and continue.
+      `Error` will throw an error and stop.
+      Defaults to `Warning`.
+  - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+
+## add_layer
+
+```python
+add_layer(
+  self
+  title: str
+  color: Optional[str] = None
+  line_width: float = 2.0
+  preview_only: bool = False
+)
+ ->  gcode2dplotterart.Layer.Layer2D
+```
+
+Add a new layer to the plotter.
+
+**Args:** 
+- title (str) : The title of the layer. Used when saving a layer to G-Code.
+- color (str) : A hex color (such as `#00FF00`) or human-readable color name
+    (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
+    for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
+- line_width (Optional[float]) : The width of the line to be plotted with the `preview` method. Some
+    experimentation is required to match the
+    `line_width` to the thickness of the plotting instrument. Defaults to 2.0.
+- preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
+    plotter head in motion but do not come in contact with plotting
+    surface. Defaults to `False`.
+
+**Returns:** 
+- Layer : The newly created layer. Allows for chaining of the layer's add methods.
+
+## add_preview_layer
+
+```python
+add_preview_layer(
+  self
+)
+ ->  None
+```
+
+Creates a new layer titled preview. The preview layer outlines the
+plotting area and plots an X through the middle without plotting anything.
+Useful for checking the the plotting surface is flat.
+
+## get_min_and_max_points
+
+```python
+get_min_and_max_points(
+  self
+)
+ ->  Dict[Literal['x_min', 'y_min', 'x_max', 'y_max'], float]
+```
+
+Find the min and max plot points of the plotter.
+
+**Returns:** 
+- dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
+    A dictionary containing the min and max plot points of the plotter.
+
+## get_plotting_data
+
+```python
+get_plotting_data(
+  self
+)
+ ->  Dict[str, Dict[str, List[str]]]
+```
+
+Get current plotting data.
+
+**Returns:** 
+- dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+    A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
+    G-Code instruction strings per layer. Mostly used for testing purposes.
+
+## is_point_in_bounds
+
+```python
+is_point_in_bounds(
+  self
+  x: float
+  y: float
+)
+ ->  bool
+```
+
+Whether the point to be plotted is within the plotter bounds.
+
+**Args:** 
+- x (float) : The x-coordinate of the point to be plotted.
+- y (float) : The y-coordinate of the point to be plotted.
+
+**Returns:** 
+- bool : Whether the point to be plotted is within the plotter bounds.
+
+## preview
+
+```python
+preview(
+  self
+)
+ ->  None
+```
+
+Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
+`Plotter`. Only looks at instructions during the plotting phase.
+
+## save
+
+```python
+save(
+  self
+  clear_output_before_save: bool = True
+)
+ ->  None
+```
+
+Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be
+saved as an individual file with the filename defined by `{layer_number}_{layer_title}.gcode`.
+
+**Args:** 
+- clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
+    (defined as `[output_directory]/[title]`) before saving. Defaults to True.
+

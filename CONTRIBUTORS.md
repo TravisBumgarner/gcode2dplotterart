@@ -24,3 +24,8 @@
 2. Activate virtual environment source `./sandbox-venv/bin/activate`
 3. Install requirements `pip install -r requirements.txt`
 4. The sandbox should have access to the latest code. If not, run ` pip install --editable .` with the venv activated from the root of the repo.
+
+## Running Tests
+
+1. `poetry run pytest`
+2. If tests fail, run `GENERATE_SNAPSHOTS=yes poetry run pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.

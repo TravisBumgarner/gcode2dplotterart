@@ -27,7 +27,6 @@ matplotlib="^3.8.1"
 numpy="^1.26.1"
 setuptools = "^68.2.2"
 wheel = "^0.41.3"
-pydoc-markdown = "^4.8.2"
 
 [project.urls]
 "Homepage" = "https://github.com/TravisBumgarner/gcode2dplotterart"
