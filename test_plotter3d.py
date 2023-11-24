@@ -34,7 +34,7 @@ class TestSnapshot(unittest.TestCase):
         plotter.layers[layer].add_point(30, 40).add_circle(1, 1, 10).add_rectangle(
             50, 50, 75, 75
         ).add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15).add_comment(
-            "Test comment", instruction_type="teardown"
+            "Test comment", plotting_phase="teardown"
         )
 
         os.makedirs(snapshot_directory, exist_ok=True)

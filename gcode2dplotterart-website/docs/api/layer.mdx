@@ -264,7 +264,7 @@ Find the min and max plot points of the layer.
 
 ```python
 def set_feed_rate(feed_rate: float,
-                  instruction_type: TInstructionType = "plotting") -> Self
+                  plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Set the speed at which the plotter head moves.
@@ -273,7 +273,7 @@ Set the speed at which the plotter head moves.
 
   feed_rate : float
   The feed rate to set.
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -289,7 +289,7 @@ Set the speed at which the plotter head moves.
 ```python
 def add_point(x: float,
               y: float,
-              instruction_type: TInstructionType = "plotting") -> Self
+              plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Add a point to the layer. Typically not used directly, instead use one of the other add methods.
@@ -300,7 +300,7 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
   The x-coordinate of the point.
   y : float
   The y-coordinate of the point.
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -315,7 +315,7 @@ Add a point to the layer. Typically not used directly, instead use one of the ot
 
 ```python
 def add_path(points: List[Tuple[float, float]],
-             instruction_type: TInstructionType = "plotting") -> Self
+             plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Add a path layer.
@@ -324,7 +324,7 @@ Add a path layer.
 
   points : List[Tuple[float, float]
   An array of points to add
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -349,7 +349,7 @@ def add_instruction(instruction: Union[
     SimpleInstructionUnitsMM,
     SimpleInstructionProgramEnd,
 ],
-                    instruction_type: TInstructionType = "plotting") -> Self
+                    plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Add a special instruction.
@@ -358,7 +358,7 @@ Add a special instruction.
 
   special_instruction : SpecialInstructionEnum
   See `SpecialInstructionEnum` for special instruction definitions
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.
   
 
@@ -372,7 +372,7 @@ Add a special instruction.
 #### add\_comment
 
 ```python
-def add_comment(text: str, instruction_type: TInstructionType) -> Self
+def add_comment(text: str, plotting_phase: TPlottingPhase) -> Self
 ```
 
 Add a comment to the layer.
@@ -381,7 +381,7 @@ Add a comment to the layer.
 
   text : str
   The text to add.
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.
   
 
@@ -399,7 +399,7 @@ def add_rectangle(x_start: float,
                   y_start: float,
                   x_end: float,
                   y_end: float,
-                  instruction_type: TInstructionType = "plotting") -> Self
+                  plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Adds a rectangle to the layer.
@@ -414,7 +414,7 @@ Adds a rectangle to the layer.
   The x-coordinate of the ending point of the rectangle.
   y_end : float
   The y-coordinate of the ending point of the rectangle.
-  instruction_type : str, optional
+  plotting_phase : str, optional
   The type of instruction to use. Defaults to 'plotting'.
   
 
@@ -432,7 +432,7 @@ def add_circle(x_center: float,
                y_center: float,
                radius: float,
                num_points: int = 36,
-               instruction_type: TInstructionType = "plotting") -> Self
+               plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Adds a circle to the layer.
@@ -447,7 +447,7 @@ Adds a circle to the layer.
   The radius of the circle.
   num_points : int
   The number of points to use to approximate the circle. Default is 36.
-  instruction_type : float
+  plotting_phase : float
   The type of instruction to use. Default is 'plotting'.
   
 
@@ -513,14 +513,14 @@ class Layer2d(Layer)
 
 ```python
 def set_mode_to_plotting(
-        instruction_type: TInstructionType = "plotting") -> Self
+        plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Lower the pen. Should be used when starting a path.
 
 **Arguments**:
 
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -535,14 +535,14 @@ Lower the pen. Should be used when starting a path.
 
 ```python
 def set_mode_to_navigation(
-        instruction_type: TInstructionType = "plotting") -> Self
+        plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
 **Arguments**:
 
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -565,14 +565,14 @@ class Layer3d(Layer)
 
 ```python
 def set_mode_to_plotting(
-        instruction_type: TInstructionType = "plotting") -> Self
+        plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Lower the pen. Should be used when starting a path.
 
 **Arguments**:
 
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
@@ -587,14 +587,14 @@ Lower the pen. Should be used when starting a path.
 
 ```python
 def set_mode_to_navigation(
-        instruction_type: TInstructionType = "plotting") -> Self
+        plotting_phase: TPlottingPhase = "plotting") -> Self
 ```
 
 Raise the pen. Should be used once plotting a path is complete before moving on to next path.
 
 **Arguments**:
 
-  instruction_type : str
+  plotting_phase : str
   The type of instruction to use.  Defaults to 'plotting'.
   
 
