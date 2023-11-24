@@ -28,11 +28,9 @@ class _AbstractPlotter(ABC):
         y_max: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
-        output_directory: str = "./output",
+        output_directory: str,
     ):
         """
-        Initialize a new Plotter instance.
-
         Args:
             title : str
                 The title of the work of art
@@ -247,11 +245,6 @@ class _AbstractPlotter(ABC):
 
 
 class Plotter2D(_AbstractPlotter):
-    """This is the 2D plotter class.
-
-    It inherits from :class:`_AbstractPlotter` and provides implementations for 2D plotting.
-    """
-
     def __init__(
         self,
         title: str,

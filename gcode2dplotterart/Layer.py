@@ -5,6 +5,21 @@ from abc import ABC, abstractmethod
 import secrets
 
 from .types import THandleOutOfBounds, TInstructionType
+from .InstructionWithArguments import (
+    InstructionPoint,
+    Instruction3DPrinterPlottingHeight,
+    InstructionComment,
+    InstructionFeedRate,
+    InstructionPause,
+    Instruction3DPrinterNavigationHeight,
+)
+
+from .SimpleInstruction import (
+    Instruction2DPlotterNavigationHeight,
+    Instruction2DPlotterPlottingHeight,
+    InstructionUnitsMM,
+    InstructionProgramEnd,
+)
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -24,241 +39,17 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """
 x = 5
 x = 10
 
-
-class InstructionPoint:
-    """
-    A class representing a point in 2D space with an optional feed rate.
-
-    Attributes
-    feed_rate : float
-      The feed rate of the point.
-    x : float
-      The x-coordinate of the point.
-    y : float
-      The y-coordinate of the point.
-
-    Raises:
-    ValueError
-        If x or y is not provided.
-    """
-
-    def __init__(self, feed_rate: float, x: float, y: float):
-        self.x = x
-        self.y = y
-        self.feed_rate = feed_rate
-
-        if x is None or y is None:
-            raise ValueError("Point requires an X or Y")
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-        string
-          A point in G-Code format.
-        """
-        output = "G1 "
-        if self.x is not None:
-            output += f"X{self.x:.3f} "
-        if self.y is not None:
-            output += f"Y{self.y:.3f} "
-        output += f"F{self.feed_rate}"
-        return output
-
-
-class SpecialInstructionComment:
-    """
-    A class representing a comment in G-Code.
-
-    Attributes
-      text : str
-        The text of the comment.
-    """
-
-    def __init__(self, text: str):
-        self.text = text
-
-    def __str__(self) -> str:
-        return self.text
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-          string
-            A comment in G-Code format.
-        """
-        return f"\n;{self.text}"
-
-
-class SpecialInstructionFeedRate:
-    """
-    A class representing the feed rate in G-Code.
-
-    Attributes
-    feed_rate : float
-      The feed rate.
-    """
-
-    def __init__(self, feed_rate: float):
-        self.feed_rate = feed_rate
-
-    def __str__(self) -> str:
-        # Used for comments
-        return "Setting feed rate"
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-        string
-          The feed rate in G-Code format.
-        """
-        return f"\nF{self.feed_rate}"
-
-
-class SimpleInstruction:
-    """
-    A class representing a special instruction in G-Code.
-
-    Attributes
-      instruction : str
-        The instruction to use.
-    """
-
-    def __init__(self, instruction: str, comment: str):
-        self.instruction = instruction
-        self.comment = comment
-
-    def __str__(self) -> str:
-        # Used for comments
-        return self.comment
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-          string
-            A special instruction in G-Code format.
-        """
-        return f"\n{self.instruction}"
-
-
-class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction):
-    """
-    The height of the plotter head when plotting on the plotting surface.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("M3 S1000", "Connect plotter head to plotting surface")
-
-
-class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction):
-    """
-    The height of the plotter head when plotting on the plotting surface.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("M3 S0", "Separate plotter head from plotting surface")
-
-
-class SimpleInstructionPause(SimpleInstruction):
-    """
-    Perform a brief pause. Useful, to reduce and prevent vibration.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("G4 P0.25", "Perform a brief pause")
-
-
-class SimpleInstructionUnitsMM(SimpleInstruction):
-    """
-    Set the units of the plotting device to mm.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("G21", "Set units to mm")
-
-
-class SimpleInstructionProgramEnd(SimpleInstruction):
-    """
-    Instruct the plotting device that plotting has concluded.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("M2", "Program end")
-
-
-class SpecialInstructionDrawingHeight3DPrinter:
-    """
-    The height of the plotter head when plotting on the plotting surface.
-
-    Attributes
-        z_plotting_height : float
-            The height of the plotting instrument when plotting.
-    """
-
-    def __init__(self, z_plotting_height: float):
-        self.z_plotting_height = z_plotting_height
-
-    def __str__(self) -> str:
-        # Used for comments
-        return "Setting plotting height"
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-        string
-          The plotting height in G-Code format.
-        """
-        return f"\nG1 Z{self.z_plotting_height}"
-
-
-class SpecialInstructionNavigationHeight3DPrinter:
-    """
-    The height of the plotter head when navigating around the plotting surface.
-
-    Attributes
-        z_navigating_height : float
-            The height of the navigating instrument when navigating.
-    """
-
-    def __init__(self, z_navigating_height: float):
-        self.z_navigating_height = z_navigating_height
-
-    def __str__(self) -> str:
-        # Used for comments
-        return "Setting navigating height"
-
-    def to_g_code(self) -> str:
-        """
-        Convert instruction to G-Code.
-
-        Returns:
-        string
-          The navigating height in G-Code format.
-        """
-        return f"\nG1 Z{self.z_navigating_height}"
-
-
 TInstructionUnion = Union[
     InstructionPoint,
-    SpecialInstructionComment,
-    SpecialInstructionFeedRate,
-    SimpleInstruction,
-    SimpleInstructionDrawingHeight2DPlotter,
-    SimpleInstructionNavigationHeight2DPlotter,
-    SimpleInstructionPause,
-    SimpleInstructionUnitsMM,
-    SimpleInstructionProgramEnd,
-    SpecialInstructionDrawingHeight3DPrinter,
-    SpecialInstructionNavigationHeight3DPrinter,
+    InstructionComment,
+    InstructionFeedRate,
+    Instruction2DPlotterPlottingHeight,
+    Instruction2DPlotterNavigationHeight,
+    InstructionPause,
+    InstructionUnitsMM,
+    InstructionProgramEnd,
+    Instruction3DPrinterPlottingHeight,
+    Instruction3DPrinterNavigationHeight,
 ]
 
 
@@ -308,14 +99,14 @@ class Layer(ABC):
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
         self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
-        self.add_comment("Setting units to mm", "setup")
-        self.add_instruction(SimpleInstructionUnitsMM(), "setup")
+        self.add_instruction(InstructionUnitsMM(), "setup")
 
         self.set_feed_rate(feed_rate, "setup")
 
-        self.add_instruction(SimpleInstructionNavigationHeight2DPlotter(), "setup")
+        self.add_instruction(Instruction2DPlotterNavigationHeight(), "setup")
+        self.add_instruction(InstructionPause(), "setup")
 
-        self.add_instruction(SimpleInstructionProgramEnd(), "teardown")
+        self.add_instruction(InstructionProgramEnd(), "teardown")
 
     def _update_max_and_min(self, x: float, y: float) -> None:
         """
@@ -350,24 +141,20 @@ class Layer(ABC):
         feed_rate: float,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Set the speed at which the plotter head moves.
+        """Set the speed at which the plotter head moves.
 
         Args:
-          feed_rate : float
-            The feed rate to set.
-          instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+          feed_rate (float): The feed rate to set.
+          instruction_type (str, optional): The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer: The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_comment(f"Feed Rate: {feed_rate}", instruction_type)
-        self.instructions[instruction_type].append(
-            SpecialInstructionFeedRate(feed_rate)
+        self.add_comment(
+            f"Set the feed rate of the layer to {feed_rate}", instruction_type
         )
+        self.instructions[instruction_type].append(InstructionFeedRate(feed_rate))
         return self
 
     @abstractmethod
@@ -399,7 +186,7 @@ class Layer(ABC):
           y : float
             The y-coordinate of the point.
           instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+            The type of instruction to use.  Defaults to `plotting`.
 
         Returns:
           Layer
@@ -442,6 +229,8 @@ class Layer(ABC):
         y_end: float,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
+        """ """
+
         points = [(x_start, y_start), (x_end, y_end)]
         self.add_comment(
             f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type
@@ -454,18 +243,14 @@ class Layer(ABC):
         points: List[Tuple[float, float]],
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Add a path layer.
+        """Add a path to the layer. A path is a series of points that are connected by lines.
 
         Args:
-          points : List[Tuple[float, float]
-            An array of points to add
-          instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+          points (List[Tuple[float, float]]): An array of points to add.
+          instruction_type (str): The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer: The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(f"Path: {points}", instruction_type)
@@ -479,15 +264,15 @@ class Layer(ABC):
     def add_instruction(
         self,
         instruction: Union[
-            SimpleInstructionPause,
-            SpecialInstructionFeedRate,
-            SpecialInstructionComment,
-            SpecialInstructionDrawingHeight3DPrinter,
-            SpecialInstructionNavigationHeight3DPrinter,
-            SimpleInstructionNavigationHeight2DPlotter,
-            SimpleInstructionDrawingHeight2DPlotter,
-            SimpleInstructionUnitsMM,
-            SimpleInstructionProgramEnd,
+            InstructionPause,
+            InstructionFeedRate,
+            InstructionComment,
+            Instruction3DPrinterPlottingHeight,
+            Instruction3DPrinterNavigationHeight,
+            Instruction2DPlotterNavigationHeight,
+            Instruction2DPlotterPlottingHeight,
+            InstructionUnitsMM,
+            InstructionProgramEnd,
         ],
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
@@ -495,8 +280,8 @@ class Layer(ABC):
         Add a special instruction.
 
         Args:
-          special_instruction : SpecialInstructionEnum
-            See `SpecialInstructionEnum` for special instruction definitions
+          special_instruction : InstructionEnum
+            See `InstructionEnum` for special instruction definitions
           instruction_type : str
             The type of instruction to use.
 
@@ -526,7 +311,7 @@ class Layer(ABC):
 
         lines = text.split("\n")
         for line in lines:
-            self.instructions[instruction_type].append(SpecialInstructionComment(line))
+            self.instructions[instruction_type].append(InstructionComment(line))
 
         return self
 
@@ -551,7 +336,7 @@ class Layer(ABC):
           y_end : float
             The y-coordinate of the ending point of the rectangle.
           instruction_type : str, optional
-            The type of instruction to use. Defaults to 'plotting'.
+            The type of instruction to use. Defaults to `plotting`.
 
         Returns:
           Layer
@@ -604,10 +389,8 @@ class Layer(ABC):
         # Calculate angle step between points to approximate the circle
         angle_step = 360.0 / num_points
 
-        self.add_instruction(
-            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.add_instruction(Instruction2DPlotterNavigationHeight(), instruction_type)
+        self.add_instruction(InstructionPause(), instruction_type)
 
         points: List[Tuple[float, float]] = []
         for point in range(num_points):
@@ -667,16 +450,16 @@ class Layer(ABC):
 
         for instruction in self.instructions["plotting"]:
             if isinstance(
-                instruction, SimpleInstructionNavigationHeight2DPlotter
-            ) or isinstance(instruction, SpecialInstructionNavigationHeight3DPrinter):
+                instruction, Instruction2DPlotterNavigationHeight
+            ) or isinstance(instruction, Instruction3DPrinterNavigationHeight):
                 is_plotting = False
                 if len(current_path) > 0:
                     paths.append(current_path)
                     current_path = []
 
             if isinstance(
-                instruction, SimpleInstructionDrawingHeight2DPlotter
-            ) or isinstance(instruction, SpecialInstructionDrawingHeight3DPrinter):
+                instruction, Instruction2DPlotterPlottingHeight
+            ) or isinstance(instruction, Instruction3DPrinterPlottingHeight):
                 is_plotting = True
                 if previous_navigation_point:
                     current_path.append(previous_navigation_point)
@@ -746,16 +529,14 @@ class Layer2d(Layer):
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+            The type of instruction to use.  Defaults to `plotting`.
 
         Returns:
           Layer
             The Layer object. Allows for chaining of add methods.
         """
-        self.add_instruction(
-            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.add_instruction(Instruction2DPlotterPlottingHeight(), instruction_type)
+        self.add_instruction(InstructionPause(), instruction_type)
 
         return self
 
@@ -768,17 +549,15 @@ class Layer2d(Layer):
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+            The type of instruction to use.  Defaults to `plotting`.
 
         Returns:
           Layer
             The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_instruction(
-            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.add_instruction(Instruction2DPlotterNavigationHeight(), instruction_type)
+        self.add_instruction(InstructionPause(), instruction_type)
 
         return self
 
@@ -824,16 +603,14 @@ class Layer3d(Layer):
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+            The type of instruction to use.  Defaults to `plotting`.
 
         Returns:
           Layer
             The Layer object. Allows for chaining of add methods.
         """
-        self.add_instruction(
-            SimpleInstructionDrawingHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.add_instruction(Instruction2DPlotterPlottingHeight(), instruction_type)
+        self.add_instruction(InstructionPause(), instruction_type)
 
         return self
 
@@ -846,16 +623,14 @@ class Layer3d(Layer):
 
         Args:
           instruction_type : str
-            The type of instruction to use.  Defaults to 'plotting'.
+            The type of instruction to use.  Defaults to `plotting`.
 
         Returns:
           Layer
             The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_instruction(
-            SimpleInstructionNavigationHeight2DPlotter(), instruction_type
-        )
-        self.add_instruction(SimpleInstructionPause(), instruction_type)
+        self.add_instruction(Instruction2DPlotterNavigationHeight(), instruction_type)
+        self.add_instruction(InstructionPause(), instruction_type)
 
         return self

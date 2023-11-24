@@ -127,22 +127,22 @@ Convert instruction to G-Code.
   string
   A special instruction in G-Code format.
 
-<a id="gcode2dplotterart/Layer.SimpleInstructionDrawingHeight2DPlotter"></a>
+<a id="gcode2dplotterart/Layer.SimpleInstruction2DPlotterPlottingHeight"></a>
 
-## SimpleInstructionDrawingHeight2DPlotter Objects
+## SimpleInstruction2DPlotterPlottingHeight Objects
 
 ```python
-class SimpleInstructionDrawingHeight2DPlotter(SimpleInstruction)
+class SimpleInstruction2DPlotterPlottingHeight(SimpleInstruction)
 ```
 
 The height of the plotter head when plotting on the plotting surface.
 
-<a id="gcode2dplotterart/Layer.SimpleInstructionNavigationHeight2DPlotter"></a>
+<a id="gcode2dplotterart/Layer.SimpleInstruction2DPlotterNavigationHeight"></a>
 
-## SimpleInstructionNavigationHeight2DPlotter Objects
+## SimpleInstruction2DPlotterNavigationHeight Objects
 
 ```python
-class SimpleInstructionNavigationHeight2DPlotter(SimpleInstruction)
+class SimpleInstruction2DPlotterNavigationHeight(SimpleInstruction)
 ```
 
 The height of the plotter head when plotting on the plotting surface.
@@ -177,12 +177,12 @@ class SimpleInstructionProgramEnd(SimpleInstruction)
 
 Instruct the plotting device that plotting has concluded.
 
-<a id="gcode2dplotterart/Layer.SpecialInstructionDrawingHeight3DPrinter"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction3DPrinterPlottingHeight"></a>
 
-## SpecialInstructionDrawingHeight3DPrinter Objects
+## SpecialInstruction3DPrinterPlottingHeight Objects
 
 ```python
-class SpecialInstructionDrawingHeight3DPrinter()
+class SpecialInstruction3DPrinterPlottingHeight()
 ```
 
 The height of the plotter head when plotting on the plotting surface.
@@ -191,7 +191,7 @@ Attributes
     z_plotting_height : float
         The height of the plotting instrument when plotting.
 
-<a id="gcode2dplotterart/Layer.SpecialInstructionDrawingHeight3DPrinter.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction3DPrinterPlottingHeight.to_g_code"></a>
 
 #### to\_g\_code
 
@@ -206,12 +206,12 @@ Convert instruction to G-Code.
   string
   The plotting height in G-Code format.
 
-<a id="gcode2dplotterart/Layer.SpecialInstructionNavigationHeight3DPrinter"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction3DPrinterNavigationHeight"></a>
 
-## SpecialInstructionNavigationHeight3DPrinter Objects
+## SpecialInstruction3DPrinterNavigationHeight Objects
 
 ```python
-class SpecialInstructionNavigationHeight3DPrinter()
+class SpecialInstruction3DPrinterNavigationHeight()
 ```
 
 The height of the plotter head when navigating around the plotting surface.
@@ -220,7 +220,7 @@ Attributes
     z_navigating_height : float
         The height of the navigating instrument when navigating.
 
-<a id="gcode2dplotterart/Layer.SpecialInstructionNavigationHeight3DPrinter.to_g_code"></a>
+<a id="gcode2dplotterart/Layer.SpecialInstruction3DPrinterNavigationHeight.to_g_code"></a>
 
 #### to\_g\_code
 
@@ -342,10 +342,10 @@ def add_instruction(instruction: Union[
     SimpleInstructionPause,
     SpecialInstructionFeedRate,
     SpecialInstructionComment,
-    SpecialInstructionDrawingHeight3DPrinter,
-    SpecialInstructionNavigationHeight3DPrinter,
-    SimpleInstructionNavigationHeight2DPlotter,
-    SimpleInstructionDrawingHeight2DPlotter,
+    SpecialInstruction3DPrinterPlottingHeight,
+    SpecialInstruction3DPrinterNavigationHeight,
+    SimpleInstruction2DPlotterNavigationHeight,
+    SimpleInstruction2DPlotterPlottingHeight,
     SimpleInstructionUnitsMM,
     SimpleInstructionProgramEnd,
 ],
