@@ -111,6 +111,12 @@ class Layer(ABC):
     def _update_max_and_min(self, x: float, y: float) -> None:
         """
         Updates the current max and min values for the bounding box of the layer.
+
+        Args:
+          x : float
+            The x-coordinate of the point to add.
+          y : float
+            The y-coordinate of the point to add.
         """
         if x < self.layer_x_min:
             self.layer_x_min = x
@@ -126,9 +132,10 @@ class Layer(ABC):
         Find the min and max plot points of the layer.
 
         Returns:
-          {x_min: float, y_min: float, x_max: float, y_max: float}
-            A dictionary containing the max and min plot points of the layer.
+          dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
+            A dictionary containing the min and max plot points of the layer.
         """
+
         return {
             "x_min": self.layer_x_min,
             "y_min": self.layer_y_min,
@@ -144,11 +151,11 @@ class Layer(ABC):
         """Set the speed at which the plotter head moves.
 
         Args:
-          feed_rate (float): The feed rate to set.
-          instruction_type (str, optional): The type of instruction to use. Defaults to `plotting`.
+          feed_rate (float) : The feed rate to set.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer: The Layer object. Allows for chaining of add methods.
+          Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(
@@ -162,6 +169,16 @@ class Layer(ABC):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
+        """
+        Connect plotting instrument to plotting surface. Should be used when starting a path.
+
+        Args:
+          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+
+        Returns:
+          Layer : The Layer object. Allows for chaining of add methods.
+        """
+
         pass
 
     @abstractmethod
@@ -169,6 +186,17 @@ class Layer(ABC):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
+        """
+        Separate plotting instrument from plotting surface. Should be used once plotting a path is
+        complete before moving on to the next path.
+
+        Args:
+          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+
+        Returns:
+          Layer : The Layer object. Allows for chaining of add methods.
+        """
+
         pass
 
     def add_point(
@@ -181,16 +209,12 @@ class Layer(ABC):
         Add a point to the layer. Typically not used directly, instead use one of the other add methods.
 
         Args:
-          x : float
-            The x-coordinate of the point.
-          y : float
-            The y-coordinate of the point.
-          instruction_type : str
-            The type of instruction to use.  Defaults to `plotting`.
+          x (float) : The x-coordinate of the point.
+          y (float) : The y-coordinate of the point.
+          instruction_type (str): The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer : The Layer object. Allows for chaining of add methods.
         """
         if (
             x > self.plotter_x_max
@@ -229,7 +253,16 @@ class Layer(ABC):
         y_end: float,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """ """
+        """
+        Add a line to the layer.
+
+        Args:
+          x_start (float) : The x-coordinate of the starting point of the line.
+          y_start (float) : The y-coordinate of the starting point of the line.
+          x_end (float) : The x-coordinate of the ending point of the line.
+          y_end (float) : The y-coordinate of the ending point of the line.
+          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+        """
 
         points = [(x_start, y_start), (x_end, y_end)]
         self.add_comment(
@@ -243,14 +276,15 @@ class Layer(ABC):
         points: List[Tuple[float, float]],
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """Add a path to the layer. A path is a series of points that are connected by lines.
+        """
+        Add a path to the layer. A path is a series of points that are connected by lines.
 
         Args:
-          points (List[Tuple[float, float]]): An array of points to add.
-          instruction_type (str): The type of instruction to use. Defaults to `plotting`.
+          points (List[Tuple[float, float]]) : An array of points to add.
+          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer: The Layer object. Allows for chaining of add methods.
+          Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(f"Path: {points}", instruction_type)
@@ -280,14 +314,11 @@ class Layer(ABC):
         Add a special instruction.
 
         Args:
-          special_instruction : InstructionEnum
-            See `InstructionEnum` for special instruction definitions
-          instruction_type : str
-            The type of instruction to use.
+          special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
+          instruction_type (str) : The type of instruction to use.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer: The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(str(instruction), instruction_type)
@@ -295,18 +326,14 @@ class Layer(ABC):
         return self
 
     def add_comment(self, text: str, instruction_type: TInstructionType) -> Self:
-        """
-        Add a comment to the layer.
+        """Add a comment to the layer.
 
         Args:
-          text : str
-            The text to add.
-          instruction_type : str
-            The type of instruction to use.
+          text (str): The text to add.
+          instruction_type (str): The type of instruction to use.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer: The Layer object. Allows for chaining of add methods.
         """
 
         lines = text.split("\n")
@@ -327,20 +354,14 @@ class Layer(ABC):
         Adds a rectangle to the layer.
 
         Args:
-          x_start : float
-            The x-coordinate of the starting point of the rectangle.
-          y_start : float
-            The y-coordinate of the starting point of the rectangle.
-          x_end : float
-            The x-coordinate of the ending point of the rectangle.
-          y_end : float
-            The y-coordinate of the ending point of the rectangle.
-          instruction_type : str, optional
-            The type of instruction to use. Defaults to `plotting`.
+          x_start (float) : The x-coordinate of the starting point of the rectangle.
+          y_start (float) : The y-coordinate of the starting point of the rectangle.
+          x_end (float) : The x-coordinate of the ending point of the rectangle.
+          y_end (float) : The y-coordinate of the ending point of the rectangle.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer : The Layer object. Allows for chaining of add methods.
         """
         self.add_comment(
             f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_type
@@ -367,21 +388,16 @@ class Layer(ABC):
         Adds a circle to the layer.
 
         Args:
-          x_center : float
-            The x-coordinate of the center of the circle.
-          y_center : float
-            The y-coordinate of the center of the circle.
-          radius : float
-            The radius of the circle.
-          num_points : int
-            The number of points to use to approximate the circle. Default is 36.
-          instruction_type : float
-            The type of instruction to use. Default is 'plotting'.
+          x_center (float) : The x-coordinate of the center of the circle.
+          y_center (float) : The y-coordinate of the center of the circle.
+          radius (float) : The radius of the circle.
+          num_points (int) : The number of points to use to approximate the circle. Default is 36.
+          instruction_type (float) : The type of instruction to use. Default is 'plotting'.
 
         Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
+          Layer : The Layer object. Allows for chaining of add methods.
         """
+
         self.add_comment(
             f"Circle: {x_center}, {y_center}, {radius}, {num_points}", instruction_type
         )
@@ -406,8 +422,7 @@ class Layer(ABC):
         Saves the layer instructions to a file at the specified file path.
 
         Args:
-          string
-            The path to the file where the layer instructions will be saved.
+          file_path (str) : The path to the file where the layer instructions will be saved.
         """
         with open(file_path, "w") as file:
             file.write(
@@ -440,6 +455,10 @@ class Layer(ABC):
         Generate an array of paths for the given layer. This will be used by the `Plotter`
         to generate a preview graph of the plot. Only looks at instructions during the `plotting`
         phase.
+
+        Returns:
+          List[List[Tuple[float, float]]]
+            An array of paths for the given layer.
         """
         is_plotting = False  # Layer is set to initially be in navigation mode.
         paths: List[List[Tuple[float, float]]] = []
@@ -475,10 +494,10 @@ class Layer(ABC):
 
     def get_plotting_data(self) -> Dict[str, List[str]]:
         """
-        Get current plotting data
+        Get current plotting data.
 
         Returns:
-          {"setup": [], "plotting": [], "teardown": []}
+          dict: {"setup": [], "plotting": [], "teardown": []}
             A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code
             instruction strings.
         """
@@ -524,17 +543,6 @@ class Layer2d(Layer):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Lower the pen. Should be used when starting a path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to `plotting`.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
         self.add_instruction(Instruction2DPlotterPlottingHeight(), instruction_type)
         self.add_instruction(InstructionPause(), instruction_type)
 
@@ -544,18 +552,6 @@ class Layer2d(Layer):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Raise the pen. Should be used once plotting a path is complete before moving on to next path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to `plotting`.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-
         self.add_instruction(Instruction2DPlotterNavigationHeight(), instruction_type)
         self.add_instruction(InstructionPause(), instruction_type)
 
@@ -598,17 +594,6 @@ class Layer3d(Layer):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Lower the pen. Should be used when starting a path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to `plotting`.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
         self.add_instruction(Instruction2DPlotterPlottingHeight(), instruction_type)
         self.add_instruction(InstructionPause(), instruction_type)
 
@@ -618,18 +603,6 @@ class Layer3d(Layer):
         self,
         instruction_type: TInstructionType = "plotting",
     ) -> Self:
-        """
-        Raise the pen. Should be used once plotting a path is complete before moving on to next path.
-
-        Args:
-          instruction_type : str
-            The type of instruction to use.  Defaults to `plotting`.
-
-        Returns:
-          Layer
-            The Layer object. Allows for chaining of add methods.
-        """
-
         self.add_instruction(Instruction2DPlotterNavigationHeight(), instruction_type)
         self.add_instruction(InstructionPause(), instruction_type)
 

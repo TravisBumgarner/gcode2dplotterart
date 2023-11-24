@@ -32,24 +32,19 @@ class _AbstractPlotter(ABC):
     ):
         """
         Args:
-            title : str
-                The title of the work of art
-            x_min : float
-                The minimum X-coordinate of the plotter.
-            y_min : float
-                The minimum Y-coordinate of the plotter.
-            x_max : float
-                The maximum X-coordinate of the plotter.
-            y_max : float
-                The maximum Y-coordinate of the plotter.
-            feed_rate : float
-                The feed rate for the plotter.
-            handle_out_of_bounds : `Warning`, `Error`, `Silent`
-                How to handle out-of-bounds points. `Warning` will print a warning, skip the
-                point, continue, `Error` will throw an error and stop. `Silent` will skip the
-                point and continue.
-            output_directory : str
-                The directory where G-code files will be saved.
+            title (str) : The title of the work of art.
+            x_min (float) : The minimum X-coordinate of the plotter.
+            y_min (float) : The minimum Y-coordinate of the plotter.
+            x_max (float) : The maximum X-coordinate of the plotter.
+            y_max (float) : The maximum Y-coordinate of the plotter.
+            feed_rate (float) : The feed rate for the plotter.
+            handle_out_of_bounds (`Warning`, `Error`, `Silent`):
+              How to handle out-of-bounds points.
+              `Warning` will print a warning, skip the point, and continue.
+              `Error` will throw an error and stop.
+              `Silent` will skip the point and continue.
+              Defaults to `Warning`.
+            output_directory (str) : The directory where G-code files will be saved.
         """
 
         self.title = title
@@ -68,8 +63,8 @@ class _AbstractPlotter(ABC):
         """
         Find the min and max plot points of the plotter.
 
-        Returns
-          {x_min: float, y_min: float, x_max: float, y_max: float}
+        Returns:
+          dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
             A dictionary containing the min and max plot points of the plotter.
         """
         all_layers_mins_and_maxes = [
@@ -98,26 +93,22 @@ class _AbstractPlotter(ABC):
         self, title: str, color: Optional[str] = None, preview_only: bool = False
     ) -> Union[Layer2d, Layer3d]:
         """
-        Add a new layer to the plotter
+        Add a new layer to the plotter.
 
         Args:
-          title : str
-            The title of the layer. Used when saving a layer to G-Code.
-          color : str
-            A hex color (such as `#00FF00`) or human readable color name
+          title (str) : The title of the layer. Used when saving a layer to G-Code.
+          color (str) : A hex color (such as `#00FF00`) or human-readable color name
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
-          line_width : Optional[float]
-            The width of the line to be plotted with the `preview` method. Some experimentation is required to match the
-            `line_width` to the thickness of the plotting instrument. Defaults to 2.0
-          preview_only : bool
-            Whether the layer is a preview layer. Preview layers show the
+          line_width (Optional[float]) : The width of the line to be plotted with the `preview` method. Some
+            experimentation is required to match the
+            `line_width` to the thickness of the plotting instrument. Defaults to 2.0.
+          preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
             plotter head in motion but do not come in contact with plotting
-            surface. Defaults to `False`
+            surface. Defaults to `False`.
 
         Returns:
-          Layer
-            The newly created layer. Allows for chaining of the layer's add
+          Layer : The newly created layer. Allows for chaining of the layer's add
             methods.
         """
 
@@ -156,17 +147,14 @@ class _AbstractPlotter(ABC):
 
     def is_point_in_bounds(self, x: float, y: float) -> bool:
         """
-        Whether the point to be potted is within the plotter bounds
+        Whether the point to be plotted is within the plotter bounds.
 
         Args:
-          x : float
-            The x-coordinate of the point to be plotted
-          y : float
-            The y-coordinate of the point to be plotted
+          x (float) : The x-coordinate of the point to be plotted.
+          y (float) : The y-coordinate of the point to be plotted.
 
-        Returns
-          boolean
-            Whether the point to be plotted is within the plotter bounds
+        Returns:
+          bool : Whether the point to be plotted is within the plotter bounds.
         """
 
         too_low = x < self.x_min or y < self.y_min
@@ -179,7 +167,7 @@ class _AbstractPlotter(ABC):
         Get current plotting data.
 
         Returns:
-          {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+          dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
             A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
             G-Code instruction strings per layer. Mostly used for testing purposes.
         """
@@ -223,11 +211,10 @@ class _AbstractPlotter(ABC):
         `{layer_number}_{layer_title}.gcode`.
 
         Args:
-          clear_output_before_save : boolean
-            Whether to remove all files from the artwork output directory
-            (defined as [output_directory]/[title]) before saving,
-            defaults to True.
+          clear_output_before_save (bool): Whether to remove all files from the artwork output directory
+            (defined as [output_directory]/[title]) before saving, defaults to True.
         """
+
         artwork_directory = os.path.join(self.output_directory, self.title)
         if clear_output_before_save and os.path.exists(artwork_directory):
             shutil.rmtree(artwork_directory)
@@ -253,7 +240,7 @@ class Plotter2D(_AbstractPlotter):
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: THandleOutOfBounds = "Warning",
         output_directory: str = "./output",
     ) -> None:
         super().__init__(
@@ -274,7 +261,6 @@ class Plotter2D(_AbstractPlotter):
         line_width: float = 2.0,
         preview_only: bool = False,
     ) -> Layer2d:
-        # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer2d(
             x_min=self.x_min,
             x_max=self.x_max,
@@ -305,7 +291,7 @@ class Plotter3D(_AbstractPlotter):
         feed_rate: float,
         z_plotting_height: float,
         z_navigation_height: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: THandleOutOfBounds = "Warning",
         output_directory: str = "./output",
     ) -> None:
         super().__init__(
@@ -328,7 +314,6 @@ class Plotter3D(_AbstractPlotter):
         line_width: float = 2.0,
         preview_only: bool = False,
     ) -> Layer3d:
-        # Todo - Is there a better way to prevent so much drilling?
         new_layer = Layer3d(
             x_min=self.x_min,
             x_max=self.x_max,
