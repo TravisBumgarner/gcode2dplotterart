@@ -4,7 +4,7 @@ from typing import List, Dict, Literal, Union, Optional
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
-from .Layer import Layer2d, Layer3d
+from .Layer import Layer2D, Layer3D
 from .types import THandleOutOfBounds
 
 
@@ -15,7 +15,7 @@ class _AbstractPlotter(ABC):
     y_min: float
     y_max: float
     feed_rate: float
-    layers: Dict[str, Union[Layer2d, Layer3d]]
+    layers: Dict[str, Union[Layer2D, Layer3D]]
     output_directory: str
     handle_out_of_bounds: THandleOutOfBounds
 
@@ -47,7 +47,7 @@ class _AbstractPlotter(ABC):
         Find the min and max plot points of the plotter.
 
         Returns:
-          dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
+          - dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
             A dictionary containing the min and max plot points of the plotter.
         """
         all_layers_mins_and_maxes = [
@@ -74,25 +74,24 @@ class _AbstractPlotter(ABC):
     @abstractmethod
     def add_layer(
         self, title: str, color: Optional[str] = None, preview_only: bool = False
-    ) -> Union[Layer2d, Layer3d]:
+    ) -> Union[Layer2D, Layer3D]:
         """
         Add a new layer to the plotter.
 
         Args:
-          title (str) : The title of the layer. Used when saving a layer to G-Code.
-          color (str) : A hex color (such as `#00FF00`) or human-readable color name
+          - title (str) : The title of the layer. Used when saving a layer to G-Code.
+          - color (str) : A hex color (such as `#00FF00`) or human-readable color name
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
-          line_width (Optional[float]) : The width of the line to be plotted with the `preview` method. Some
+          - line_width (Optional[float]) : The width of the line to be plotted with the `preview` method. Some
             experimentation is required to match the
             `line_width` to the thickness of the plotting instrument. Defaults to 2.0.
-          preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
+          - preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
             plotter head in motion but do not come in contact with plotting
             surface. Defaults to `False`.
 
         Returns:
-          Layer : The newly created layer. Allows for chaining of the layer's add
-            methods.
+          - Layer : The newly created layer. Allows for chaining of the layer's add methods.
         """
 
         pass
@@ -140,11 +139,11 @@ class _AbstractPlotter(ABC):
         Whether the point to be plotted is within the plotter bounds.
 
         Args:
-          x (float) : The x-coordinate of the point to be plotted.
-          y (float) : The y-coordinate of the point to be plotted.
+          - x (float) : The x-coordinate of the point to be plotted.
+          - y (float) : The y-coordinate of the point to be plotted.
 
         Returns:
-          bool : Whether the point to be plotted is within the plotter bounds.
+          - bool : Whether the point to be plotted is within the plotter bounds.
         """
 
         too_low = x < self.x_min or y < self.y_min
@@ -157,7 +156,7 @@ class _AbstractPlotter(ABC):
         Get current plotting data.
 
         Returns:
-          dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+          - dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
             A dictionary of dictionaries containing the setup, plotting, and teardown instructions as an array of
             G-Code instruction strings per layer. Mostly used for testing purposes.
         """
@@ -199,7 +198,7 @@ class _AbstractPlotter(ABC):
         saved as an individual file with the filename defined by `{layer_number}_{layer_title}.gcode`.
 
         Args:
-          clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
+          - clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
             (defined as `[output_directory]/[title]`) before saving. Defaults to True.
         """
 
@@ -233,18 +232,18 @@ class Plotter2D(_AbstractPlotter):
     ) -> None:
         """
         Args:
-            title (str) : The title of the work of art.
-            x_min (float) : The minimum X-coordinate of the plotter.
-            y_min (float) : The minimum Y-coordinate of the plotter.
-            x_max (float) : The maximum X-coordinate of the plotter.
-            y_max (float) : The maximum Y-coordinate of the plotter.
-            feed_rate (float) : The feed rate for the plotter.
-            handle_out_of_bounds (`Warning` | `Error`, optional):
+            - title (str) : The title of the work of art.
+            - x_min (float) : The minimum X-coordinate of the plotter.
+            - y_min (float) : The minimum Y-coordinate of the plotter.
+            - x_max (float) : The maximum X-coordinate of the plotter.
+            - y_max (float) : The maximum Y-coordinate of the plotter.
+            - feed_rate (float) : The feed rate for the plotter.
+            - handle_out_of_bounds (`Warning` | `Error`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
               Defaults to `Warning`.
-            output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+            - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
 
         super().__init__(
@@ -264,8 +263,8 @@ class Plotter2D(_AbstractPlotter):
         color: Optional[str] = None,
         line_width: float = 2.0,
         preview_only: bool = False,
-    ) -> Layer2d:
-        new_layer = Layer2d(
+    ) -> Layer2D:
+        new_layer = Layer2D(
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
@@ -300,20 +299,20 @@ class Plotter3D(_AbstractPlotter):
     ) -> None:
         """
         Args:
-            title (str) : The title of the work of art.
-            x_min (float) : The minimum X-coordinate of the plotter.
-            y_min (float) : The minimum Y-coordinate of the plotter.
-            x_max (float) : The maximum X-coordinate of the plotter.
-            y_max (float) : The maximum Y-coordinate of the plotter.
-            z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
-            z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
-            feed_rate (float) : The feed rate for the plotter.
-            handle_out_of_bounds (`Warning` | `Error`, optional):
+            - title (str) : The title of the work of art.
+            - x_min (float) : The minimum X-coordinate of the plotter.
+            - y_min (float) : The minimum Y-coordinate of the plotter.
+            - x_max (float) : The maximum X-coordinate of the plotter.
+            - y_max (float) : The maximum Y-coordinate of the plotter.
+            - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
+            - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
+            - feed_rate (float) : The feed rate for the plotter.
+            - handle_out_of_bounds (`Warning` | `Error`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
               Defaults to `Warning`.
-            output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+            - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
 
         super().__init__(
@@ -335,8 +334,8 @@ class Plotter3D(_AbstractPlotter):
         color: Optional[str] = None,
         line_width: float = 2.0,
         preview_only: bool = False,
-    ) -> Layer3d:
-        new_layer = Layer3d(
+    ) -> Layer3D:
+        new_layer = Layer3D(
             x_min=self.x_min,
             x_max=self.x_max,
             y_min=self.y_min,
