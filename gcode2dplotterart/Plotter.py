@@ -193,7 +193,9 @@ class _AbstractPlotter(ABC):
 
         plt.show()
 
-    def save(self, clear_output_before_save: bool = True) -> None:
+    def save(
+        self, clear_output_before_save: bool = True, include_layer_number: bool = True
+    ) -> None:
         """
         Save all the layers to the output directory defined by the `output_directory` Plotter param. Each layer will be
         saved as an individual file with the filename defined by `{layer_number}_{layer_title}.gcode`.
@@ -201,6 +203,7 @@ class _AbstractPlotter(ABC):
         Args:
         - clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
             (defined as `[output_directory]/[title]`) before saving. Defaults to True.
+        - include_layer_number (bool, optional): Whether to prepend filename with `layer_number`. Defaults to True.
         """
 
         artwork_directory = os.path.join(self.output_directory, self.title)
@@ -212,10 +215,11 @@ class _AbstractPlotter(ABC):
         self.add_preview_layer()
 
         for index, title in enumerate(self.layers.keys()):
+            file_name = f"{title}.gcode"
+            if include_layer_number:
+                file_name = f"{index}_" + file_name
             self.layers[title].save(
-                os.path.join(
-                    self.output_directory, self.title, f"{index}_{title}.gcode"
-                )
+                os.path.join(self.output_directory, self.title, file_name)
             )
 
 
