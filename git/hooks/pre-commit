@@ -1,3 +1,8 @@
+poetry run python docstrings2md.py
+# Add auto-generated docs to git commit
+git add ./gcode2dplotterart/docs/api
+git commit -m "(automatic) updated API docs"
+
 source ./sandbox-venv/bin/activate 
 pytest &&
 flake8 --max-line-length 160 ./gcode2dplotterart && 

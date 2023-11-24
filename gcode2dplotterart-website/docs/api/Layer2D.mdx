@@ -1,6 +1,9 @@
 # Layer2D
 
-Overview of the Layer2D class.
+`Layer2D` is a layer for a 2D plotter.
+It is used in conjunction with a `Plotter2D` to generate a plot. Layers are added via the `Plotter2D.add_layer` method.
+
+`Layer2D` extends from the abstract class `Layer`.
 
 ## __init__
 
@@ -22,21 +25,21 @@ __init__(
 ```
 
 **Args:** 
-  - title (str) : The title of the work of art.
-  - x_min (float) : The minimum X-coordinate of the plotter.
-  - y_min (float) : The minimum Y-coordinate of the plotter.
-  - x_max (float) : The maximum X-coordinate of the plotter.
-  - y_max (float) : The maximum Y-coordinate of the plotter.
-  - feed_rate (float) : The feed rate for the plotter.
-  - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
-      How to handle out-of-bounds points.
-      `Warning` will print a warning, skip the point, and continue.
-      `Error` will throw an error and stop.
-      `Silent` will skip the point and continue.
-      Defaults to `Warning`.
-  - color (str, optional) : The color of the layer. Defaults to a random color.
-  - line_width (float) : The width of the line
-  - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+- title (str) : The title of the work of art.
+- x_min (float) : The minimum X-coordinate of the plotter.
+- y_min (float) : The minimum Y-coordinate of the plotter.
+- x_max (float) : The maximum X-coordinate of the plotter.
+- y_max (float) : The maximum Y-coordinate of the plotter.
+- feed_rate (float) : The feed rate for the plotter.
+- handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+    How to handle out-of-bounds points.
+    `Warning` will print a warning, skip the point, and continue.
+    `Error` will throw an error and stop.
+    `Silent` will skip the point and continue.
+    Defaults to `Warning`.
+- color (str, optional) : The color of the layer. Defaults to a random color.
+- line_width (float) : The width of the line
+- preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
 
 ## add_circle
 
@@ -47,7 +50,7 @@ add_circle(
   y_center: float
   radius: float
   num_points: int = 36
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -61,7 +64,7 @@ Adds a circle to the layer.
 - y_center (float) : The y-coordinate of the center of the circle.
 - radius (float) : The radius of the circle.
 - num_points (int) : The number of points to use to approximate the circle. Default is 36.
-- plotting_phase (float) : The phase of plotting to send the instruction to. Default is 'plotting'.
+- instruction_phase (float) : The instruction phase of plotting to send the instruction to. Default is 'plotting'.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -72,7 +75,7 @@ Adds a circle to the layer.
 add_comment(
   self
   text: str
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']]
 )
@@ -83,37 +86,7 @@ Add a comment to the layer.
 
 **Args:** 
 - text (str): The text to add.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to.
-
-**Returns:** 
-- Layer: The Layer object. Allows for chaining of add methods.
-
-## add_instruction
-
-```python
-add_instruction(
-  self
-  instruction: Union[gcode2dplotterart.InstructionWithArguments.InstructionPause
-  gcode2dplotterart.InstructionWithArguments.InstructionFeedRate
-  gcode2dplotterart.InstructionWithArguments.InstructionComment
-  gcode2dplotterart.InstructionWithArguments.Instruction3DPrinterPlottingHeight
-  gcode2dplotterart.InstructionWithArguments.Instruction3DPrinterNavigationHeight
-  gcode2dplotterart.SimpleInstruction.Instruction2DPlotterNavigationHeight
-  gcode2dplotterart.SimpleInstruction.Instruction2DPlotterPlottingHeight
-  gcode2dplotterart.SimpleInstruction.InstructionUnitsMM
-  gcode2dplotterart.SimpleInstruction.InstructionProgramEnd]
-  plotting_phase: Union[Literal['setup']
-  Literal['plotting']
-  Literal['teardown']] = 'plotting'
-)
- ->  Self
-```
-
-Add a special instruction.
-
-**Args:** 
-- special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to.
 
 **Returns:** 
 - Layer: The Layer object. Allows for chaining of add methods.
@@ -127,7 +100,7 @@ add_line(
   y_start: float
   x_end: float
   y_end: float
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -137,11 +110,11 @@ add_line(
 Add a line to the layer.
 
 **Args:** 
-  x_start (float) : The x-coordinate of the starting point of the line.
-  y_start (float) : The y-coordinate of the starting point of the line.
-  x_end (float) : The x-coordinate of the ending point of the line.
-  y_end (float) : The y-coordinate of the ending point of the line.
-  plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+- x_start (float) : The x-coordinate of the starting point of the line.
+- y_start (float) : The y-coordinate of the starting point of the line.
+- x_end (float) : The x-coordinate of the ending point of the line.
+- y_end (float) : The y-coordinate of the ending point of the line.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 ## add_path
 
@@ -150,7 +123,7 @@ add_path(
   self
   points: List[Tuple[float
   float]]
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -161,7 +134,7 @@ Add a path to the layer. A path is a series of points that are connected by line
 
 **Args:** 
 - points (List[Tuple[float, float]]) : An array of points to add.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -173,7 +146,7 @@ add_point(
   self
   x: float
   y: float
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -185,7 +158,7 @@ Add a point to the layer.
 **Args:** 
 - x (float) : The x-coordinate of the point.
 - y (float) : The y-coordinate of the point.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -199,7 +172,7 @@ add_rectangle(
   y_start: float
   x_end: float
   y_end: float
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -213,7 +186,7 @@ Adds a rectangle to the layer.
 - y_start (float) : The y-coordinate of the starting point of the rectangle.
 - x_end (float) : The x-coordinate of the ending point of the rectangle.
 - y_end (float) : The y-coordinate of the ending point of the rectangle.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send theinstruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send theinstruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -287,7 +260,7 @@ Saves the layer instructions to a file at the specified file path.
 set_feed_rate(
   self
   feed_rate: float
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -298,7 +271,8 @@ Set the speed at which the plotter head moves.
 
 **Args:** 
 - feed_rate (float) : The feed rate to set.
-- plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to.
+  Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -308,7 +282,7 @@ Set the speed at which the plotter head moves.
 ```python
 set_mode_to_navigation(
   self
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -319,17 +293,17 @@ Separate plotting instrument from plotting surface. Should be used once plotting
 complete before moving on to the next path.
 
 **Args:** 
-  plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
-  Layer : The Layer object. Allows for chaining of add methods.
+- Layer : The Layer object. Allows for chaining of add methods.
 
 ## set_mode_to_plotting
 
 ```python
 set_mode_to_plotting(
   self
-  plotting_phase: Union[Literal['setup']
+  instruction_phase: Union[Literal['setup']
   Literal['plotting']
   Literal['teardown']] = 'plotting'
 )
@@ -339,7 +313,7 @@ set_mode_to_plotting(
 Connect plotting instrument to plotting surface. Should be used when starting a path.
 
 **Args:** 
-- plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.

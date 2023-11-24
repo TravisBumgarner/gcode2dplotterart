@@ -219,6 +219,12 @@ class _AbstractPlotter(ABC):
 
 
 class Plotter2D(_AbstractPlotter):
+    """
+    `Plotter2D` is a 2D plotter for creating artwork using G-code. This class should be used with a 2D plotter.
+
+    `Plotter2D` extends from the abstract class `Plotter`.
+    """
+
     def __init__(
         self,
         title: str,
@@ -281,6 +287,12 @@ class Plotter2D(_AbstractPlotter):
 
 
 class Plotter3D(_AbstractPlotter):
+    """
+    `Plotter3D` is a 3D plotter for creating artwork using G-code. This class should be used with a 3D printer.
+
+    `Plotter3D` extends from the abstract class `Plotter`.
+    """
+
     z_plotting_height: float
     z_navigation_height: float
 
@@ -298,6 +310,8 @@ class Plotter3D(_AbstractPlotter):
         output_directory: str = "./output",
     ) -> None:
         """
+        Initializes a new instance of the Plotter3D class.
+
         Args:
         - title (str) : The title of the work of art.
         - x_min (float) : The minimum X-coordinate of the plotter.
@@ -308,10 +322,10 @@ class Plotter3D(_AbstractPlotter):
         - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
         - feed_rate (float) : The feed rate for the plotter.
         - handle_out_of_bounds (`Warning` | `Error`, optional):
-            How to handle out-of-bounds points.
-            `Warning` will print a warning, skip the point, and continue.
-            `Error` will throw an error and stop.
-            Defaults to `Warning`.
+          How to handle out-of-bounds points.
+          `Warning` will print a warning, skip the point, and continue.
+          `Error` will throw an error and stop.
+          Defaults to `Warning`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
 
@@ -335,6 +349,19 @@ class Plotter3D(_AbstractPlotter):
         line_width: float = 2.0,
         preview_only: bool = False,
     ) -> Layer3D:
+        """
+        Adds a new layer to the plotter.
+
+        Args:
+        - title (str): The title of the layer.
+        - color (Optional[str], optional): The color of the layer. Defaults to None.
+        - line_width (float, optional): The line width of the layer. Defaults to 2.0.
+        - preview_only (bool, optional): Whether the layer is for preview only. Defaults to False.
+
+        Returns:
+        - Layer3D: The newly created layer.
+        """
+
         new_layer = Layer3D(
             x_min=self.x_min,
             x_max=self.x_max,
