@@ -173,7 +173,7 @@ class Layer(ABC):
         Connect plotting instrument to plotting surface. Should be used when starting a path.
 
         Args:
-          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
           Layer : The Layer object. Allows for chaining of add methods.
@@ -191,7 +191,7 @@ class Layer(ABC):
         complete before moving on to the next path.
 
         Args:
-          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
           Layer : The Layer object. Allows for chaining of add methods.
@@ -211,7 +211,7 @@ class Layer(ABC):
         Args:
           x (float) : The x-coordinate of the point.
           y (float) : The y-coordinate of the point.
-          instruction_type (str): The type of instruction to use. Defaults to `plotting`.
+          instruction_type (str, optional): The type of instruction to use. Defaults to `plotting`.
 
         Returns:
           Layer : The Layer object. Allows for chaining of add methods.
@@ -261,7 +261,7 @@ class Layer(ABC):
           y_start (float) : The y-coordinate of the starting point of the line.
           x_end (float) : The x-coordinate of the ending point of the line.
           y_end (float) : The y-coordinate of the ending point of the line.
-          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
@@ -281,7 +281,7 @@ class Layer(ABC):
 
         Args:
           points (List[Tuple[float, float]]) : An array of points to add.
-          instruction_type (str) : The type of instruction to use. Defaults to `plotting`.
+          instruction_type (str, optional) : The type of instruction to use. Defaults to `plotting`.
 
         Returns:
           Layer : The Layer object. Allows for chaining of add methods.
@@ -315,7 +315,7 @@ class Layer(ABC):
 
         Args:
           special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
-          instruction_type (str) : The type of instruction to use.
+          instruction_type (str, optional) : The type of instruction to use.
 
         Returns:
           Layer: The Layer object. Allows for chaining of add methods.
@@ -330,7 +330,7 @@ class Layer(ABC):
 
         Args:
           text (str): The text to add.
-          instruction_type (str): The type of instruction to use.
+          instruction_type (str, optional): The type of instruction to use.
 
         Returns:
           Layer: The Layer object. Allows for chaining of add methods.
@@ -524,9 +524,27 @@ class Layer2d(Layer):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
-        line_width: float,
+        line_width,
         preview_only: bool = False,
     ) -> None:
+        """
+        Args:
+            title (str) : The title of the work of art.
+            x_min (float) : The minimum X-coordinate of the plotter.
+            y_min (float) : The minimum Y-coordinate of the plotter.
+            x_max (float) : The maximum X-coordinate of the plotter.
+            y_max (float) : The maximum Y-coordinate of the plotter.
+            feed_rate (float) : The feed rate for the plotter.
+            handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+              How to handle out-of-bounds points.
+              `Warning` will print a warning, skip the point, and continue.
+              `Error` will throw an error and stop.
+              `Silent` will skip the point and continue.
+              Defaults to `Warning`.
+            color (str, optional) : The color of the layer. Defaults to a random color.
+            line_width (float) : The width of the line
+            preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        """
         super().__init__(
             x_min=x_min,
             y_min=y_min,
@@ -576,6 +594,26 @@ class Layer3d(Layer):
         line_width: float,
         preview_only: bool = False,
     ) -> None:
+        """
+        Args:
+            title (str) : The title of the work of art.
+            x_min (float) : The minimum X-coordinate of the plotter.
+            y_min (float) : The minimum Y-coordinate of the plotter.
+            x_max (float) : The maximum X-coordinate of the plotter.
+            y_max (float) : The maximum Y-coordinate of the plotter.
+            z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
+            z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
+            feed_rate (float) : The feed rate for the plotter.
+            handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+              How to handle out-of-bounds points.
+              `Warning` will print a warning, skip the point, and continue.
+              `Error` will throw an error and stop.
+              `Silent` will skip the point and continue.
+              Defaults to `Warning`.
+            color (str, optional) : The color of the layer. Defaults to a random color.
+            line_width (float) : The width of the line
+            preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        """
         super().__init__(
             x_min=x_min,
             y_min=y_min,
