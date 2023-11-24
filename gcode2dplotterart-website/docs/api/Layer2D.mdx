@@ -18,7 +18,7 @@ __init__(
   handle_out_of_bounds: Union[Literal['Warning']
   Literal['Error']]
   color: Optional[str]
-  line_width
+  line_width: float
   preview_only: bool = False
 )
  ->  None
@@ -114,7 +114,8 @@ Add a line to the layer.
 - y_start (float) : The y-coordinate of the starting point of the line.
 - x_end (float) : The x-coordinate of the ending point of the line.
 - y_end (float) : The y-coordinate of the ending point of the line.
-- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) :
+  The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
 ## add_path
 
@@ -134,7 +135,8 @@ Add a path to the layer. A path is a series of points that are connected by line
 
 **Args:** 
 - points (List[Tuple[float, float]]) : An array of points to add.
-- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+  phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -186,7 +188,8 @@ Adds a rectangle to the layer.
 - y_start (float) : The y-coordinate of the starting point of the rectangle.
 - x_end (float) : The x-coordinate of the ending point of the rectangle.
 - y_end (float) : The y-coordinate of the ending point of the rectangle.
-- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send theinstruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the
+  instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -289,11 +292,12 @@ set_mode_to_navigation(
  ->  Self
 ```
 
-Separate plotting instrument from plotting surface. Should be used once plotting a path is
-complete before moving on to the next path.
+Separate plotting instrument from plotting surface. Should be used once plotting a path
+is complete before moving on to the next path.
 
 **Args:** 
-- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase
+  of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
@@ -313,7 +317,8 @@ set_mode_to_plotting(
 Connect plotting instrument to plotting surface. Should be used when starting a path.
 
 **Args:** 
-- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+- instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+phase of plotting to send the instruction to. Defaults to `plotting`.
 
 **Returns:** 
 - Layer : The Layer object. Allows for chaining of add methods.
