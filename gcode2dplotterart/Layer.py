@@ -103,9 +103,6 @@ class Layer(ABC):
 
         self.set_feed_rate(feed_rate, "setup")
 
-        self.add_instruction(Instruction2DPlotterNavigationHeight(), "setup")
-        self.add_instruction(InstructionPause(), "setup")
-
         self.add_instruction(InstructionProgramEnd(), "teardown")
 
     def _update_max_and_min(self, x: float, y: float) -> None:
@@ -563,6 +560,9 @@ class Layer2d(Layer):
             color=color,
         )
 
+        self.add_instruction(Instruction2DPlotterNavigationHeight(), "setup")
+        self.add_instruction(InstructionPause(), "setup")
+
     def set_mode_to_plotting(
         self,
         plotting_phase: TPlottingPhase = "plotting",
@@ -634,11 +634,21 @@ class Layer3d(Layer):
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
 
+        self.add_instruction(
+            Instruction3DPrinterNavigationHeight(self.z_navigation_height), "setup"
+        )
+        self.add_instruction(InstructionPause(), "setup")
+
     def set_mode_to_plotting(
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(Instruction2DPlotterPlottingHeight(), plotting_phase)
+        self.add_instruction(
+            Instruction3DPrinterPlottingHeight(
+                z_plotting_height=self.z_plotting_height
+            ),
+            plotting_phase,
+        )
         self.add_instruction(InstructionPause(), plotting_phase)
 
         return self
@@ -647,7 +657,12 @@ class Layer3d(Layer):
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(Instruction2DPlotterNavigationHeight(), plotting_phase)
+        self.add_instruction(
+            Instruction3DPrinterNavigationHeight(
+                z_navigating_height=self.z_navigation_height
+            ),
+            plotting_phase,
+        )
         self.add_instruction(InstructionPause(), plotting_phase)
 
         return self
