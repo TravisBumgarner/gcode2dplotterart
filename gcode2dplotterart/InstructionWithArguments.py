@@ -67,7 +67,7 @@ class InstructionComment(_BaseInstruction):
         self.text = text
 
     def __str__(self) -> str:
-        return f"Comment: {self.text}"
+        return f";{self.text}"
 
     def to_g_code(self) -> str:
         """

@@ -1,3 +1,4 @@
+poetry run python docstrings2md.py
 source ./sandbox-venv/bin/activate 
 pytest &&
 flake8 --max-line-length 160 ./gcode2dplotterart && 

@@ -99,11 +99,11 @@ class Layer(ABC):
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
         self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
-        self.add_instruction(InstructionUnitsMM(), "setup")
+        self._add_instruction(InstructionUnitsMM(), "setup")
 
         self.set_feed_rate(feed_rate, "setup")
 
-        self.add_instruction(InstructionProgramEnd(), "teardown")
+        self._add_instruction(InstructionProgramEnd(), "teardown")
 
     def _update_max_and_min(self, x: float, y: float) -> None:
         """
@@ -153,10 +153,7 @@ class Layer(ABC):
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_comment(
-            f"Set the feed rate of the layer to {feed_rate}", plotting_phase
-        )
-        self.instructions[plotting_phase].append(InstructionFeedRate(feed_rate))
+        self._add_instruction(InstructionFeedRate(feed_rate), plotting_phase)
         return self
 
     @abstractmethod
@@ -221,7 +218,7 @@ class Layer(ABC):
         self._update_max_and_min(x, y)
 
         point = InstructionPoint(self.feed_rate, x, y)
-        self.instructions[plotting_phase].append(point)
+        self._add_instruction(point, plotting_phase)
         return self
 
     def add_point(
@@ -292,37 +289,15 @@ class Layer(ABC):
         for index, [x, y] in enumerate(points):
             self._add_coordinate(x, y, plotting_phase)
             if index == 0 and not self.preview_only:
-                self.set_mode_to_plotting()
-        self.set_mode_to_navigation()
+                self.set_mode_to_plotting(plotting_phase=plotting_phase)
+        self.set_mode_to_navigation(plotting_phase=plotting_phase)
         return self
 
-    def add_instruction(
-        self,
-        instruction: Union[
-            InstructionPause,
-            InstructionFeedRate,
-            InstructionComment,
-            Instruction3DPrinterPlottingHeight,
-            Instruction3DPrinterNavigationHeight,
-            Instruction2DPlotterNavigationHeight,
-            Instruction2DPlotterPlottingHeight,
-            InstructionUnitsMM,
-            InstructionProgramEnd,
-        ],
-        plotting_phase: TPlottingPhase = "plotting",
+    def _add_instruction(
+        self, instruction: TInstructionUnion, plotting_phase: TPlottingPhase
     ) -> Self:
-        """
-        Add a special instruction.
-
-        Args:
-        - special_instruction (InstructionEnum) : See `InstructionEnum` for special instruction definitions.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to.
-
-        Returns:
-        - Layer: The Layer object. Allows for chaining of add methods.
-        """
-
-        self.add_comment(str(instruction), plotting_phase)
+        if not isinstance(instruction, InstructionComment):
+            self.instructions[plotting_phase].append(InstructionComment(instruction))
         self.instructions[plotting_phase].append(instruction)
         return self
 
@@ -339,7 +314,7 @@ class Layer(ABC):
 
         lines = text.split("\n")
         for line in lines:
-            self.instructions[plotting_phase].append(InstructionComment(line))
+            self._add_instruction(InstructionComment(line), plotting_phase)
 
         return self
 
@@ -405,9 +380,6 @@ class Layer(ABC):
 
         # Calculate angle step between points to approximate the circle
         angle_step = 360.0 / num_points
-
-        self.add_instruction(Instruction2DPlotterNavigationHeight(), plotting_phase)
-        self.add_instruction(InstructionPause(), plotting_phase)
 
         points: List[Tuple[float, float]] = []
         for point in range(num_points):
@@ -558,15 +530,14 @@ class Layer2D(Layer):
             color=color,
         )
 
-        self.add_instruction(Instruction2DPlotterNavigationHeight(), "setup")
-        self.add_instruction(InstructionPause(), "setup")
+        self.set_mode_to_navigation("setup")
 
     def set_mode_to_plotting(
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(Instruction2DPlotterPlottingHeight(), plotting_phase)
-        self.add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(Instruction2DPlotterPlottingHeight(), plotting_phase)
+        self._add_instruction(InstructionPause(), plotting_phase)
 
         return self
 
@@ -574,8 +545,8 @@ class Layer2D(Layer):
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(Instruction2DPlotterNavigationHeight(), plotting_phase)
-        self.add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(Instruction2DPlotterNavigationHeight(), plotting_phase)
+        self._add_instruction(InstructionPause(), plotting_phase)
 
         return self
 
@@ -632,22 +603,19 @@ class Layer3D(Layer):
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
 
-        self.add_instruction(
-            Instruction3DPrinterNavigationHeight(self.z_navigation_height), "setup"
-        )
-        self.add_instruction(InstructionPause(), "setup")
+        self.set_mode_to_navigation("setup")
 
     def set_mode_to_plotting(
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(
+        self._add_instruction(
             Instruction3DPrinterPlottingHeight(
                 z_plotting_height=self.z_plotting_height
             ),
             plotting_phase,
         )
-        self.add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(InstructionPause(), plotting_phase)
 
         return self
 
@@ -655,12 +623,12 @@ class Layer3D(Layer):
         self,
         plotting_phase: TPlottingPhase = "plotting",
     ) -> Self:
-        self.add_instruction(
+        self._add_instruction(
             Instruction3DPrinterNavigationHeight(
                 z_navigating_height=self.z_navigation_height
             ),
             plotting_phase,
         )
-        self.add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(InstructionPause(), plotting_phase)
 
         return self
