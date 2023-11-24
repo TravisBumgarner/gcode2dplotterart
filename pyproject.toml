@@ -2,6 +2,10 @@
 requires = ["hatchling", "setuptools", "wheel"]
 build-backend = "hatchling.build"
 
+[project]
+version = "0.0.12"
+name = "gcode2dplotterart"
+
 [tool.poetry]
 name = "gcode2dplotterart"
 authors = ["Travis Bumgarner"]
