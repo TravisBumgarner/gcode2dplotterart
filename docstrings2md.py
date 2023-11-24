@@ -1,6 +1,7 @@
 import inspect
 import os
-from gcode2dplotterart import Plotter3D, Plotter2D
+
+from gcode2dplotterart.Plotter import Plotter3D, Plotter2D
 from gcode2dplotterart.Layer import Layer3D, Layer2D
 
 
@@ -24,6 +25,7 @@ def class_to_markdown(class_name, class_obj):
     for name, member in inspect.getmembers(class_obj):
         if name.startswith("_") and not name.startswith("__"):
             continue
+
         if inspect.isfunction(member):
             docstring = inspect.getdoc(member)
             docstring = docstring.replace("Args:", "**Args:** ")
@@ -38,23 +40,17 @@ def class_to_markdown(class_name, class_obj):
 
 
 def write_to_file(class_obj, output_directory):
-    # Create the output directory if it doesn't exist
     os.makedirs(output_directory, exist_ok=True)
     class_name = class_obj.__name__.split(".")[-1]
 
-    # Generate the Markdown content
     markdown_content = class_to_markdown(class_name, class_obj)
 
-    # Write to file
     file_path = os.path.join(output_directory, f"{class_name}.mdx")
     with open(file_path, "w") as file:
         file.write(markdown_content)
 
 
-# Specify the output directory
 output_directory = "gcode2dplotterart-website/docs/api"
-
-# Use your class (replace MyClass with your actual class)
 
 classes = [Plotter2D, Plotter3D, Layer2D, Layer3D]
 
