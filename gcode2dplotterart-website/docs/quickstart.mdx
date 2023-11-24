@@ -129,8 +129,6 @@ plotter.save()
 
 Inside the folder specified by the plotter's `output_directory` and `title` there will be four files `preview.gcode`, `blue_marker_layer.gcode`, `black_pen_layer.gcode`, and `green_marker_layer.gcode`. Each of the files can be opened and the code browsed. The [G-Code Overview](./documentation/gcode) includes explanations of all of the instructions used in this library.
 
-For a full description of the API, check out the [Plotter API](./api/plotter) and the [Layer API](./api/layer).
-
 ## 7. Plot
 
 :::danger
@@ -139,8 +137,21 @@ Be sure to [Reset Zero](documentation/ugs#reset-zero) every time the plotting de
 
 In UGS, open up the `preview.gcode` file. This won't plot anything but will give a preview of how large the plotting area will be. It's useful to run this command a few times to ensure that the [plotting surface](./documentation/terminology#plotting-surface) is where it's expected to be and things are aligned horizontally and vertically. Open the next gcode file for the first layer to be plotted. Attach the drawing instrument and begin plotting. Repeat the process for each layer.
 
+## 8. Read the documentation
+
+### 3D Printer 
+
+- [Plotter3D](./api/Plotter3D)
+- [Layer3D](./api/Layer3D)
+
+### 2D Plotter 
+
+- [Plotter2D](./api/Plotter2D)
+- [Layer2D](./api/Layer2D)
+
 ## 8. Next steps
 
-Check out the [plotting tips](./documentation/plotting_tips) and [coding tips](./documentation/code_tips). Find some inspiration in the [plotting gallery](./category/gallery). Dive into the [API docs](./category/api).
+Check out the [plotting tips](./documentation/plotting_tips) and [coding tips](./documentation/code_tips). Find some inspiration in the [plotting gallery](./category/gallery).
 
 Create something cool? [Share it here!](https://github.com/TravisBumgarner/gcode2dplotterart/discussions/19)
+
