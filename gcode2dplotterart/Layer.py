@@ -392,6 +392,7 @@ class Layer(ABC):
             x = x_center + radius * math.cos(angle)
             y = y_center + radius * math.sin(angle)
             points.append((x, y))
+        points.append(points[0])  # Close the circle
         self.add_path(points, instruction_phase)
         return self
 
@@ -527,7 +528,7 @@ class Layer2D(Layer):
             `Silent` will skip the point and continue.
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
-        - line_width (float) : The width of the line
+        - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
@@ -605,7 +606,7 @@ class Layer3D(Layer):
             `Silent` will skip the point and continue.
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
-        - line_width (float) : The width of the line
+        - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
