@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
-from .types import THandleOutOfBounds, TPlottingPhase
+from .types import THandleOutOfBounds, TInstructionPhase
 from .InstructionWithArguments import (
     InstructionPoint,
     Instruction3DPrinterPlottingHeight,
@@ -51,7 +51,7 @@ TInstructionUnion = Union[
 
 
 class Layer(ABC):
-    instructions: Dict[TPlottingPhase, List[TInstructionUnion]]
+    instructions: Dict[TInstructionPhase, List[TInstructionUnion]]
 
     def __init__(
         self,
@@ -67,7 +67,7 @@ class Layer(ABC):
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
 
-        self.instructions: Dict[TPlottingPhase, TInstructionUnion] = {
+        self.instructions: Dict[TInstructionPhase, TInstructionUnion] = {
             "setup": [],
             "plotting": [],
             "teardown": [],
@@ -138,31 +138,32 @@ class Layer(ABC):
     def set_feed_rate(
         self,
         feed_rate: float,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """Set the speed at which the plotter head moves.
 
         Args:
         - feed_rate (float) : The feed rate to set.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to.
+          Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
-        self._add_instruction(InstructionFeedRate(feed_rate), plotting_phase)
+        self._add_instruction(InstructionFeedRate(feed_rate), instruction_phase)
         return self
 
     @abstractmethod
     def set_mode_to_plotting(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Connect plotting instrument to plotting surface. Should be used when starting a path.
 
         Args:
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -173,14 +174,14 @@ class Layer(ABC):
     @abstractmethod
     def set_mode_to_navigation(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Separate plotting instrument from plotting surface. Should be used once plotting a path is
         complete before moving on to the next path.
 
         Args:
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -189,7 +190,7 @@ class Layer(ABC):
         pass
 
     def _add_coordinate(
-        self, x: float, y: float, plotting_phase: TPlottingPhase
+        self, x: float, y: float, instruction_phase: TInstructionPhase
     ) -> Self:
         """
         Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
@@ -215,14 +216,14 @@ class Layer(ABC):
         self._update_max_and_min(x, y)
 
         point = InstructionPoint(self.feed_rate, x, y)
-        self._add_instruction(point, plotting_phase)
+        self._add_instruction(point, instruction_phase)
         return self
 
     def add_point(
         self,
         x: float,
         y: float,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Add a point to the layer.
@@ -230,14 +231,14 @@ class Layer(ABC):
         Args:
         - x (float) : The x-coordinate of the point.
         - y (float) : The y-coordinate of the point.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_comment(f"Point: {x}, {y}", plotting_phase)
-        self.add_path([(x, y)], plotting_phase)
+        self.add_comment(f"Point: {x}, {y}", instruction_phase)
+        self.add_path([(x, y)], instruction_phase)
         return self
 
     def add_line(
@@ -246,7 +247,7 @@ class Layer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Add a line to the layer.
@@ -256,54 +257,54 @@ class Layer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the line.
         - x_end (float) : The x-coordinate of the ending point of the line.
         - y_end (float) : The y-coordinate of the ending point of the line.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
         self.add_comment(
-            f"Line: {x_start}, {y_start}, {x_end}, {y_end}", plotting_phase
+            f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
         )
-        self.add_path(points, plotting_phase)
+        self.add_path(points, instruction_phase)
         return self
 
     def add_path(
         self,
         points: List[Tuple[float, float]],
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Add a path to the layer. A path is a series of points that are connected by lines.
 
         Args:
         - points (List[Tuple[float, float]]) : An array of points to add.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
-        self.add_comment(f"Path: {points}", plotting_phase)
+        self.add_comment(f"Path: {points}", instruction_phase)
         for index, [x, y] in enumerate(points):
-            self._add_coordinate(x, y, plotting_phase)
+            self._add_coordinate(x, y, instruction_phase)
             if index == 0 and not self.preview_only:
-                self.set_mode_to_plotting(plotting_phase=plotting_phase)
-        self.set_mode_to_navigation(plotting_phase=plotting_phase)
+                self.set_mode_to_plotting(instruction_phase=instruction_phase)
+        self.set_mode_to_navigation(instruction_phase=instruction_phase)
         return self
 
     def _add_instruction(
-        self, instruction: TInstructionUnion, plotting_phase: TPlottingPhase
+        self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
         if not isinstance(instruction, InstructionComment):
-            self.instructions[plotting_phase].append(InstructionComment(instruction))
-        self.instructions[plotting_phase].append(instruction)
+            self.instructions[instruction_phase].append(InstructionComment(instruction))
+        self.instructions[instruction_phase].append(instruction)
         return self
 
-    def add_comment(self, text: str, plotting_phase: TPlottingPhase) -> Self:
+    def add_comment(self, text: str, instruction_phase: TInstructionPhase) -> Self:
         """Add a comment to the layer.
 
         Args:
         - text (str): The text to add.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional): The phase of plotting to send the instruction to.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to.
 
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
@@ -311,7 +312,7 @@ class Layer(ABC):
 
         lines = text.split("\n")
         for line in lines:
-            self._add_instruction(InstructionComment(line), plotting_phase)
+            self._add_instruction(InstructionComment(line), instruction_phase)
 
         return self
 
@@ -321,7 +322,7 @@ class Layer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Adds a rectangle to the layer.
@@ -331,13 +332,13 @@ class Layer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the rectangle.
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
-        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send theinstruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send theinstruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
         self.add_comment(
-            f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", plotting_phase
+            f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
         )
         points = [
             (x_start, y_start),
@@ -346,7 +347,7 @@ class Layer(ABC):
             (x_end, y_start),
             (x_start, y_start),
         ]
-        self.add_path(points, plotting_phase)
+        self.add_path(points, instruction_phase)
         return self
 
     def add_circle(
@@ -355,7 +356,7 @@ class Layer(ABC):
         y_center: float,
         radius: float,
         num_points: int = 36,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
         Adds a circle to the layer.
@@ -365,14 +366,14 @@ class Layer(ABC):
         - y_center (float) : The y-coordinate of the center of the circle.
         - radius (float) : The radius of the circle.
         - num_points (int) : The number of points to use to approximate the circle. Default is 36.
-        - plotting_phase (float) : The phase of plotting to send the instruction to. Default is 'plotting'.
+        - instruction_phase (float) : The instruction phase of plotting to send the instruction to. Default is 'plotting'.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(
-            f"Circle: {x_center}, {y_center}, {radius}, {num_points}", plotting_phase
+            f"Circle: {x_center}, {y_center}, {radius}, {num_points}", instruction_phase
         )
 
         # Calculate angle step between points to approximate the circle
@@ -384,7 +385,7 @@ class Layer(ABC):
             x = x_center + radius * math.cos(angle)
             y = y_center + radius * math.sin(angle)
             points.append((x, y))
-        self.add_path(points, plotting_phase)
+        self.add_path(points, instruction_phase)
         return self
 
     def save(self, file_path: str) -> None:
@@ -538,19 +539,19 @@ class Layer2D(Layer):
 
     def set_mode_to_plotting(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        self._add_instruction(Instruction2DPlotterPlottingHeight(), plotting_phase)
-        self._add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(Instruction2DPlotterPlottingHeight(), instruction_phase)
+        self._add_instruction(InstructionPause(), instruction_phase)
 
         return self
 
     def set_mode_to_navigation(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        self._add_instruction(Instruction2DPlotterNavigationHeight(), plotting_phase)
-        self._add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(Instruction2DPlotterNavigationHeight(), instruction_phase)
+        self._add_instruction(InstructionPause(), instruction_phase)
 
         return self
 
@@ -618,28 +619,28 @@ class Layer3D(Layer):
 
     def set_mode_to_plotting(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterPlottingHeight(
                 z_plotting_height=self.z_plotting_height
             ),
-            plotting_phase,
+            instruction_phase,
         )
-        self._add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(InstructionPause(), instruction_phase)
 
         return self
 
     def set_mode_to_navigation(
         self,
-        plotting_phase: TPlottingPhase = "plotting",
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterNavigationHeight(
                 z_navigating_height=self.z_navigation_height
             ),
-            plotting_phase,
+            instruction_phase,
         )
-        self._add_instruction(InstructionPause(), plotting_phase)
+        self._add_instruction(InstructionPause(), instruction_phase)
 
         return self
