@@ -27,9 +27,5 @@
 
 ## Running Tests
 
-1. Install a virtual environment with ` python3 -m venv sandbox-venv`
-2. Activate virtual environment source `./sandbox-venv/bin/activate`
-3. Install requirements `pip install -r requirements.txt`
-4. Run tests with `pytest`
-
-If tests fail, run `GENERATE_SNAPSHOTS=yes pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
+1. `poetry run pytes`
+2. If tests fail, run `GENERATE_SNAPSHOTS=yes poetry run pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
