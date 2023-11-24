@@ -186,10 +186,10 @@ class Layer(ABC):
         complete before moving on to the next path.
 
         Args:
-          plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-          Layer : The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         pass
@@ -258,11 +258,11 @@ class Layer(ABC):
         Add a line to the layer.
 
         Args:
-          x_start (float) : The x-coordinate of the starting point of the line.
-          y_start (float) : The y-coordinate of the starting point of the line.
-          x_end (float) : The x-coordinate of the ending point of the line.
-          y_end (float) : The y-coordinate of the ending point of the line.
-          plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
+        - x_start (float) : The x-coordinate of the starting point of the line.
+        - y_start (float) : The y-coordinate of the starting point of the line.
+        - x_end (float) : The x-coordinate of the ending point of the line.
+        - y_end (float) : The y-coordinate of the ending point of the line.
+        - plotting_phase (`setup` | `plotting` | `teardown`, optional) : The phase of plotting to send the instruction to. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
@@ -530,21 +530,21 @@ class Layer2D(Layer):
     ) -> None:
         """
         Args:
-          - title (str) : The title of the work of art.
-          - x_min (float) : The minimum X-coordinate of the plotter.
-          - y_min (float) : The minimum Y-coordinate of the plotter.
-          - x_max (float) : The maximum X-coordinate of the plotter.
-          - y_max (float) : The maximum Y-coordinate of the plotter.
-          - feed_rate (float) : The feed rate for the plotter.
-          - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
-              How to handle out-of-bounds points.
-              `Warning` will print a warning, skip the point, and continue.
-              `Error` will throw an error and stop.
-              `Silent` will skip the point and continue.
-              Defaults to `Warning`.
-          - color (str, optional) : The color of the layer. Defaults to a random color.
-          - line_width (float) : The width of the line
-          - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - title (str) : The title of the work of art.
+        - x_min (float) : The minimum X-coordinate of the plotter.
+        - y_min (float) : The minimum Y-coordinate of the plotter.
+        - x_max (float) : The maximum X-coordinate of the plotter.
+        - y_max (float) : The maximum Y-coordinate of the plotter.
+        - feed_rate (float) : The feed rate for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+            How to handle out-of-bounds points.
+            `Warning` will print a warning, skip the point, and continue.
+            `Error` will throw an error and stop.
+            `Silent` will skip the point and continue.
+            Defaults to `Warning`.
+        - color (str, optional) : The color of the layer. Defaults to a random color.
+        - line_width (float) : The width of the line
+        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
             x_min=x_min,
@@ -600,23 +600,23 @@ class Layer3D(Layer):
     ) -> None:
         """
         Args:
-          - title (str) : The title of the work of art.
-          - x_min (float) : The minimum X-coordinate of the plotter.
-          - y_min (float) : The minimum Y-coordinate of the plotter.
-          - x_max (float) : The maximum X-coordinate of the plotter.
-          - y_max (float) : The maximum Y-coordinate of the plotter.
-          - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
-          - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
-          - feed_rate (float) : The feed rate for the plotter.
-          - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
-              How to handle out-of-bounds points.
-              `Warning` will print a warning, skip the point, and continue.
-              `Error` will throw an error and stop.
-              `Silent` will skip the point and continue.
-              Defaults to `Warning`.
-          - color (str, optional) : The color of the layer. Defaults to a random color.
-          - line_width (float) : The width of the line
-          - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - title (str) : The title of the work of art.
+        - x_min (float) : The minimum X-coordinate of the plotter.
+        - y_min (float) : The minimum Y-coordinate of the plotter.
+        - x_max (float) : The maximum X-coordinate of the plotter.
+        - y_max (float) : The maximum Y-coordinate of the plotter.
+        - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
+        - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
+        - feed_rate (float) : The feed rate for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+            How to handle out-of-bounds points.
+            `Warning` will print a warning, skip the point, and continue.
+            `Error` will throw an error and stop.
+            `Silent` will skip the point and continue.
+            Defaults to `Warning`.
+        - color (str, optional) : The color of the layer. Defaults to a random color.
+        - line_width (float) : The width of the line
+        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
         """
         super().__init__(
             x_min=x_min,

@@ -120,7 +120,7 @@ class _AbstractPlotter(ABC):
 
 
         Returns:
-          float : The width of the plotting area.
+        - float : The width of the plotting area.
         """
         return self.x_max - self.x_min
 
@@ -130,7 +130,7 @@ class _AbstractPlotter(ABC):
         Height of the plotting area
 
         Returns:
-          float : The height of the plotting area.
+        - float : The height of the plotting area.
         """
         return self.y_max - self.y_min
 
@@ -232,18 +232,18 @@ class Plotter2D(_AbstractPlotter):
     ) -> None:
         """
         Args:
-          - title (str) : The title of the work of art.
-          - x_min (float) : The minimum X-coordinate of the plotter.
-          - y_min (float) : The minimum Y-coordinate of the plotter.
-          - x_max (float) : The maximum X-coordinate of the plotter.
-          - y_max (float) : The maximum Y-coordinate of the plotter.
-          - feed_rate (float) : The feed rate for the plotter.
-          - handle_out_of_bounds (`Warning` | `Error`, optional):
-              How to handle out-of-bounds points.
-              `Warning` will print a warning, skip the point, and continue.
-              `Error` will throw an error and stop.
-              Defaults to `Warning`.
-          - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+        - title (str) : The title of the work of art.
+        - x_min (float) : The minimum X-coordinate of the plotter.
+        - y_min (float) : The minimum Y-coordinate of the plotter.
+        - x_max (float) : The maximum X-coordinate of the plotter.
+        - y_max (float) : The maximum Y-coordinate of the plotter.
+        - feed_rate (float) : The feed rate for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional):
+            How to handle out-of-bounds points.
+            `Warning` will print a warning, skip the point, and continue.
+            `Error` will throw an error and stop.
+            Defaults to `Warning`.
+        - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
 
         super().__init__(
@@ -299,20 +299,20 @@ class Plotter3D(_AbstractPlotter):
     ) -> None:
         """
         Args:
-          - title (str) : The title of the work of art.
-          - x_min (float) : The minimum X-coordinate of the plotter.
-          - y_min (float) : The minimum Y-coordinate of the plotter.
-          - x_max (float) : The maximum X-coordinate of the plotter.
-          - y_max (float) : The maximum Y-coordinate of the plotter.
-          - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
-          - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
-          - feed_rate (float) : The feed rate for the plotter.
-          - handle_out_of_bounds (`Warning` | `Error`, optional):
-              How to handle out-of-bounds points.
-              `Warning` will print a warning, skip the point, and continue.
-              `Error` will throw an error and stop.
-              Defaults to `Warning`.
-          - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+        - title (str) : The title of the work of art.
+        - x_min (float) : The minimum X-coordinate of the plotter.
+        - y_min (float) : The minimum Y-coordinate of the plotter.
+        - x_max (float) : The maximum X-coordinate of the plotter.
+        - y_max (float) : The maximum Y-coordinate of the plotter.
+        - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
+        - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
+        - feed_rate (float) : The feed rate for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional):
+            How to handle out-of-bounds points.
+            `Warning` will print a warning, skip the point, and continue.
+            `Error` will throw an error and stop.
+            Defaults to `Warning`.
+        - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
 
         super().__init__(

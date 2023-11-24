@@ -1,7 +1,7 @@
 from abc import ABC
 
 
-class _BaseSimpleInstruction(
+class _AbstractSimpleInstruction(
     ABC,
 ):
     """Abstract class representing an instruction in G-Code. Used for simple instructions that do not require
@@ -29,7 +29,7 @@ class _BaseSimpleInstruction(
         return f"{self.instruction}"
 
 
-class Instruction2DPlotterPlottingHeight(_BaseSimpleInstruction):
+class Instruction2DPlotterPlottingHeight(_AbstractSimpleInstruction):
     """
     Connect plotting instrument to plotting surface
     """
@@ -38,7 +38,7 @@ class Instruction2DPlotterPlottingHeight(_BaseSimpleInstruction):
         super().__init__("M3 S1000", "Connect plotting instrument to plotting surface")
 
 
-class Instruction2DPlotterNavigationHeight(_BaseSimpleInstruction):
+class Instruction2DPlotterNavigationHeight(_AbstractSimpleInstruction):
     """
     Separate plotting instrument from plotting surface
     """
@@ -50,7 +50,7 @@ class Instruction2DPlotterNavigationHeight(_BaseSimpleInstruction):
         )
 
 
-class InstructionUnitsMM(_BaseSimpleInstruction):
+class InstructionUnitsMM(_AbstractSimpleInstruction):
     """
     Set the units of the layer to mm
     """
@@ -59,7 +59,7 @@ class InstructionUnitsMM(_BaseSimpleInstruction):
         super().__init__("G21", "Set the units of the layer to mm")
 
 
-class InstructionProgramEnd(_BaseSimpleInstruction):
+class InstructionProgramEnd(_AbstractSimpleInstruction):
     """
     Instruct the plotting device that plotting has completed
     """
