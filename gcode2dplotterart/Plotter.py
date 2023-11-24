@@ -87,12 +87,9 @@ class _AbstractPlotter(ABC):
         - color (str) : A hex color (such as `#00FF00`) or human-readable color name
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
-        - line_width (Optional[float]) : The width of the line to be plotted with the `preview` method. Some
-            experimentation is required to match the
-            `line_width` to the thickness of the plotting instrument. Defaults to 2.0.
+        - line_width (Optional[float]) : The width of the line to be plotted. Used with the `preview` method. Defaults to 2.0.
         - preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
-            plotter head in motion but do not come in contact with plotting
-            surface. Defaults to `False`.
+            plotter head in motion but do not come in contact with plotting surface. Defaults to `False`.
 
         Returns:
         - Layer : The newly created layer. Allows for chaining of the layer's add methods.
@@ -126,7 +123,7 @@ class _AbstractPlotter(ABC):
         Returns:
         - float : The width of the plotting area.
         """
-        return self.x_max - self.x_min
+        return abs(self.x_max - self.x_min)
 
     @property
     def height(self) -> float:
@@ -136,7 +133,7 @@ class _AbstractPlotter(ABC):
         Returns:
         - float : The height of the plotting area.
         """
-        return self.y_max - self.y_min
+        return abs(self.y_max - self.y_min)
 
     def is_point_in_bounds(self, x: float, y: float) -> bool:
         """
