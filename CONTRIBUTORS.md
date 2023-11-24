@@ -27,5 +27,5 @@
 
 ## Running Tests
 
-1. `poetry run pytes`
+1. `poetry run pytest`
 2. If tests fail, run `GENERATE_SNAPSHOTS=yes poetry run pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
