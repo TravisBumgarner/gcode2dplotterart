@@ -1,5 +1,6 @@
 {
   "mypy.runUsingActiveInterpreter": true,
+  "mypy.targets": [],
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },

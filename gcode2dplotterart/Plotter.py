@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 from .Layer import Layer2D, Layer3D
-from .types import THandleOutOfBounds
+from .shared_types import THandleOutOfBounds
 
 
 class _AbstractPlotter(ABC):
@@ -73,7 +73,11 @@ class _AbstractPlotter(ABC):
 
     @abstractmethod
     def add_layer(
-        self, title: str, color: Optional[str] = None, preview_only: bool = False
+        self,
+        title: str,
+        color: Optional[str] = None,
+        line_width: float = 2.0,
+        preview_only: bool = False,
     ) -> Union[Layer2D, Layer3D]:
         """
         Add a new layer to the plotter.

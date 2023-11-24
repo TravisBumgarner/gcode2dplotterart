@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
-from .types import THandleOutOfBounds, TInstructionPhase
+from .shared_types import THandleOutOfBounds, TInstructionPhase
 from .InstructionWithArguments import (
     InstructionPoint,
     Instruction3DPrinterPlottingHeight,
@@ -163,7 +163,8 @@ class Layer(ABC):
         Connect plotting instrument to plotting surface. Should be used when starting a path.
 
         Args:
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+        phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -177,11 +178,12 @@ class Layer(ABC):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Separate plotting instrument from plotting surface. Should be used once plotting a path is
-        complete before moving on to the next path.
+        Separate plotting instrument from plotting surface. Should be used once plotting a path
+        is complete before moving on to the next path.
 
         Args:
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -257,7 +259,8 @@ class Layer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the line.
         - x_end (float) : The x-coordinate of the ending point of the line.
         - y_end (float) : The y-coordinate of the ending point of the line.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
+          The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
@@ -277,7 +280,8 @@ class Layer(ABC):
 
         Args:
         - points (List[Tuple[float, float]]) : An array of points to add.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+          phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -295,7 +299,9 @@ class Layer(ABC):
         self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
         if not isinstance(instruction, InstructionComment):
-            self.instructions[instruction_phase].append(InstructionComment(instruction))
+            self.instructions[instruction_phase].append(
+                InstructionComment(str(instruction))
+            )
         self.instructions[instruction_phase].append(instruction)
         return self
 
@@ -332,7 +338,8 @@ class Layer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the rectangle.
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send theinstruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the
+          instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -502,7 +509,7 @@ class Layer2D(Layer):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
-        line_width,
+        line_width: float,
         preview_only: bool = False,
     ) -> None:
         """

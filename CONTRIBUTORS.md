@@ -1,11 +1,20 @@
 # 2d-plotter-art-g-code
 
 
+## Deploy to PyPi Test
+
+1. `poetry build`
+2. Username is `__token__` Generate [test password](https://test.pypi.org/manage/account/#api-tokens) or get it from the `.env`.
+3. `poetry config pypi-token.testpypi [TOKEN_FROM_DOT_ENV]`
+4. `poetry publish --repository testpypi`
+
 ## Deploy to PyPi
 
-1. Build `python -m build`
-2. Deploy `python3 -m twine upload --repository testpypi dist/*`
-3. Username is `__token__`, Password is generated [here](https://pypi.org/manage/account/#api-tokens).
+1. `poetry build`
+2. Username is `__token__` Generate [production password](https://pypi.org/manage/account/#api-tokens) or get it from the `.env`.
+3. `poetry config pypi-token.pypi [TOKEN_FROM_DOT_ENV]`
+4. `poetry publish`
+
 
 ## Local Development
 
