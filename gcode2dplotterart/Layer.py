@@ -199,22 +199,11 @@ class Layer(ABC):
 
         pass
 
-    def add_point(
-        self,
-        x: float,
-        y: float,
-        plotting_phase: TPlottingPhase = "plotting",
+    def _add_coordinate(
+        self, x: float, y: float, plotting_phase: TPlottingPhase
     ) -> Self:
         """
-        Add a point to the layer. Typically not used directly, instead use one of the other add methods.
-
-        Args:
-          x (float) : The x-coordinate of the point.
-          y (float) : The y-coordinate of the point.
-          plotting_phase (str, optional): The type of instruction to use. Defaults to `plotting`.
-
-        Returns:
-          Layer : The Layer object. Allows for chaining of add methods.
+        Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
         """
         if (
             x > self.plotter_x_max
@@ -224,25 +213,42 @@ class Layer(ABC):
         ):
             if self.handle_out_of_bounds == "Warning":
                 print("Failed to add point, outside dimensions of plotter", x, y)
-                # Todo - Can this cause an error with pen up / pen down instructions?
                 return self
             elif self.handle_out_of_bounds == "Error":
                 raise ValueError(
                     "Failed to add point, outside dimensions of plotter", x, y
                 )
-            elif self.handle_out_of_bounds == "Silent":
-                # Typically only used in testing to keep things quiet
-                pass
             else:
                 raise ValueError(
                     "Invalid value for handle_out_of_bounds received",
                     self.handle_out_of_bounds,
                 )
-        self.add_comment(f"Point: {x}, {y}", plotting_phase)
         self._update_max_and_min(x, y)
 
         point = InstructionPoint(self.feed_rate, x, y)
         self.instructions[plotting_phase].append(point)
+        return self
+
+    def add_point(
+        self,
+        x: float,
+        y: float,
+        plotting_phase: TPlottingPhase = "plotting",
+    ) -> Self:
+        """
+        Add a point to the layer.
+
+        Args:
+          x (float) : The x-coordinate of the point.
+          y (float) : The y-coordinate of the point.
+          plotting_phase (str, optional): The type of instruction to use. Defaults to `plotting`.
+
+        Returns:
+          Layer : The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_comment(f"Point: {x}, {y}", plotting_phase)
+        self.add_path([(x, y)], plotting_phase)
         return self
 
     def add_line(
@@ -289,7 +295,7 @@ class Layer(ABC):
 
         self.add_comment(f"Path: {points}", plotting_phase)
         for index, [x, y] in enumerate(points):
-            self.add_point(x, y, plotting_phase)
+            self._add_coordinate(x, y, plotting_phase)
             if index == 0 and not self.preview_only:
                 self.set_mode_to_plotting()
         self.set_mode_to_navigation()

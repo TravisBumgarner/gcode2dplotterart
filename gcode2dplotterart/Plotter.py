@@ -239,11 +239,10 @@ class Plotter2D(_AbstractPlotter):
             x_max (float) : The maximum X-coordinate of the plotter.
             y_max (float) : The maximum Y-coordinate of the plotter.
             feed_rate (float) : The feed rate for the plotter.
-            handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+            handle_out_of_bounds (`Warning` | `Error`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
-              `Silent` will skip the point and continue.
               Defaults to `Warning`.
             output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """
@@ -309,11 +308,10 @@ class Plotter3D(_AbstractPlotter):
             z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
             z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
             feed_rate (float) : The feed rate for the plotter.
-            handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+            handle_out_of_bounds (`Warning` | `Error`, optional):
               How to handle out-of-bounds points.
               `Warning` will print a warning, skip the point, and continue.
               `Error` will throw an error and stop.
-              `Silent` will skip the point and continue.
               Defaults to `Warning`.
             output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         """

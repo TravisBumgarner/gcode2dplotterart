@@ -15,13 +15,13 @@ class TestSnapshot(unittest.TestCase):
         layer = "black"
         plotter = Plotter2D(
             title="plotter2d_test",
-            x_min=0,
+            x_min=-100,
             x_max=100,
-            y_min=0,
+            y_min=-100,
             y_max=100,
             feed_rate=10000,
             output_directory="./snapshots",
-            handle_out_of_bounds="Silent",
+            handle_out_of_bounds="Warning",
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
         snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")

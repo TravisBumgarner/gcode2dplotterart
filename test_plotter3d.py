@@ -17,12 +17,12 @@ class TestSnapshot(unittest.TestCase):
         plotter = Plotter3D(
             title="plotter3d_test",
             x_min=-100,
-            x_max=0,
+            x_max=100,
             y_min=-100,
-            y_max=0,
+            y_max=100,
             feed_rate=20000,
             output_directory="./snapshots",
-            handle_out_of_bounds="Silent",
+            handle_out_of_bounds="Warning",
             z_plotting_height=0,
             z_navigation_height=10,
         )
