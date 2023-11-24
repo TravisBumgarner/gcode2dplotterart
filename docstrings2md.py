@@ -19,7 +19,7 @@ def method_to_markdown(class_obj, method_name):
 
 
 def class_to_markdown(class_name, class_obj):
-    markdown_content = f"# {class_name}\n\n"
+    markdown_content = f"# {class_name}\n\nOverview of the {class_name} class.\n\n"
 
     for name, member in inspect.getmembers(class_obj):
         if name.startswith("_") and not name.startswith("__"):
