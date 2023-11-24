@@ -36,9 +36,6 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """
 ##############################           TEARDOWN INSTRUCTIONS          ##############################
 ######################################################################################################"""
 
-x = 5
-x = 10
-
 TInstructionUnion = Union[
     InstructionPoint,
     InstructionComment,
