@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [tool.poetry]
 name = "gcode2dplotterart"
 authors = ["Travis Bumgarner"]
-version = "0.0.10"
+version = "0.0.12"
 description = "Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art."
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11.5"
+matplotlib = "^3.8.2"
 
 [tool.poetry.dev-dependencies]
 mypy="^1.7.0"

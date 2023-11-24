@@ -1,5 +1,3 @@
-# Any running virtual env will break the poetry commands.
-deactivate
 poetry run python docstrings2md.py &&
 poetry run pytest && 
 poetry run flake8 --max-line-length 160 ./gcode2dplotterart &&
