@@ -8,7 +8,7 @@
 
 # Quick Start
 
-Below is a quick start example to get you up and running. For more examples, check out the TODO.
+Below is a quick start example to get you up and running. For a quickstart, gallery, and documentation, check out the website at [https://gcode2dplotterart.readthedocs.io/en/latest/](https://gcode2dplotterart.readthedocs.io/en/latest/).
 
 ```python
 
