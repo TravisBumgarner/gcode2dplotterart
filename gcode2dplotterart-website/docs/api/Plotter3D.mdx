@@ -122,12 +122,17 @@ Whether the point to be plotted is within the plotter bounds.
 ```python
 preview(
   self
+  show_entire_plotting_area: bool = True
 )
  ->  None
 ```
 
 Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
 `Plotter`. Only looks at instructions during the plotting phase.
+
+**Args:** 
+- show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the
+  size of the art to be plotted. Defaults to True.
 
 ## save
 

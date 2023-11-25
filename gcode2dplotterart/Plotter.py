@@ -170,17 +170,23 @@ class _AbstractPlotter(ABC):
             output[title] = layer.get_plotting_data()
         return output
 
-    def preview(self) -> None:
+    def preview(self, show_entire_plotting_area: bool = True) -> None:
         """
         Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
         `Plotter`. Only looks at instructions during the plotting phase.
+
+        Args:
+        - show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the
+          size of the art to be plotted. Defaults to True.
         """
+
+        _, ax = plt.subplots()
 
         for layer_title in self.layers:
             preview_paths = self.layers[layer_title].preview_paths()
             for preview_path in preview_paths:
                 x_values, y_values = zip(*preview_path)
-                plt.plot(
+                ax.plot(
                     x_values,
                     y_values,
                     color=self.layers[layer_title].color,
@@ -188,6 +194,15 @@ class _AbstractPlotter(ABC):
                     linewidth=self.layers[layer_title].line_width,
                     solid_capstyle="round",
                 )
+
+        if show_entire_plotting_area:
+            plt.xlim(self.x_min - 10, self.x_max + 10)
+            plt.ylim(self.y_min - 10, self.y_max + 10)
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
 
         plt.gca().set_aspect("equal", adjustable="box")
 
