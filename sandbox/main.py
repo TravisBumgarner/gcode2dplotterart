@@ -41,4 +41,4 @@ for x0 in range(plotter.x_min, plotter.x_max, 10):
 
 
 plotter.preview()
-plotter.save(include_layer_number=False)
+plotter.save(include_layer_number=True)

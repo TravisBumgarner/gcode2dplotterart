@@ -97,7 +97,7 @@ class _AbstractPlotter(ABC):
 
         pass
 
-    def add_preview_layer(self) -> None:
+    def _add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
         plotting area and plots an X through the middle without plotting anything.
@@ -163,24 +163,30 @@ class _AbstractPlotter(ABC):
         """
 
         # Creates a new layer titled preview
-        self.add_preview_layer()
+        self._add_preview_layer()
 
         output = {}
         for title, layer in self.layers.items():
             output[title] = layer.get_plotting_data()
         return output
 
-    def preview(self) -> None:
+    def preview(self, show_entire_plotting_area: bool = True) -> None:
         """
         Generate a preview graph of the plotter's layers. Layers will be plotted in the order they've been added to the
         `Plotter`. Only looks at instructions during the plotting phase.
+
+        Args:
+        - show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the
+          size of the art to be plotted. Defaults to True.
         """
+
+        _, ax = plt.subplots()
 
         for layer_title in self.layers:
             preview_paths = self.layers[layer_title].preview_paths()
             for preview_path in preview_paths:
                 x_values, y_values = zip(*preview_path)
-                plt.plot(
+                ax.plot(
                     x_values,
                     y_values,
                     color=self.layers[layer_title].color,
@@ -188,6 +194,15 @@ class _AbstractPlotter(ABC):
                     linewidth=self.layers[layer_title].line_width,
                     solid_capstyle="round",
                 )
+
+        if show_entire_plotting_area:
+            plt.xlim(self.x_min - 10, self.x_max + 10)
+            plt.ylim(self.y_min - 10, self.y_max + 10)
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
 
         plt.gca().set_aspect("equal", adjustable="box")
 
@@ -212,9 +227,14 @@ class _AbstractPlotter(ABC):
         if not os.path.exists(artwork_directory):
             os.makedirs(artwork_directory)
 
-        self.add_preview_layer()
+        self._add_preview_layer()
 
-        for index, title in enumerate(self.layers.keys()):
+        # Set preview layer as first
+        titles = list(self.layers.keys())
+        titles.remove("preview")
+        titles.insert(0, "preview")
+
+        for index, title in enumerate(titles):
             file_name = f"{title}.gcode"
             if include_layer_number:
                 file_name = f"{index}_" + file_name
