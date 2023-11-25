@@ -28,13 +28,6 @@ const sidebars = {
     },
   ],
    */
-  myHtmlSidebar: [
-    {
-      type: 'html',
-      value: '<img src="sponsor.png" alt="Sponsor" />', // The HTML to be rendered
-      defaultStyle: true, // Use the default menu item styling
-    },
-  ],
 };
 
 
