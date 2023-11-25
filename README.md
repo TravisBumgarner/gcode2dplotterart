@@ -6,9 +6,13 @@
 
 [G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or converted 3D Printer.
 
+![Preview image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-53389bb1cc21dc7a9aba3a302f04e952.jpg)
+
+![Preview Image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-3c9d4c0a76c1d373e7bfc6187b6cc442.jpg)
+
 # Quick Start
 
-Below is a quick start example to get you up and running. For more examples, check out the TODO.
+Below is a quick start example to get you up and running. For a quickstart, gallery, and documentation, . [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
 
 ```python
 
