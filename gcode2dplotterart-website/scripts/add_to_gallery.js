@@ -4,6 +4,7 @@ const path = require('path');
 const readlineSync = require('readline-sync');
 
 const galleryItemName = readlineSync.question('Enter the gallery item name: ');
+const slug = galleryItemName.toLowerCase().replace(/ /g, '_');
 
 // Determine the next index
 const galleryPath = './docs/gallery/';
@@ -11,10 +12,11 @@ const galleryFiles = fs.readdirSync(galleryPath).filter(file => file.endsWith('.
 const nextIndex = galleryFiles.length;
 
 // Generate file paths and content
-const generatedName = `${nextIndex}_${galleryItemName}`;
-const mdxFilePath = path.join(galleryPath, `${nextIndex}_${galleryItemName}.mdx`);
+const generatedName = `${nextIndex}_${slug}`;
+const mdxFilePath = path.join(galleryPath, `${generatedName}.mdx`);
 const imgFolderPath = `./static/img/gallery/${generatedName}`;
-const dateToday = new Date().toISOString().split('T')[0];
+const tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+const dateToday = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
 
 // Create the MDX file
 const mdxContent = `---
@@ -37,6 +39,7 @@ description:
 ## Code
 
 \`\`\`python
+
 \`\`\`
 `;
 

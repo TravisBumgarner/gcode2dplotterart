@@ -97,7 +97,7 @@ class _AbstractPlotter(ABC):
 
         pass
 
-    def add_preview_layer(self) -> None:
+    def _add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
         plotting area and plots an X through the middle without plotting anything.
@@ -163,7 +163,7 @@ class _AbstractPlotter(ABC):
         """
 
         # Creates a new layer titled preview
-        self.add_preview_layer()
+        self._add_preview_layer()
 
         output = {}
         for title, layer in self.layers.items():
@@ -212,9 +212,14 @@ class _AbstractPlotter(ABC):
         if not os.path.exists(artwork_directory):
             os.makedirs(artwork_directory)
 
-        self.add_preview_layer()
+        self._add_preview_layer()
 
-        for index, title in enumerate(self.layers.keys()):
+        # Set preview layer as first
+        titles = list(self.layers.keys())
+        titles.remove("preview")
+        titles.insert(0, "preview")
+
+        for index, title in enumerate(titles):
             file_name = f"{title}.gcode"
             if include_layer_number:
                 file_name = f"{index}_" + file_name
