@@ -22,6 +22,7 @@ const dateToday = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
 const mdxContent = `---
 sidebar_position: ${nextIndex}
 description: 
+image: /img/gallery/${generatedName}/example1.jpg
 ---
 
 # ${dateToday} ${galleryItemName}
