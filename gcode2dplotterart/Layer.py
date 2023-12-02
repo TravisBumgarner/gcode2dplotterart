@@ -63,6 +63,7 @@ class Layer(ABC):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
@@ -91,6 +92,8 @@ class Layer(ABC):
         self.handle_out_of_bounds = handle_out_of_bounds
 
         self.line_width = line_width
+
+        self.include_comments = include_comments
 
         self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
@@ -197,24 +200,6 @@ class Layer(ABC):
         """
         Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
         """
-        if (
-            x > self.plotter_x_max
-            or y > self.plotter_y_max
-            or x < self.plotter_x_min
-            or y < self.plotter_y_min
-        ):
-            if self.handle_out_of_bounds == "Warning":
-                print("Failed to add point, outside dimensions of plotter", x, y)
-                return self
-            elif self.handle_out_of_bounds == "Error":
-                raise ValueError(
-                    "Failed to add point, outside dimensions of plotter", x, y
-                )
-            else:
-                raise ValueError(
-                    "Invalid value for handle_out_of_bounds received",
-                    self.handle_out_of_bounds,
-                )
         self._update_max_and_min(x, y)
 
         point = InstructionPoint(self.feed_rate, x, y)
@@ -286,6 +271,28 @@ class Layer(ABC):
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
+        out_of_bounds_points = []
+        for point in points:
+            if not self._is_point_in_bounds(point[0], point[1]):
+                out_of_bounds_points.append(point)
+
+        if len(out_of_bounds_points) > 0:
+            if self.handle_out_of_bounds == "Warning":
+                print(
+                    "Failed to add path with points outside of plotter's dimensions",
+                    out_of_bounds_points,
+                )
+                return self
+            elif self.handle_out_of_bounds == "Error":
+                raise ValueError(
+                    "Failed to add path with points outside of plotter's dimensions",
+                    out_of_bounds_points,
+                )
+            else:
+                raise ValueError(
+                    "Invalid value for handle_out_of_bounds received",
+                    self.handle_out_of_bounds,
+                )
 
         self.add_comment(f"Path: {points}", instruction_phase)
         for index, [x, y] in enumerate(points):
@@ -298,7 +305,7 @@ class Layer(ABC):
     def _add_instruction(
         self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
-        if not isinstance(instruction, InstructionComment):
+        if not isinstance(instruction, InstructionComment) and self.include_comments:
             self.instructions[instruction_phase].append(
                 InstructionComment(str(instruction))
             )
@@ -315,10 +322,10 @@ class Layer(ABC):
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
         """
-
-        lines = text.split("\n")
-        for line in lines:
-            self._add_instruction(InstructionComment(line), instruction_phase)
+        if self.include_comments is True:
+            lines = text.split("\n")
+            for line in lines:
+                self._add_instruction(InstructionComment(line), instruction_phase)
 
         return self
 
@@ -429,6 +436,23 @@ class Layer(ABC):
                 )
             )
 
+    def _is_point_in_bounds(self, x: float, y: float) -> bool:
+        """
+        Whether the point to be plotted is within the plotter bounds.
+
+        Args:
+        - x (float) : The x-coordinate of the point to be plotted.
+        - y (float) : The y-coordinate of the point to be plotted.
+
+        Returns:
+        - bool : Whether the point to be plotted is within the plotter bounds.
+        """
+
+        too_low = x < self.plotter_x_min or y < self.plotter_y_min
+        too_high = x > self.plotter_x_max or y > self.plotter_y_max
+
+        return not too_low and not too_high
+
     def preview_paths(self) -> List[List[Tuple[float, float]]]:
         """
         Generate an array of paths for the given layer. This will be used by the `Plotter`
@@ -511,6 +535,7 @@ class Layer2D(Layer):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ) -> None:
         """
@@ -530,6 +555,7 @@ class Layer2D(Layer):
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
         """
         super().__init__(
             x_min=x_min,
@@ -541,6 +567,7 @@ class Layer2D(Layer):
             preview_only=preview_only,
             line_width=line_width,
             color=color,
+            include_comments=include_comments,
         )
 
         self.set_mode_to_navigation("setup")
@@ -587,6 +614,7 @@ class Layer3D(Layer):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ) -> None:
         """
@@ -608,6 +636,8 @@ class Layer3D(Layer):
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
+
         """
         super().__init__(
             x_min=x_min,
@@ -619,6 +649,7 @@ class Layer3D(Layer):
             preview_only=preview_only,
             line_width=line_width,
             color=color,
+            include_comments=include_comments,
         )
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height

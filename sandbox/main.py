@@ -11,6 +11,7 @@ plotter = Plotter2D(
     feed_rate=10000,
     output_directory="./output",
     handle_out_of_bounds="Warning",
+    include_comments=False,
 )
 
 COLORS = ["purple", "blue", "yellow"]

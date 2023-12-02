@@ -21,6 +21,7 @@ __init__(
   Literal['Error']]
   color: Optional[str]
   line_width: float
+  include_comments: bool
   preview_only: bool = False
 )
  ->  None
@@ -44,6 +45,7 @@ __init__(
 - color (str, optional) : The color of the layer. Defaults to a random color.
 - line_width (float) : The width of the line being plotted.
 - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+- include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
 
 ## add_circle
 

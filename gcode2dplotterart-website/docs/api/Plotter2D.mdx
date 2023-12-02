@@ -18,6 +18,7 @@ __init__(
   handle_out_of_bounds: Union[Literal['Warning']
   Literal['Error']] = 'Warning'
   output_directory: str = './output'
+  include_comments: bool = True
 )
  ->  None
 ```
@@ -35,6 +36,7 @@ __init__(
     `Error` will throw an error and stop.
     Defaults to `Warning`.
 - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+- include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. Defaults to True.
 
 ## add_layer
 
