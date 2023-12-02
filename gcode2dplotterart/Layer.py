@@ -200,24 +200,6 @@ class Layer(ABC):
         """
         Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
         """
-        if (
-            x > self.plotter_x_max
-            or y > self.plotter_y_max
-            or x < self.plotter_x_min
-            or y < self.plotter_y_min
-        ):
-            if self.handle_out_of_bounds == "Warning":
-                print("Failed to add point, outside dimensions of plotter", x, y)
-                return self
-            elif self.handle_out_of_bounds == "Error":
-                raise ValueError(
-                    "Failed to add point, outside dimensions of plotter", x, y
-                )
-            else:
-                raise ValueError(
-                    "Invalid value for handle_out_of_bounds received",
-                    self.handle_out_of_bounds,
-                )
         self._update_max_and_min(x, y)
 
         point = InstructionPoint(self.feed_rate, x, y)
@@ -289,6 +271,28 @@ class Layer(ABC):
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
+        out_of_bounds_points = []
+        for point in points:
+            if not self._is_point_in_bounds(point[0], point[1]):
+                out_of_bounds_points.append(point)
+
+        if len(out_of_bounds_points) > 0:
+            if self.handle_out_of_bounds == "Warning":
+                print(
+                    "Failed to add path with points outside of plotter's dimensions",
+                    out_of_bounds_points,
+                )
+                return self
+            elif self.handle_out_of_bounds == "Error":
+                raise ValueError(
+                    "Failed to add path with points outside of plotter's dimensions",
+                    out_of_bounds_points,
+                )
+            else:
+                raise ValueError(
+                    "Invalid value for handle_out_of_bounds received",
+                    self.handle_out_of_bounds,
+                )
 
         self.add_comment(f"Path: {points}", instruction_phase)
         for index, [x, y] in enumerate(points):
@@ -318,7 +322,6 @@ class Layer(ABC):
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
         """
-        print("add comments is ", self.include_comments)
         if self.include_comments is True:
             lines = text.split("\n")
             for line in lines:
@@ -432,6 +435,23 @@ class Layer(ABC):
                     ]
                 )
             )
+
+    def _is_point_in_bounds(self, x: float, y: float) -> bool:
+        """
+        Whether the point to be plotted is within the plotter bounds.
+
+        Args:
+        - x (float) : The x-coordinate of the point to be plotted.
+        - y (float) : The y-coordinate of the point to be plotted.
+
+        Returns:
+        - bool : Whether the point to be plotted is within the plotter bounds.
+        """
+
+        too_low = x < self.plotter_x_min or y < self.plotter_y_min
+        too_high = x > self.plotter_x_max or y > self.plotter_y_max
+
+        return not too_low and not too_high
 
     def preview_paths(self) -> List[List[Tuple[float, float]]]:
         """
