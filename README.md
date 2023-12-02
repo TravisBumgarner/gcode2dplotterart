@@ -1,6 +1,7 @@
 ![https://pypi.org/project/gcode2dplotterart/](https://img.shields.io/pypi/dm/gcode2dplotterart.svg)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/gcode2dplotterart)
 ![GitHub](https://img.shields.io/github/license/TravisBumgarner/gcode2dplotterart?logo=github)
+![pypi Version](https://img.shields.io/pypi/v/gcode2dplotterart)
 
 # Introduction
 
@@ -61,3 +62,7 @@ plotter.preview()
 # Output creation to G-Code files to be used in plotting.
 plotter.save()
 ```
+
+# Changelog
+
+[View the changelog](https://travisbumgarner.github.io/gcode2dplotterart/docs/releases)
