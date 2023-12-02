@@ -18,6 +18,7 @@ class _AbstractPlotter(ABC):
     layers: Dict[str, Union[Layer2D, Layer3D]]
     output_directory: str
     handle_out_of_bounds: THandleOutOfBounds
+    include_comments: bool
 
     def __init__(
         self,
@@ -29,6 +30,7 @@ class _AbstractPlotter(ABC):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str,
+        include_comments: bool,
     ):
         self.title = title
         self.x_min = x_min
@@ -39,6 +41,7 @@ class _AbstractPlotter(ABC):
         self.layers = {}
         self.output_directory = output_directory
         self.handle_out_of_bounds = handle_out_of_bounds
+        self.include_comments = include_comments
 
     def get_min_and_max_points(
         self,
@@ -260,6 +263,7 @@ class Plotter2D(_AbstractPlotter):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds = "Warning",
         output_directory: str = "./output",
+        include_comments: bool = True,
     ) -> None:
         """
         Args:
@@ -275,6 +279,7 @@ class Plotter2D(_AbstractPlotter):
             `Error` will throw an error and stop.
             Defaults to `Warning`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. Defaults to True.
         """
 
         super().__init__(
@@ -286,6 +291,7 @@ class Plotter2D(_AbstractPlotter):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             output_directory=output_directory,
+            include_comments=include_comments,
         )
 
     def add_layer(
@@ -305,6 +311,7 @@ class Plotter2D(_AbstractPlotter):
             preview_only=preview_only,
             line_width=line_width,
             color=color,
+            include_comments=self.include_comments,
         )
         self.layers[title] = new_layer
 
@@ -333,6 +340,7 @@ class Plotter3D(_AbstractPlotter):
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds = "Warning",
         output_directory: str = "./output",
+        include_comments: bool = True,
     ) -> None:
         """
         Initializes a new instance of the Plotter3D class.
@@ -352,6 +360,7 @@ class Plotter3D(_AbstractPlotter):
           `Error` will throw an error and stop.
           Defaults to `Warning`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. Defaults to True.
         """
 
         super().__init__(
@@ -363,6 +372,7 @@ class Plotter3D(_AbstractPlotter):
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             output_directory=output_directory,
+            include_comments=include_comments,
         )
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
@@ -399,6 +409,7 @@ class Plotter3D(_AbstractPlotter):
             z_plotting_height=self.z_plotting_height,
             z_navigation_height=self.z_navigation_height,
             color=color,
+            include_comments=self.include_comments,
         )
 
         self.layers[title] = new_layer

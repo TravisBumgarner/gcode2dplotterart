@@ -63,6 +63,7 @@ class Layer(ABC):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
@@ -91,6 +92,8 @@ class Layer(ABC):
         self.handle_out_of_bounds = handle_out_of_bounds
 
         self.line_width = line_width
+
+        self.include_comments = include_comments
 
         self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
@@ -298,7 +301,7 @@ class Layer(ABC):
     def _add_instruction(
         self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
-        if not isinstance(instruction, InstructionComment):
+        if not isinstance(instruction, InstructionComment) and self.include_comments:
             self.instructions[instruction_phase].append(
                 InstructionComment(str(instruction))
             )
@@ -315,10 +318,11 @@ class Layer(ABC):
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
         """
-
-        lines = text.split("\n")
-        for line in lines:
-            self._add_instruction(InstructionComment(line), instruction_phase)
+        print("add comments is ", self.include_comments)
+        if self.include_comments is True:
+            lines = text.split("\n")
+            for line in lines:
+                self._add_instruction(InstructionComment(line), instruction_phase)
 
         return self
 
@@ -511,6 +515,7 @@ class Layer2D(Layer):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ) -> None:
         """
@@ -530,6 +535,7 @@ class Layer2D(Layer):
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
         """
         super().__init__(
             x_min=x_min,
@@ -541,6 +547,7 @@ class Layer2D(Layer):
             preview_only=preview_only,
             line_width=line_width,
             color=color,
+            include_comments=include_comments,
         )
 
         self.set_mode_to_navigation("setup")
@@ -587,6 +594,7 @@ class Layer3D(Layer):
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
         line_width: float,
+        include_comments: bool,
         preview_only: bool = False,
     ) -> None:
         """
@@ -608,6 +616,8 @@ class Layer3D(Layer):
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
+
         """
         super().__init__(
             x_min=x_min,
@@ -619,6 +629,7 @@ class Layer3D(Layer):
             preview_only=preview_only,
             line_width=line_width,
             color=color,
+            include_comments=include_comments,
         )
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height
