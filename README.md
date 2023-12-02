@@ -4,19 +4,22 @@
 
 # Introduction
 
-[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or converted 3D Printer.
+[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add paths, points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or [converted 3D Printer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/convert-3d-to-2d).
 
-![Preview image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-53389bb1cc21dc7a9aba3a302f04e952.jpg)
+Here are a few examples of what's been made with this library.
 
 ![Preview Image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-3c9d4c0a76c1d373e7bfc6187b6cc442.jpg)
 
+![Preview Image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-53389bb1cc21dc7a9aba3a302f04e952.jpg)
+
+
 # Quick Start
 
-Below is a quick start example to get you up and running. For a quickstart, gallery, and documentation, . [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
+Below is a quick start example to get you up and running. For a quick start, gallery, and documentation, . [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
 
 ```python
 
-from gcode2dplotterart import Plotter2D
+from gcode2dplotterart import Plotter2D # Change to `Plotter3D` if using a converted 3D printer.
 
 plotter = Plotter2D(
     # Specify the dimensions of your plotter
@@ -25,7 +28,7 @@ plotter = Plotter2D(
     y_min=0,
     y_max=200,
     feed_rate=10000,
-    # Folder output is located in `output_directory/title`
+    # G-Code files are located in `output_directory/title/layer.gcode`
     title="Plotter2D Quickstart",
     output_directory="./output",
     # Give a warning if a plotted point is outside the plotting device's dimensions.
