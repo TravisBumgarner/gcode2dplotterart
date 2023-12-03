@@ -55,10 +55,10 @@ class Layer(ABC):
 
     def __init__(
         self,
-        x_min: float,
-        y_min: float,
-        x_max: float,
-        y_max: float,
+        plotter_x_min: float,
+        plotter_y_min: float,
+        plotter_x_max: float,
+        plotter_y_max: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
@@ -76,16 +76,16 @@ class Layer(ABC):
         self.preview_only = preview_only
 
         # For calculating if a point is out of the range of the plotter.
-        self.plotter_x_min = x_min
-        self.plotter_x_max = x_max
-        self.plotter_y_min = y_min
-        self.plotter_y_max = y_max
+        self.plotter_x_min = plotter_x_min
+        self.plotter_x_max = plotter_x_max
+        self.plotter_y_min = plotter_y_min
+        self.plotter_y_max = plotter_y_max
 
         # For plotting a bounding box before printing.
-        self.layer_x_min = x_max
-        self.layer_x_max = x_min
-        self.layer_y_min = y_max
-        self.layer_y_max = y_min
+        self.layer_x_min = plotter_x_max
+        self.layer_x_max = plotter_x_min
+        self.layer_y_min = plotter_y_max
+        self.layer_y_max = plotter_y_min
 
         self.feed_rate = feed_rate
 
@@ -143,12 +143,15 @@ class Layer(ABC):
         feed_rate: float,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        """Set the speed at which the plotter head moves.
+        """
+        Set the speed at which the [plotter head](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
+        moves.
 
         Args:
-        - feed_rate (float) : The feed rate to set.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the instruction to.
-          Defaults to `plotting`.
+        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) to set.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The
+          [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -163,7 +166,9 @@ class Layer(ABC):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Connect plotting instrument to plotting surface. Should be used when starting a path.
+        Connect [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
+          to [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument).
+          Should be used when starting a path.
 
         Args:
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
@@ -181,11 +186,13 @@ class Layer(ABC):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Separate plotting instrument from plotting surface. Should be used once plotting a path
-        is complete before moving on to the next path.
+        Separate [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
+        from [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-surface).
+        Should be used once plotting a path is complete before moving on to the next path.
 
         Args:
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
           of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -218,7 +225,9 @@ class Layer(ABC):
         Args:
         - x (float) : The x-coordinate of the point.
         - y (float) : The y-coordinate of the point.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -245,7 +254,8 @@ class Layer(ABC):
         - x_end (float) : The x-coordinate of the ending point of the line.
         - y_end (float) : The y-coordinate of the ending point of the line.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
-          The instruction phase of plotting to send the instruction to. Defaults to `plotting`.
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
@@ -264,7 +274,7 @@ class Layer(ABC):
         Add a path to the layer. A path is a series of points that are connected by lines.
 
         Args:
-        - points (List[Tuple[float, float]]) : An array of points to add.
+        - points (List[Tuple[float, float]]) : An array of (x,y) points to add.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
           phase of plotting to send the instruction to. Defaults to `plotting`.
 
@@ -317,7 +327,9 @@ class Layer(ABC):
 
         Args:
         - text (str): The text to add.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional): The instruction phase of plotting to send the instruction to.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
+        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        of plotting to send the instruction to.
 
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
@@ -345,8 +357,9 @@ class Layer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the rectangle.
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction phase of plotting to send the
-          instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
+        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -379,8 +392,11 @@ class Layer(ABC):
         - x_center (float) : The x-coordinate of the center of the circle.
         - y_center (float) : The y-coordinate of the center of the circle.
         - radius (float) : The radius of the circle.
-        - num_points (int) : The number of points to use to approximate the circle. Default is 36.
-        - instruction_phase (float) : The instruction phase of plotting to send the instruction to. Default is 'plotting'.
+        - num_points (int) : The number of points to use to approximate the circle. More points leads to a circle with less visible straight lines.
+          Defaults to `36`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
+        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -456,7 +472,7 @@ class Layer(ABC):
     def preview_paths(self) -> List[List[Tuple[float, float]]]:
         """
         Generate an array of paths for the given layer. This will be used by the `Plotter`
-        to generate a preview graph of the plot. Only looks at instructions during the `plotting`
+        to generate a preview image of what will be plotted. Only looks at instructions during the `plotting`
         phase.
 
         Returns:
@@ -501,8 +517,9 @@ class Layer(ABC):
 
         Returns:
         - dict: {"setup": [], "plotting": [], "teardown": []}
-            A dictionary containing the setup, plotting, and teardown instructions as an array of G-Code
-            instruction strings.
+            A dictionary containing
+            [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - setup, plotting,
+            and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
         """
         return {
             "setup": [
@@ -519,18 +536,17 @@ class Layer(ABC):
 
 class Layer2D(Layer):
     """
-    `Layer2D` is a layer for a 2D plotter.
-    It is used in conjunction with a `Plotter2D` to generate a plot. Layers are added via the `Plotter2D.add_layer` method.
+    `Layer2D` is a layer for a 2D plotter. Layers are added via the `Plotter2D.add_layer` method.
 
     `Layer2D` extends from the abstract class `Layer`.
     """
 
     def __init__(
         self,
-        x_min: float,
-        y_min: float,
-        x_max: float,
-        y_max: float,
+        plotter_x_min: float,
+        plotter_y_min: float,
+        plotter_x_max: float,
+        plotter_y_max: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
         color: Optional[str],
@@ -540,28 +556,26 @@ class Layer2D(Layer):
     ) -> None:
         """
         Args:
-        - title (str) : The title of the work of art.
-        - x_min (float) : The minimum X-coordinate of the plotter.
-        - y_min (float) : The minimum Y-coordinate of the plotter.
-        - x_max (float) : The maximum X-coordinate of the plotter.
-        - y_max (float) : The maximum Y-coordinate of the plotter.
-        - feed_rate (float) : The feed rate for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+        - plotter_x_min (float) : The minimum X-coordinate of the plotter.
+        - plotter_y_min (float) : The minimum Y-coordinate of the plotter.
+        - plotter_x_max (float) : The maximum X-coordinate of the plotter.
+        - plotter_y_max (float) : The maximum Y-coordinate of the plotter.
+        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional):
             How to handle out-of-bounds points.
             `Warning` will print a warning, skip the point, and continue.
             `Error` will throw an error and stop.
-            `Silent` will skip the point and continue.
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
-        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
         """
         super().__init__(
-            x_min=x_min,
-            y_min=y_min,
-            x_max=x_max,
-            y_max=y_max,
+            plotter_x_min=plotter_x_min,
+            plotter_y_min=plotter_y_min,
+            plotter_x_max=plotter_x_max,
+            plotter_y_max=plotter_y_max,
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
@@ -593,8 +607,7 @@ class Layer2D(Layer):
 
 class Layer3D(Layer):
     """
-    `Layer3D` is a layer for a 3D plotter.
-    It is used in conjunction with a `Plotter3D` to generate a plot. Layers are added via the `Plotter3D.add_layer` method.
+    `Layer3D` is a layer for a 3D plotter. Layers are added via the `Plotter3D.add_layer` method.
 
     `Layer3D` extends from the abstract class `Layer`.
     """
@@ -604,10 +617,10 @@ class Layer3D(Layer):
 
     def __init__(
         self,
-        x_min: float,
-        y_min: float,
-        x_max: float,
-        y_max: float,
+        plotter_x_min: float,
+        plotter_y_min: float,
+        plotter_x_max: float,
+        plotter_y_max: float,
         z_plotting_height: float,
         z_navigation_height: float,
         feed_rate: float,
@@ -619,31 +632,33 @@ class Layer3D(Layer):
     ) -> None:
         """
         Args:
-        - title (str) : The title of the work of art.
-        - x_min (float) : The minimum X-coordinate of the plotter.
-        - y_min (float) : The minimum Y-coordinate of the plotter.
-        - x_max (float) : The maximum X-coordinate of the plotter.
-        - y_max (float) : The maximum Y-coordinate of the plotter.
-        - z_plotting_height (float) : The height of the drawing instrument when plotting on the plotting surface.
-        - z_navigation_height (float) : The height of the drawing instrument when navigating to a new location.
-        - feed_rate (float) : The feed rate for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error` | `Silent`, optional):
+        - plotter_x_min (float) : The minimum X-coordinate of the plotter.
+        - plotter_y_min (float) : The minimum Y-coordinate of the plotter.
+        - plotter_x_max (float) : The maximum X-coordinate of the plotter.
+        - plotter_y_max (float) : The maximum Y-coordinate of the plotter.
+        - z_plotting_height (float) : The height of the
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the
+          [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument).
+        - z_navigation_height (float) : The height of the
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          when navigating to a new location.
+        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional):
             How to handle out-of-bounds points.
             `Warning` will print a warning, skip the point, and continue.
             `Error` will throw an error and stop.
-            `Silent` will skip the point and continue.
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
-        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to False.
+        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
 
         """
         super().__init__(
-            x_min=x_min,
-            y_min=y_min,
-            x_max=x_max,
-            y_max=y_max,
+            plotter_x_min=plotter_x_min,
+            plotter_y_min=plotter_y_min,
+            plotter_x_max=plotter_x_max,
+            plotter_y_max=plotter_y_max,
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
             preview_only=preview_only,
