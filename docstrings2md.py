@@ -14,9 +14,10 @@ def method_to_markdown(class_obj, method_name):
 
     [params_value, return_value] = signature.split("->")
 
-    params = "".join([f"  {param.strip()}\n" for param in params_value.split(",")])
+    # Doesn't work for types.
+    # params = "".join([f"  {param.strip()},\n" for param in params_value.split(",")])
 
-    return f"```python\n{method_name}(\n{params})\n -> {return_value}\n```\n\n"
+    return f"```python\n{method_name}(\n{params_value})\n -> {return_value}\n```\n\n"
 
 
 def class_to_markdown(class_name, class_obj):
