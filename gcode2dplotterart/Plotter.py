@@ -190,17 +190,15 @@ class _AbstractPlotter(ABC):
 
         for layer_title in self.layers:
             preview_paths = self.layers[layer_title].preview_paths()
+            scatter_points_x = []
+            scatter_points_y = []
             for preview_path in preview_paths:
                 x_values, y_values = zip(*preview_path)
 
                 if (len(x_values)) == 1:
                     # A single point does not plot on ax.plot()
-                    ax.scatter(
-                        x_values,
-                        y_values,
-                        color=self.layers[layer_title].color,
-                        s=self.layers[layer_title].line_width,
-                    )
+                    scatter_points_x.append(x_values[0])
+                    scatter_points_y.append(y_values[0])
                 else:
                     ax.plot(
                         x_values,
@@ -210,6 +208,12 @@ class _AbstractPlotter(ABC):
                         linewidth=self.layers[layer_title].line_width,
                         solid_capstyle="round",
                     )
+            ax.scatter(
+                scatter_points_x,
+                scatter_points_y,
+                color=self.layers[layer_title].color,
+                s=self.layers[layer_title].line_width,
+            )
 
         if show_entire_plotting_area:
             plt.xlim(self.x_min - 10, self.x_max + 10)
