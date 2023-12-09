@@ -191,15 +191,26 @@ class _AbstractPlotter(ABC):
         for layer_title in self.layers:
             preview_paths = self.layers[layer_title].preview_paths()
             for preview_path in preview_paths:
+                print(preview_path)
                 x_values, y_values = zip(*preview_path)
-                ax.plot(
-                    x_values,
-                    y_values,
-                    color=self.layers[layer_title].color,
-                    linestyle="-",
-                    linewidth=self.layers[layer_title].line_width,
-                    solid_capstyle="round",
-                )
+
+                if (len(x_values)) == 1:
+                    # A single point does not plot on ax.plot()
+                    ax.scatter(
+                        x_values,
+                        y_values,
+                        color=self.layers[layer_title].color,
+                        s=self.layers[layer_title].line_width,
+                    )
+                else:
+                    ax.plot(
+                        x_values,
+                        y_values,
+                        color=self.layers[layer_title].color,
+                        linestyle="-",
+                        linewidth=self.layers[layer_title].line_width,
+                        solid_capstyle="round",
+                    )
 
         if show_entire_plotting_area:
             plt.xlim(self.x_min - 10, self.x_max + 10)
