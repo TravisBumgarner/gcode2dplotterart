@@ -191,7 +191,6 @@ class _AbstractPlotter(ABC):
         for layer_title in self.layers:
             preview_paths = self.layers[layer_title].preview_paths()
             for preview_path in preview_paths:
-                print(preview_path)
                 x_values, y_values = zip(*preview_path)
 
                 if (len(x_values)) == 1:
