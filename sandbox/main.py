@@ -4,6 +4,7 @@ from typing import List, Tuple
 from random import shuffle
 import time
 import math
+import imutils
 
 # TODO - make a dictionary of primaries to other colors.
 
@@ -27,6 +28,8 @@ WHITE_LAYER = "white"
 
 
 # Ideally percentages are divisible by 25, so that the number of points can be divided into quarters.
+# TODO - this mapping is a bit rough. Most light colors end up going towards white. Could use a better mapping here.
+
 color_name_to_cyan_percentage = {
     "red": {CYAN_LAYER: 0, MAGENTA_LAYER: 50, YELLOW_LAYER: 50, BLACK_LAYER: 0},
     "orange": {CYAN_LAYER: 0, MAGENTA_LAYER: 50, YELLOW_LAYER: 50, BLACK_LAYER: 0},
@@ -125,14 +128,22 @@ def map_color(sample_square, pixels_per_sample_side):
 def read_and_prep_image(
     filename: str,
     pixels_per_sample_side: int,
+    resize_percent: float = 1.0,
 ) -> List[List[Tuple[int, int, int]]]:
     """
     Resize the image such that the side lengths are divisible by the number of pixels that will be used to represent each dot.(pixels_per_sample)
+
+    Params:
+      filename: The name of the image file to read in.
+      pixels_per_sample_side: the number of pixels, along a side to sample. Used to round the image size such that samples per side becomes an int
+      resize_percent: Whether or not to resize the image. If true, the image will be resized to the specified percentage of the original image size.
     """
 
     img = cv2.imread(filename)  # Reads in image as BGR
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     print("original image shape", img.shape)
+
+    img = imutils.resize(img, width=int(img.shape[1] * resize_percent))
 
     rounded_width = int(
         math.floor(img.shape[0] / pixels_per_sample_side) * pixels_per_sample_side
@@ -143,7 +154,7 @@ def read_and_prep_image(
 
     # Resize expects width, height unlike in just about every other place.
     img = cv2.resize(img, (rounded_width, rounded_height))
-    # print("rounded image shape", img.shape)
+    print("rounded image shape", img.shape)
     return img
 
 
@@ -228,17 +239,33 @@ def plot_points_per_cmyk_ratio(
 
 
 def main():
+    filename = "./leaf.png"
+
+    # The number of pixels to sample along a side of the image. If an image is 100x100, and pixels_per_sample_side is 10, then there will be 10x10 samples.
+    pixels_per_sample_side = 25
+
+    # The number of points to plot per sample. If points_per_sample_side is 2, then there will be 4 points per sample.
+    # The higher the number of points per sample, the more accurate the color will be, but the longer it will take to plot.
+    points_per_sample_side = 3
+
+    # ========================================================================================================
+    # Don't modify anything below these lines
+    # ========================================================================================================
+
     start_time = time.time()
 
-    pixels_per_sample_side = 10
-    img = read_and_prep_image("./leaf.png", pixels_per_sample_side)
+    # It is useful to set the resize_percent to a lower number while iterating
+    img = read_and_prep_image(filename, pixels_per_sample_side, resize_percent=0.25)
     [rows, columns, color_channels] = img.shape
 
-    samples_per_side = rows / pixels_per_sample_side  # 1000 / 10 = 100 samples per side
-    mm_per_sample_side = plotter.width / samples_per_side  # width is 200, mm = 2
-    points_per_sample_side = 1
+    width_samples = rows / pixels_per_sample_side
+    height_samples = columns / pixels_per_sample_side
 
-    print("samples")
+    mm_per_sample_width = plotter.width / width_samples
+    mm_per_sample_height = plotter.height / height_samples
+
+    # To maintain an aspect ratio and have all points fit on the canvas, we need to use the smaller of the two mm_per_sample values.
+    mm_per_sample_side = min(mm_per_sample_width, mm_per_sample_height)
 
     cmyk_color_ratios = image_to_cmyk_color_ratios(
         img, pixels_per_sample_side=pixels_per_sample_side
