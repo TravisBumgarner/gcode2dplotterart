@@ -5,8 +5,8 @@ from random import shuffle
 import time
 import math
 import imutils
-
-# TODO - make a dictionary of primaries to other colors.
+import numpy as np
+from scipy.cluster.vq import kmeans, vq
 
 plotter = Plotter2D(
     title="CMYK Bayer Patterns",
@@ -27,37 +27,23 @@ BLACK_LAYER = "black"
 WHITE_LAYER = "white"
 
 
-# Ideally percentages are divisible by 25, so that the number of points can be divided into quarters.
-# TODO - this mapping is a bit rough. Most light colors end up going towards white. Could use a better mapping here.
+def bgr_to_cmyk(bgr_color):
+    b, g, r = [x / 255.0 for x in bgr_color]
 
-color_name_to_cyan_percentage = {
-    "red": {CYAN_LAYER: 0, MAGENTA_LAYER: 50, YELLOW_LAYER: 50, BLACK_LAYER: 0},
-    "orange": {CYAN_LAYER: 0, MAGENTA_LAYER: 50, YELLOW_LAYER: 50, BLACK_LAYER: 0},
-    "yellow": {CYAN_LAYER: 0, MAGENTA_LAYER: 0, YELLOW_LAYER: 100, BLACK_LAYER: 0},
-    "green": {CYAN_LAYER: 50, MAGENTA_LAYER: 0, YELLOW_LAYER: 50, BLACK_LAYER: 0},
-    "blue": {CYAN_LAYER: 50, MAGENTA_LAYER: 50, YELLOW_LAYER: 0, BLACK_LAYER: 0},
-    "cyan": {CYAN_LAYER: 100, MAGENTA_LAYER: 0, YELLOW_LAYER: 0, BLACK_LAYER: 0},
-    "magenta": {CYAN_LAYER: 0, MAGENTA_LAYER: 100, YELLOW_LAYER: 0, BLACK_LAYER: 0},
-    "black": {CYAN_LAYER: 0, MAGENTA_LAYER: 0, YELLOW_LAYER: 0, BLACK_LAYER: 100},
-    "white": {CYAN_LAYER: 0, MAGENTA_LAYER: 0, YELLOW_LAYER: 0, BLACK_LAYER: 0},
-}
+    c = 1 - r
+    m = 1 - g
+    y = 1 - b
 
-rgb_to_color_name = {
-    (255, 0, 0): "red",
-    (255, 165, 0): "orange",
-    (255, 255, 0): "yellow",
-    (0, 255, 0): "green",
-    (0, 0, 255): "blue",
-    (0, 255, 255): "cyan",
-    (255, 0, 255): "magenta",
-    (0, 0, 0): "black",
-    (255, 255, 255): "white",
-}
+    k = min(c, m, y)
 
-if set(color_name_to_cyan_percentage.keys()) != set(rgb_to_color_name.values()):
-    raise ValueError(
-        "The color names in color_name_to_cyan_percentage must match the color names in rgb_to_color_name."
-    )
+    c = (c - k) / (1 - k) if 1 - k != 0 else 0
+    m = (m - k) / (1 - k) if 1 - k != 0 else 0
+    y = (y - k) / (1 - k) if 1 - k != 0 else 0
+
+    c, m, y, k = [round(x * 100) for x in (c, m, y, k)]
+
+    return c, m, y, k
+
 
 LAYERS = [CYAN_LAYER, MAGENTA_LAYER, YELLOW_LAYER, BLACK_LAYER, WHITE_LAYER]
 
@@ -65,64 +51,43 @@ for layer in LAYERS:
     plotter.add_layer(title=layer, color=layer, line_width=LINE_WIDTH)
 
 
-def find_nearest_color(rgb_value: Tuple[int, int, int]):
-    # Calculate the Euclidean distance to find the nearest color
-    distances = {
-        color: sum((a - b) ** 2 for a, b in zip(rgb_value, color))
-        for color in rgb_to_color_name
-    }
+def kmeans_algorithm(pixels, k=1):
+    # Convert the pixel array to a NumPy array
+    pixel_array_np = np.array(pixels)
 
-    nearest_color = min(distances, key=distances.get)
+    # Flatten the array to 1D for kmeans
+    flattened_array = pixel_array_np.reshape(-1, 4)
 
-    return nearest_color
+    centroids, _ = kmeans(flattened_array.astype(float), k)
+
+    # Assign each pixel to the nearest centroid
+    labels, _ = vq(flattened_array, centroids)
+
+    # Calculate the average CMYK for each cluster
+    average_cmyk_colors = [
+        tuple(np.mean(flattened_array[labels == i], axis=0).astype(int))
+        for i in range(k)
+    ]
+
+    return average_cmyk_colors[0]
 
 
-def map_color(sample_square, pixels_per_sample_side):
-    if sample_square.shape != (pixels_per_sample_side, pixels_per_sample_side, 3):
+def sample_img_and_get_cmyk_ratio(sample_square, pixels_per_sample_side):
+    if sample_square.shape != (pixels_per_sample_side, pixels_per_sample_side, 4):
         raise ValueError(
-            f"Input sample must be a {pixels_per_sample_side}x{pixels_per_sample_side} square with 3 color channels."
+            f"Input sample must be a {pixels_per_sample_side}x{pixels_per_sample_side} square with 4 color channels."
         )
-    pixel_values = [element for row in sample_square for element in row]
 
-    nearest_colors = [find_nearest_color(pixel) for pixel in pixel_values]
+    cmyk_value = kmeans_algorithm(sample_square, k=3)
 
-    color_counts = {color: nearest_colors.count(color) for color in set(nearest_colors)}
-
-    dominant_color = max(color_counts, key=color_counts.get)
-
-    color_name = rgb_to_color_name.get(dominant_color)
-
-    return color_name
-
-
-# def map_color(sample_square, pixels_per_sample_side):
-#     if sample_square.shape != (pixels_per_sample_side, pixels_per_sample_side, 3):
-#         raise ValueError(
-#             f"Input sample must be a {pixels_per_sample_side}x{pixels_per_sample_side} square with 3 color channels."
-#         )
-
-#     # Reshape the sample_square into a 2D array
-#     reshaped_sample = sample_square.reshape(-1, 3)
-
-#     # Find the nearest color for each pixel using NumPy
-#     nearest_colors = np.apply_along_axis(find_nearest_color, 1, reshaped_sample)
-
-#     # Count occurrences of each color in the sample using NumPy
-#     unique_colors, counts = np.unique(nearest_colors, axis=0, return_counts=True)
-
-#     # Get the color with the highest count
-#     dominant_color = unique_colors[np.argmax(counts)]
-
-#     # Convert to a regular Python list before creating a tuple
-#     dominant_color_list = (
-#         dominant_color.tolist()
-#         if isinstance(dominant_color, np.ndarray)
-#         else dominant_color
-#     )
-
-#     color_name = rgb_to_color_name.get(tuple(dominant_color_list))
-
-#     return color_name
+    # This ratio calculation might be incorrect.
+    cmyk_ratios = [value / sum(cmyk_value) * 100 for value in cmyk_value]
+    return {
+        CYAN_LAYER: cmyk_ratios[0],
+        MAGENTA_LAYER: cmyk_ratios[1],
+        YELLOW_LAYER: cmyk_ratios[2],
+        BLACK_LAYER: cmyk_ratios[3],
+    }
 
 
 def read_and_prep_image(
@@ -140,8 +105,9 @@ def read_and_prep_image(
     """
 
     img = cv2.imread(filename)  # Reads in image as BGR
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     print("original image shape", img.shape)
+    if pixels_per_sample_side > img.shape[0] or pixels_per_sample_side > img.shape[1]:
+        raise ValueError("pixels_per_sample_side must be less than the image size")
 
     img = imutils.resize(img, width=int(img.shape[1] * resize_percent))
 
@@ -155,6 +121,9 @@ def read_and_prep_image(
     # Resize expects width, height unlike in just about every other place.
     img = cv2.resize(img, (rounded_width, rounded_height))
     print("rounded image shape", img.shape)
+
+    img = np.apply_along_axis(bgr_to_cmyk, 2, img)
+    print("converted bgr to cmyk")
     return img
 
 
@@ -178,8 +147,9 @@ def image_to_cmyk_color_ratios(
                 starting_row : starting_row + pixels_per_sample_side,
                 starting_col : starting_col + pixels_per_sample_side,
             ]
-            result = map_color(img_section, pixels_per_sample_side)
-            cmyk_ratio = color_name_to_cyan_percentage.get(result)
+            cmyk_ratio = sample_img_and_get_cmyk_ratio(
+                img_section, pixels_per_sample_side
+            )
             output_row.append(cmyk_ratio)
         output.append(output_row)
 
@@ -194,10 +164,8 @@ def plot_points_per_cmyk_ratio(
     points_per_sample_side,
 ):
     points = []
-    # print("sampling", points_per_sample_side**2)
     for color, percentage in cmyk_ratio.items():
         num_points = int(percentage / 100 * points_per_sample_side**2)
-        # print("\t", color, num_points)
         for i in range(num_points):
             points.append(color)
 
@@ -239,14 +207,17 @@ def plot_points_per_cmyk_ratio(
 
 
 def main():
-    filename = "./leaf.png"
+    filename = "./moon.jpg"
 
     # The number of pixels to sample along a side of the image. If an image is 100x100, and pixels_per_sample_side is 10, then there will be 10x10 samples.
-    pixels_per_sample_side = 25
+    pixels_per_sample_side = 20
 
     # The number of points to plot per sample. If points_per_sample_side is 2, then there will be 4 points per sample.
     # The higher the number of points per sample, the more accurate the color will be, but the longer it will take to plot.
-    points_per_sample_side = 3
+    points_per_sample_side = 6
+
+    # Resize image to render faster, useful for testing
+    resize_percent = 0.25
 
     # ========================================================================================================
     # Don't modify anything below these lines
@@ -255,18 +226,26 @@ def main():
     start_time = time.time()
 
     # It is useful to set the resize_percent to a lower number while iterating
-    img = read_and_prep_image(filename, pixels_per_sample_side, resize_percent=0.25)
+    img = read_and_prep_image(
+        filename, pixels_per_sample_side, resize_percent=resize_percent
+    )
     [rows, columns, color_channels] = img.shape
-
+    print(img[0][0])
     width_samples = rows / pixels_per_sample_side
     height_samples = columns / pixels_per_sample_side
+
+    print("width samples", width_samples)
+    print("height samples", height_samples)
 
     mm_per_sample_width = plotter.width / width_samples
     mm_per_sample_height = plotter.height / height_samples
 
+    print("mm per sample width", mm_per_sample_width)
+    print("mm per sample height", mm_per_sample_height)
+
     # To maintain an aspect ratio and have all points fit on the canvas, we need to use the smaller of the two mm_per_sample values.
     mm_per_sample_side = min(mm_per_sample_width, mm_per_sample_height)
-
+    print("mm", mm_per_sample_side)
     cmyk_color_ratios = image_to_cmyk_color_ratios(
         img, pixels_per_sample_side=pixels_per_sample_side
     )
@@ -274,11 +253,8 @@ def main():
     for row_index, row in enumerate(cmyk_color_ratios):
         for col_index, cmyk_ratio in enumerate(row):
             total_rows = len(cmyk_color_ratios)
-            x_start_mm = col_index * mm_per_sample_side + mm_per_sample_side
-            y_start_mm = (
-                total_rows - row_index
-            ) * mm_per_sample_side + mm_per_sample_side
-
+            x_start_mm = col_index * mm_per_sample_side
+            y_start_mm = (total_rows - row_index) * mm_per_sample_side
             plot_points_per_cmyk_ratio(
                 cmyk_ratio=cmyk_ratio,
                 x_start_mm=x_start_mm,
