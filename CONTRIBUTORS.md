@@ -38,3 +38,12 @@
 
 1. `poetry run pytest`
 2. If tests fail, run `GENERATE_SNAPSHOTS=yes poetry run pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
+
+
+## Generating Timelapses
+
+Setup a camera to take photos of the plotter. Output those photos to `folder/file.jpg`. Run the following script. Change `60` to match the desired FPS
+
+```
+ffmpeg -framerate 60 -pattern_type glob -i 'folder/filename_*.jpg' -c:v libx264 -r 60 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p output.mp4
+```

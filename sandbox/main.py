@@ -10,9 +10,9 @@ from scipy.cluster.vq import kmeans, vq
 
 plotter = Plotter2D(
     title="CMYK Bayer Patterns",
-    x_max=200,
+    x_max=160,
     x_min=0,
-    y_max=200,
+    y_max=160,
     y_min=0,
     feed_rate=10000,
     include_comments=False,
@@ -140,9 +140,9 @@ def image_to_cmyk_color_ratios(
 
     output = []
 
-    for starting_row in range(0, len(img), pixels_per_sample_side):
+    for starting_col in range(0, len(img[0]), pixels_per_sample_side):
         output_row = []
-        for starting_col in range(0, len(img[0]), pixels_per_sample_side):
+        for starting_row in range(0, len(img), pixels_per_sample_side):
             img_section = img[
                 starting_row : starting_row + pixels_per_sample_side,
                 starting_col : starting_col + pixels_per_sample_side,
@@ -151,6 +151,7 @@ def image_to_cmyk_color_ratios(
                 img_section, pixels_per_sample_side
             )
             output_row.append(cmyk_ratio)
+        # Plotting is done from the bottom left corner, so we need to reverse the order of the rows.
         output.append(output_row)
 
     return output
@@ -197,7 +198,7 @@ def plot_points_per_cmyk_ratio(
     for i in range(points_per_sample_side):
         for j in range(points_per_sample_side):
             x = x_start_mm + i * x_spacing
-            y = y_start_mm - j * y_spacing
+            y = y_start_mm + j * y_spacing
             plot_color = points.pop()
 
             plotter.layers[plot_color].add_point(
@@ -207,17 +208,17 @@ def plot_points_per_cmyk_ratio(
 
 
 def main():
-    filename = "./moon.jpg"
+    filename = "./mee.jpg"
 
     # The number of pixels to sample along a side of the image. If an image is 100x100, and pixels_per_sample_side is 10, then there will be 10x10 samples.
-    pixels_per_sample_side = 20
+    pixels_per_sample_side = 15
 
     # The number of points to plot per sample. If points_per_sample_side is 2, then there will be 4 points per sample.
     # The higher the number of points per sample, the more accurate the color will be, but the longer it will take to plot.
-    points_per_sample_side = 6
+    points_per_sample_side = 2
 
     # Resize image to render faster, useful for testing
-    resize_percent = 0.25
+    resize_percent = 1
 
     # ========================================================================================================
     # Don't modify anything below these lines
@@ -252,9 +253,8 @@ def main():
 
     for row_index, row in enumerate(cmyk_color_ratios):
         for col_index, cmyk_ratio in enumerate(row):
-            total_rows = len(cmyk_color_ratios)
             x_start_mm = col_index * mm_per_sample_side
-            y_start_mm = (total_rows - row_index) * mm_per_sample_side
+            y_start_mm = row_index * mm_per_sample_side
             plot_points_per_cmyk_ratio(
                 cmyk_ratio=cmyk_ratio,
                 x_start_mm=x_start_mm,
