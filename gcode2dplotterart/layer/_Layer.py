@@ -227,7 +227,7 @@ class _AbstractLayer(ABC):
         - text (str): The text to add.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
         The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-        of plotting to send the instruction to.
+        of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
