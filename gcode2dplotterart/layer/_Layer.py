@@ -210,61 +210,39 @@ class _AbstractLayer(ABC):
         self._add_instruction(point, instruction_phase)
         return self
 
-    def add_point(
-        self,
-        x: float,
-        y: float,
-        instruction_phase: TInstructionPhase = "plotting",
+    def _add_instruction(
+        self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
-        """
-        Add a point to the layer.
-
-        Args:
-        - x (float) : The x-coordinate of the point.
-        - y (float) : The y-coordinate of the point.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-          of plotting to send the instruction to. Defaults to `plotting`.
-
-        Returns:
-        - Layer : The Layer object. Allows for chaining of add methods.
-        """
-
-        self.add_comment(f"Point: {x}, {y}", instruction_phase)
-        self.add_path([(x, y)], instruction_phase)
+        if not isinstance(instruction, InstructionComment) and self.include_comments:
+            self.instructions[instruction_phase].append(
+                InstructionComment(str(instruction))
+            )
+        self.instructions[instruction_phase].append(instruction)
         return self
 
-    def add_line(
-        self,
-        x_start: float,
-        y_start: float,
-        x_end: float,
-        y_end: float,
-        instruction_phase: TInstructionPhase = "plotting",
-    ) -> Self:
-        """
-        Add a line to the layer.
+    def add_comment(self, text: str, instruction_phase: TInstructionPhase) -> Self:
+        """Add a comment to the layer.
 
         Args:
-        - x_start (float) : The x-coordinate of the starting point of the line.
-        - y_start (float) : The y-coordinate of the starting point of the line.
-        - x_end (float) : The x-coordinate of the ending point of the line.
-        - y_end (float) : The y-coordinate of the ending point of the line.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-          of plotting to send the instruction to. Defaults to `plotting`.
-        """
+        - text (str): The text to add.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
+        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        of plotting to send the instruction to.
 
-        points = [(x_start, y_start), (x_end, y_end)]
-        self.add_comment(
-            f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
-        )
-        self.add_path(points, instruction_phase)
+        Returns:
+        - Layer: The Layer object. Allows for chaining of add methods.
+        """
+        if self.include_comments is True:
+            lines = text.split("\n")
+            for line in lines:
+                self._add_instruction(InstructionComment(line), instruction_phase)
+
         return self
 
     def add_path(
         self,
         points: List[Tuple[float, float]],
+        raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
@@ -272,6 +250,8 @@ class _AbstractLayer(ABC):
 
         Args:
         - points (List[Tuple[float, float]]) : An array of (x,y) points to add.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
+          are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
           phase of plotting to send the instruction to. Defaults to `plotting`.
 
@@ -306,36 +286,74 @@ class _AbstractLayer(ABC):
             self._add_coordinate(x, y, instruction_phase)
             if index == 0 and not self.preview_only:
                 self.set_mode_to_plotting(instruction_phase=instruction_phase)
-        self.set_mode_to_navigation(instruction_phase=instruction_phase)
+        if raise_plotter_head_after_path:
+            self.set_mode_to_navigation(instruction_phase=instruction_phase)
         return self
 
-    def _add_instruction(
-        self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
+    def add_point(
+        self,
+        x: float,
+        y: float,
+        raise_plotter_head_after_path: bool = True,
+        instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        if not isinstance(instruction, InstructionComment) and self.include_comments:
-            self.instructions[instruction_phase].append(
-                InstructionComment(str(instruction))
-            )
-        self.instructions[instruction_phase].append(instruction)
-        return self
-
-    def add_comment(self, text: str, instruction_phase: TInstructionPhase) -> Self:
-        """Add a comment to the layer.
+        """
+        Add a point to the layer. `add_point` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
-        - text (str): The text to add.
+        - x (float) : The x-coordinate of the point.
+        - y (float) : The y-coordinate of the point.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
+          are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-        of plotting to send the instruction to.
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
-        - Layer: The Layer object. Allows for chaining of add methods.
+        - Layer : The Layer object. Allows for chaining of add methods.
         """
-        if self.include_comments is True:
-            lines = text.split("\n")
-            for line in lines:
-                self._add_instruction(InstructionComment(line), instruction_phase)
 
+        self.add_comment(f"Point: {x}, {y}", instruction_phase)
+        self.add_path(
+            [(x, y)],
+            raise_plotter_head_after_path=raise_plotter_head_after_path,
+            instruction_phase=instruction_phase,
+        )
+        return self
+
+    def add_line(
+        self,
+        x_start: float,
+        y_start: float,
+        x_end: float,
+        y_end: float,
+        raise_plotter_head_after_path: bool = True,
+        instruction_phase: TInstructionPhase = "plotting",
+    ) -> Self:
+        """
+        Add a line to the layer. `add_line` calls `add_path` under the hood, for more control, use `add_path` directly.
+
+        Args:
+        - x_start (float) : The x-coordinate of the starting point of the line.
+        - y_start (float) : The y-coordinate of the starting point of the line.
+        - x_end (float) : The x-coordinate of the ending point of the line.
+        - y_end (float) : The y-coordinate of the ending point of the line.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
+          are plotted nearby. Defaults to `True`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
+        """
+
+        points = [(x_start, y_start), (x_end, y_end)]
+        self.add_comment(
+            f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
+        )
+        self.add_path(
+            points,
+            raise_plotter_head_after_path=raise_plotter_head_after_path,
+            instruction_phase=instruction_phase,
+        )
         return self
 
     def add_rectangle(
@@ -344,16 +362,19 @@ class _AbstractLayer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
+        raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Adds a rectangle to the layer.
+        Adds a rectangle to the layer.  `add_rectangle` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
         - x_start (float) : The x-coordinate of the starting point of the rectangle.
         - y_start (float) : The y-coordinate of the starting point of the rectangle.
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
+          are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
         The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
         of plotting to send the instruction to. Defaults to `plotting`.
@@ -371,7 +392,11 @@ class _AbstractLayer(ABC):
             (x_end, y_start),
             (x_start, y_start),
         ]
-        self.add_path(points, instruction_phase)
+        self.add_path(
+            points,
+            raise_plotter_head_after_path=raise_plotter_head_after_path,
+            instruction_phase=instruction_phase,
+        )
         return self
 
     def add_circle(
@@ -380,10 +405,11 @@ class _AbstractLayer(ABC):
         y_center: float,
         radius: float,
         num_points: int = 36,
+        raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Adds a circle to the layer.
+        Adds a circle to the layer. `add_circle` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
         - x_center (float) : The x-coordinate of the center of the circle.
@@ -391,6 +417,7 @@ class _AbstractLayer(ABC):
         - radius (float) : The radius of the circle.
         - num_points (int) : The number of points to use to approximate the circle. More points leads to a circle with less visible straight lines.
           Defaults to `36`.
+
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
         The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
         of plotting to send the instruction to. Defaults to `plotting`.
@@ -413,7 +440,11 @@ class _AbstractLayer(ABC):
             y = y_center + radius * math.sin(angle)
             points.append((x, y))
         points.append(points[0])  # Close the circle
-        self.add_path(points, instruction_phase)
+        self.add_path(
+            points,
+            raise_plotter_head_after_path=raise_plotter_head_after_path,
+            instruction_phase=instruction_phase,
+        )
         return self
 
     def save(self, file_path: str) -> None:
