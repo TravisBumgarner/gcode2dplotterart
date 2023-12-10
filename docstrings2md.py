@@ -1,7 +1,8 @@
 import inspect
 import os
 
-from gcode2dplotterart.Plotter import Plotter3D, Plotter2D
+from gcode2dplotterart.Plotter2D import Plotter2D
+from gcode2dplotterart.Plotter3D import Plotter3D
 from gcode2dplotterart.Layer2D import Layer2D
 from gcode2dplotterart.Layer3D import Layer3D
 

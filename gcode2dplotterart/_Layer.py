@@ -50,7 +50,7 @@ TInstructionUnion = Union[
 ]
 
 
-class Layer(ABC):
+class _AbstractLayer(ABC):
     instructions: Dict[TInstructionPhase, List[TInstructionUnion]]
 
     def __init__(

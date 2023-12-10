@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from gcode2dplotterart.Plotter import Plotter2D
+from gcode2dplotterart.Plotter2D import Plotter2D
 import json
 
 INDENT = 4

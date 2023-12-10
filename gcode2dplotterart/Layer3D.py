@@ -1,7 +1,7 @@
 from typing import Optional
 from typing_extensions import Self
 
-from ._Layer import Layer
+from ._Layer import _AbstractLayer
 from .shared_types import THandleOutOfBounds, TInstructionPhase
 from .InstructionWithArguments import (
     Instruction3DPrinterNavigationHeight,
@@ -10,7 +10,7 @@ from .InstructionWithArguments import (
 )
 
 
-class Layer3D(Layer):
+class Layer3D(_AbstractLayer):
     """
     `Layer3D` is a layer for a 3D plotter. Layers are added via the `Plotter3D.add_layer` method.
 

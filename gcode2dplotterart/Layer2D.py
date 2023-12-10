@@ -1,7 +1,7 @@
 from typing import Optional
 from typing_extensions import Self
 
-from ._Layer import Layer
+from ._Layer import _AbstractLayer
 from .shared_types import THandleOutOfBounds, TInstructionPhase
 from .InstructionWithArguments import (
     InstructionPause,
@@ -12,7 +12,7 @@ from .SimpleInstruction import (
 )
 
 
-class Layer2D(Layer):
+class Layer2D(_AbstractLayer):
     """
     `Layer2D` is a layer for a 2D plotter. Layers are added via the `Plotter2D.add_layer` method.
 
