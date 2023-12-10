@@ -1,7 +1,7 @@
 from typing import Optional
 
 from ._Plotter import _AbstractPlotter
-from .Layer2D import Layer2D
+from .layer import Layer2D
 from .shared_types import THandleOutOfBounds
 
 

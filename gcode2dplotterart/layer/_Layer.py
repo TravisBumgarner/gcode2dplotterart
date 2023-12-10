@@ -4,17 +4,14 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
-from .shared_types import THandleOutOfBounds, TInstructionPhase
-from .InstructionWithArguments import (
+from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from ..instruction import (
     InstructionPoint,
     Instruction3DPrinterPlottingHeight,
     InstructionComment,
     InstructionFeedRate,
     InstructionPause,
     Instruction3DPrinterNavigationHeight,
-)
-
-from .SimpleInstruction import (
     Instruction2DPlotterNavigationHeight,
     Instruction2DPlotterPlottingHeight,
     InstructionUnitsMM,
