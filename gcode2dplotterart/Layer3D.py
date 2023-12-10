@@ -1,7 +1,7 @@
 from typing import Optional
 from typing_extensions import Self
 
-from .Layer import Layer
+from ._Layer import Layer
 from .shared_types import THandleOutOfBounds, TInstructionPhase
 from .InstructionWithArguments import (
     Instruction3DPrinterNavigationHeight,
