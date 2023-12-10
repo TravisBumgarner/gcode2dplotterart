@@ -13,6 +13,8 @@ skip_test_and_generate_snapshots = os.environ.get("GENERATE_SNAPSHOTS", "no")
 class TestSnapshot(unittest.TestCase):
     def testSnapshot(self) -> None:
         layer = "black"
+        layer2 = "red"
+
         plotter = Plotter2D(
             title="plotter2d_test",
             x_min=-100,
@@ -33,6 +35,13 @@ class TestSnapshot(unittest.TestCase):
         ).add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15).add_comment(
             "Test comment", instruction_phase="teardown"
         )
+
+        plotter.add_layer(layer2)
+
+        plotter.layers[layer2].add_circle(
+            25, 25, 10, raise_plotter_head_after_path=False
+        )
+        plotter.layers[layer2].add_circle(25, 25, 12)
 
         os.makedirs(snapshot_directory, exist_ok=True)
 
