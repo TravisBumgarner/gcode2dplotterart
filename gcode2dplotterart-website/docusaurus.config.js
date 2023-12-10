@@ -128,6 +128,10 @@ const config = {
                 label: 'Silly Side Projects',
                 href: 'https://sillysideprojects.com',
               },
+              {
+                label: 'Instagram',
+                href: 'https://instagram.com/sillysideprojects',
+              },
             ],
           },
         ],
