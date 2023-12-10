@@ -112,7 +112,11 @@ plotter.layers[blue_marker_layer].add_rectangle(x_start=50, y_start=50, x_end=75
 plotter.layers[green_marker_layer].add_path([(10, 10), (20, 25), (30, 15), (1, 100)])
 plotter.layers[green_marker_layer].add_line(x_start=70, y_start=80, x_end=70, y_end=15)
 ```
- 
+
+:::info
+`add_point`, `add_circle`, `add_rectangle`, and other similar methods are all wrappers around `add_path`. The `add_path` method is the most flexible and can be used to create any path.
+:::
+
 ## 7. Generate a preview
 
 ```python
