@@ -4,7 +4,8 @@ from typing import List, Dict, Union, Optional, Literal
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
-from .Layer import Layer2D, Layer3D
+from .Layer2D import Layer2D
+from .Layer3D import Layer3D
 from .shared_types import THandleOutOfBounds
 
 

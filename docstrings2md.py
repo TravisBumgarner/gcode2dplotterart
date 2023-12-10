@@ -2,7 +2,8 @@ import inspect
 import os
 
 from gcode2dplotterart.Plotter import Plotter3D, Plotter2D
-from gcode2dplotterart.Layer import Layer3D, Layer2D
+from gcode2dplotterart.Layer2D import Layer2D
+from gcode2dplotterart.Layer3D import Layer3D
 
 
 def method_to_markdown(class_obj, method_name):
