@@ -3,13 +3,13 @@ requires = ["hatchling", "setuptools", "wheel"]
 build-backend = "hatchling.build"
 
 [project]
-version = "1.1.2"
+version = "1.2.0"
 name = "gcode2dplotterart"
 
 [tool.poetry]
 name = "gcode2dplotterart"
 authors = ["Travis Bumgarner"]
-version = "1.1.2"
+version = "1.2.0"
 description = "Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art."
 readme = "README.md"
 

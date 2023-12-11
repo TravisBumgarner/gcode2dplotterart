@@ -1,13 +1,8 @@
-# test_layer.py
-
 import os
 import unittest
+
 from gcode2dplotterart.Plotter3D import Plotter3D
-import json
-
-INDENT = 4
-
-skip_test_and_generate_snapshots = os.environ.get("GENERATE_SNAPSHOTS", "no")
+from utils_test import run_test_and_snapshot
 
 
 class TestSnapshot(unittest.TestCase):
@@ -37,29 +32,7 @@ class TestSnapshot(unittest.TestCase):
             "Test comment", instruction_phase="teardown"
         )
 
-        os.makedirs(snapshot_directory, exist_ok=True)
-
-        # Save snapshot to snapshots directory if it's first time seeing test. Otherwise, compare contents are the same.
-        if not os.path.isfile(os.path.join(snapshot_file_path)):
-            first_snapshot = plotter.get_plotting_data()
-            with open(snapshot_file_path, "w") as file:
-                file.write(json.dumps(first_snapshot, indent=INDENT))
-
-            print(f"Verify code for {layer} then commit, then run this test again.")
-        else:
-            with open(snapshot_file_path, "r") as file:
-                old_snapshot = file.read()
-                new_snapshot = json.dumps(plotter.get_plotting_data(), indent=INDENT)
-
-                if skip_test_and_generate_snapshots == "yes":
-                    print(f"Generating snapshot for {layer}")
-                    with open(snapshot_file_path, "w") as file:
-                        file.write(new_snapshot)
-                    return
-                else:
-                    assert (
-                        old_snapshot == new_snapshot
-                    ), f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
+        run_test_and_snapshot(snapshot_directory, snapshot_file_path, plotter)
 
 
 if __name__ == "__main__":

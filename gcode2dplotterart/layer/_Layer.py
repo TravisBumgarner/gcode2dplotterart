@@ -17,6 +17,7 @@ from ..instruction import (
     InstructionUnitsMM,
     InstructionProgramEnd,
 )
+from .draw_character import draw_character
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -251,7 +252,7 @@ class _AbstractLayer(ABC):
         Args:
         - points (List[Tuple[float, float]]) : An array of (x,y) points to add.
         - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          are plotted nearby. Defaults to `True`.
+          paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
           phase of plotting to send the instruction to. Defaults to `plotting`.
 
@@ -304,7 +305,7 @@ class _AbstractLayer(ABC):
         - x (float) : The x-coordinate of the point.
         - y (float) : The y-coordinate of the point.
         - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          are plotted nearby. Defaults to `True`.
+          paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
           The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
           of plotting to send the instruction to. Defaults to `plotting`.
@@ -339,7 +340,7 @@ class _AbstractLayer(ABC):
         - x_end (float) : The x-coordinate of the ending point of the line.
         - y_end (float) : The y-coordinate of the ending point of the line.
         - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          are plotted nearby. Defaults to `True`.
+          paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
           The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
           of plotting to send the instruction to. Defaults to `plotting`.
@@ -374,7 +375,7 @@ class _AbstractLayer(ABC):
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
         - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          are plotted nearby. Defaults to `True`.
+          paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
         The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
         of plotting to send the instruction to. Defaults to `plotting`.
@@ -417,7 +418,8 @@ class _AbstractLayer(ABC):
         - radius (float) : The radius of the circle.
         - num_points (int) : The number of points to use to approximate the circle. More points leads to a circle with less visible straight lines.
           Defaults to `36`.
-
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
+          paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
         The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
         of plotting to send the instruction to. Defaults to `plotting`.
@@ -445,6 +447,55 @@ class _AbstractLayer(ABC):
             raise_plotter_head_after_path=raise_plotter_head_after_path,
             instruction_phase=instruction_phase,
         )
+        return self
+
+    def add_text(
+        self,
+        text: str,
+        font_size: float,
+        x_start: float,
+        y_start: float,
+        char_spacing: Optional[float] = None,
+        point_offset: Optional[float] = None,
+        instruction_phase: TInstructionPhase = "plotting",
+    ) -> Self:
+        """
+        Adds a text to the layer. `add_text` calls `add_path` under the hood, for more control, use `add_path` directly.
+
+        Args:
+        - text (str) : The text to add.
+        - font_size (float) : The height of each character of text in mm.
+        - x_start (float) : The x-coordinate of the starting point of the text. Located to the left of the text.
+        - y_start (float) : The y-coordinate of the starting point of the text. Located at the bottom of the text.
+        - char_spacing (float) : The spacing between each character in mm. Defaults to layer `line_width`.
+        - point_offset (float, optional) : The offset of the point in the character, units are mm. Used for characters such as `!`.
+          Defaults to the layer `line_width`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
+
+        Returns:
+        - Layer : The Layer object. Allows for chaining of add methods.
+        """
+
+        self.add_comment(f"Text: {text}", instruction_phase)
+        segment_length = font_size / 2
+
+        for character in text.lower():
+            paths = draw_character(
+                character=character,
+                x_start=x_start,
+                y_start=y_start,
+                segment_length=segment_length,
+                point_offset=self.line_width if point_offset is None else point_offset,
+            )
+
+            for path in paths:
+                self.add_path(path)
+
+            x_start += segment_length
+            x_start += char_spacing if char_spacing is not None else segment_length
+
         return self
 
     def save(self, file_path: str) -> None:
