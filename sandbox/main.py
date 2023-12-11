@@ -1,273 +1,242 @@
 from gcode2dplotterart import Plotter2D
-import cv2
-from typing import List, Tuple
-from random import shuffle
-import time
-import math
-import imutils
-import numpy as np
-from scipy.cluster.vq import kmeans, vq
 
 plotter = Plotter2D(
-    title="CMYK Bayer Patterns",
-    x_max=160,
-    x_min=0,
-    y_max=160,
-    y_min=0,
-    feed_rate=10000,
-    include_comments=False,
+    title="chars", x_min=0, x_max=200, y_min=0, y_max=120, feed_rate=10000
 )
-
-LINE_WIDTH = 2.5  # mm
-
-CYAN_LAYER = "cyan"
-MAGENTA_LAYER = "magenta"
-YELLOW_LAYER = "yellow"
-BLACK_LAYER = "black"
-WHITE_LAYER = "white"
+plotter.add_layer("black", line_width=2.5)
 
 
-def bgr_to_cmyk(bgr_color):
-    b, g, r = [x / 255.0 for x in bgr_color]
-
-    c = 1 - r
-    m = 1 - g
-    y = 1 - b
-
-    k = min(c, m, y)
-
-    c = (c - k) / (1 - k) if 1 - k != 0 else 0
-    m = (m - k) / (1 - k) if 1 - k != 0 else 0
-    y = (y - k) / (1 - k) if 1 - k != 0 else 0
-
-    c, m, y, k = [round(x * 100) for x in (c, m, y, k)]
-
-    return c, m, y, k
-
-
-LAYERS = [CYAN_LAYER, MAGENTA_LAYER, YELLOW_LAYER, BLACK_LAYER, WHITE_LAYER]
-
-for layer in LAYERS:
-    plotter.add_layer(title=layer, color=layer, line_width=LINE_WIDTH)
-
-
-def kmeans_algorithm(pixels, k=1):
-    # Convert the pixel array to a NumPy array
-    pixel_array_np = np.array(pixels)
-
-    # Flatten the array to 1D for kmeans
-    flattened_array = pixel_array_np.reshape(-1, 4)
-
-    centroids, _ = kmeans(flattened_array.astype(float), k)
-
-    # Assign each pixel to the nearest centroid
-    labels, _ = vq(flattened_array, centroids)
-
-    # Calculate the average CMYK for each cluster
-    average_cmyk_colors = [
-        tuple(np.mean(flattened_array[labels == i], axis=0).astype(int))
-        for i in range(k)
+def line_a(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start, char_y_start + segment_length * 2),
+        (char_x_start + segment_length, char_y_start + segment_length * 2),
     ]
 
-    return average_cmyk_colors[0]
+
+def line_b(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start + segment_length, char_y_start + segment_length),
+        (char_x_start + segment_length, char_y_start + segment_length * 2),
+    ]
 
 
-def sample_img_and_get_cmyk_ratio(sample_square, pixels_per_sample_side):
-    if sample_square.shape != (pixels_per_sample_side, pixels_per_sample_side, 4):
+def line_c(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start + segment_length, char_y_start),
+        (char_x_start + segment_length, char_y_start + segment_length),
+    ]
+
+
+def line_d(segment_length: float, char_x_start: float, char_y_start: float):
+    return [(char_x_start, char_y_start), (char_x_start + segment_length, char_y_start)]
+
+
+def line_e(segment_length: float, char_x_start: float, char_y_start: float):
+    return [(char_x_start, char_y_start), (char_x_start, char_y_start + segment_length)]
+
+
+def line_f(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start, char_y_start + segment_length),
+        (char_x_start, char_y_start + segment_length * 2),
+    ]
+
+
+def line_g(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start, char_y_start + segment_length),
+        (char_x_start + segment_length, char_y_start + segment_length),
+    ]
+
+
+def point_dp(
+    segment_length: float,
+    char_x_start: float,
+    char_y_start: float,
+    point_offset: float,
+):
+    return [
+        (char_x_start + segment_length + point_offset, char_y_start),
+    ]
+
+
+def space(segment_length: float, char_x_start: float, char_y_start: float):
+    return [
+        (char_x_start, char_y_start),
+        (char_x_start + segment_length, char_y_start),
+    ]
+
+
+# TODO -  Characters have been manually ordered such that the least amount of pen lifts occurs. _ indicates a pen lift
+character_map = {
+    "1": "bc",
+    "2": "abged",
+    "3": "abg_cd",
+    "4": "fgb_c",
+    "5": "afgcd",
+    "6": "afedcg",
+    "7": "abc",
+    "8": "abgf_cde",
+    "9": "gfabcd",
+    "0": "abcdef",
+    "a": "efabc_g",
+    "b": "fedcg",
+    "c": "afed",
+    "d": "bcdeg",
+    "e": "afg_ed",
+    "f": "afe_g",
+    "g": "afedc",
+    "h": "fe_gc",
+    "i": "ea",
+    "j": "bcde",
+    "k": "afe_gc",
+    "l": "fed",
+    "m": "a_e_c",
+    "n": "efabc",
+    "o": "abcdef",
+    "p": "efabg",
+    "q": "gfabc",
+    "r": "efab",
+    "s": "afgcd",
+    "t": "fed_g",
+    "u": "fedcb",
+    "v": "f_bcd",
+    "w": "f_b_d",
+    "x": "fe_g_bc",
+    "y": "f_bcd",
+    "z": "abg_d",
+    "-": "g",
+    "_": "d",
+    "[": "afed",
+    "]": "abcd",
+    "^": "fab",
+    "!": "b_p",
+    "'": "f",
+    ".": "p",
+    ",": "cd",
+    "<": "afg",
+    ">": "abg",
+    "?": "abge",
+    "=": "a_g",
+    " ": " ",
+}
+
+primitive_map = {
+    "a": line_a,
+    "b": line_b,
+    "c": line_c,
+    "d": line_d,
+    "e": line_e,
+    "f": line_f,
+    "g": line_g,
+    "p": point_dp,
+    " ": space,
+}
+
+
+def draw_character(
+    character_to_draw: str,
+    font_size: float,
+    char_x_start: float,
+    char_y_start: float,
+    point_offset: float = 1,
+):
+    """
+    Draw a single character. The character will be drawn at the specified x and y start coordinates.
+
+    Args:
+    - character_to_draw (str): The character to draw. Must be a single character.
+    - font_size (float): The size of the font to draw the character in, units are mm.
+    - char_x_start (float): The x-coordinate to start drawing the character at. Positioned to the left of the character.
+    - char_y_start (float): The y-coordinate to start drawing the character at. Positioned to the bottom of the character.
+    - point_offset (float, optional): The offset of the point in the character, units are mm. Used for characters such as `!`. Defaults to 1.2.
+    """
+    segment_length = font_size / 2
+
+    if character_to_draw not in character_map:
         raise ValueError(
-            f"Input sample must be a {pixels_per_sample_side}x{pixels_per_sample_side} square with 4 color channels."
+            f"Character {character_to_draw} is not supported, supported characters are {character_map.keys()}"
         )
 
-    cmyk_value = kmeans_algorithm(sample_square, k=3)
+    primitives = character_map[character_to_draw]
 
-    # This ratio calculation might be incorrect.
-    cmyk_ratios = [value / sum(cmyk_value) * 100 for value in cmyk_value]
-    return {
-        CYAN_LAYER: cmyk_ratios[0],
-        MAGENTA_LAYER: cmyk_ratios[1],
-        YELLOW_LAYER: cmyk_ratios[2],
-        BLACK_LAYER: cmyk_ratios[3],
-    }
-
-
-def read_and_prep_image(
-    filename: str,
-    pixels_per_sample_side: int,
-    resize_percent: float = 1.0,
-) -> List[List[Tuple[int, int, int]]]:
-    """
-    Resize the image such that the side lengths are divisible by the number of pixels that will be used to represent each dot.(pixels_per_sample)
-
-    Params:
-      filename: The name of the image file to read in.
-      pixels_per_sample_side: the number of pixels, along a side to sample. Used to round the image size such that samples per side becomes an int
-      resize_percent: Whether or not to resize the image. If true, the image will be resized to the specified percentage of the original image size.
-    """
-
-    img = cv2.imread(filename)  # Reads in image as BGR
-    print("original image shape", img.shape)
-    if pixels_per_sample_side > img.shape[0] or pixels_per_sample_side > img.shape[1]:
-        raise ValueError("pixels_per_sample_side must be less than the image size")
-
-    img = imutils.resize(img, width=int(img.shape[1] * resize_percent))
-
-    rounded_width = int(
-        math.floor(img.shape[0] / pixels_per_sample_side) * pixels_per_sample_side
-    )
-    rounded_height = int(
-        math.floor(img.shape[1] / pixels_per_sample_side) * pixels_per_sample_side
-    )
-
-    # Resize expects width, height unlike in just about every other place.
-    img = cv2.resize(img, (rounded_width, rounded_height))
-    print("rounded image shape", img.shape)
-
-    img = np.apply_along_axis(bgr_to_cmyk, 2, img)
-    print("converted bgr to cmyk")
-    return img
-
-
-def image_to_cmyk_color_ratios(
-    img: List[List[Tuple[int, int, int]]], pixels_per_sample_side: int
-):
-    """
-    Take in an image, and return a 2D list of colors to plot as output.
-
-    Params:
-      img: The image to process
-      pixels_per_sample_side: the number of pixels, along a side to sample. The number of pixels would then be pixels_per_sample_side**2.
-    """
-
-    output = []
-
-    for starting_col in range(0, len(img[0]), pixels_per_sample_side):
-        output_row = []
-        for starting_row in range(0, len(img), pixels_per_sample_side):
-            img_section = img[
-                starting_row : starting_row + pixels_per_sample_side,
-                starting_col : starting_col + pixels_per_sample_side,
-            ]
-            cmyk_ratio = sample_img_and_get_cmyk_ratio(
-                img_section, pixels_per_sample_side
-            )
-            output_row.append(cmyk_ratio)
-        # Plotting is done from the bottom left corner, so we need to reverse the order of the rows.
-        output.append(output_row)
-
-    return output
-
-
-def plot_points_per_cmyk_ratio(
-    cmyk_ratio,
-    x_start_mm,
-    y_start_mm,
-    mm_per_sample_side,
-    points_per_sample_side,
-):
-    points = []
-    for color, percentage in cmyk_ratio.items():
-        num_points = int(percentage / 100 * points_per_sample_side**2)
-        for i in range(num_points):
-            points.append(color)
-
-    # Need to handle the situation where the number of points is less than the number of points per sample side.
-    # One such way this occurs is if the points_per_sample_side is odd.
-    filtered_dict = {k: v for k, v in cmyk_ratio.items() if v != 0}
-    # Sort the dictionary by values in descending order
-    cmyk_ratio_keys = list(
-        dict(
-            sorted(filtered_dict.items(), key=lambda item: item[1], reverse=True)
-        ).keys()
-    )
-
-    current_index = 0
-    while len(points) < points_per_sample_side**2:
-        # White is the only color where all the percentages are 0.
-        if len(cmyk_ratio_keys) == 0:
-            points.append("white")
+    paths = []
+    for primitive in primitives:
+        if primitive == "_":
+            # Note - _ was supposed to denote seperate paths. But the logic to do so is decently complicated. Leaving in to be computed later.
             continue
 
-        points.append(cmyk_ratio_keys[current_index % len(cmyk_ratio_keys)])
-        current_index += 1
-
-    shuffle(points)
-
-    x_spacing = mm_per_sample_side / points_per_sample_side
-    y_spacing = mm_per_sample_side / points_per_sample_side
-
-    for i in range(points_per_sample_side):
-        for j in range(points_per_sample_side):
-            x = x_start_mm + i * x_spacing
-            y = y_start_mm + j * y_spacing
-            plot_color = points.pop()
-
-            plotter.layers[plot_color].add_point(
-                x=x,
-                y=y,
+        draw_primitive = primitive_map[primitive]
+        if primitive == "p":
+            paths.append(
+                draw_primitive(
+                    segment_length,
+                    char_x_start,
+                    char_y_start,
+                    point_offset,
+                )
             )
+            continue
+
+        if primitive == " ":
+            char_x_start += segment_length
+            continue
+
+        paths.append(draw_primitive(segment_length, char_x_start, char_y_start))
+    return paths
 
 
-def main():
-    filename = "./mee.jpg"
+def draw_text(
+    text_to_draw: str,
+    font_size: float,
+    char_spacing: float,
+    x_start: float,
+    y_start: float,
+    point_offset: float = 1,
+):
+    segment_length = font_size / 2
 
-    # The number of pixels to sample along a side of the image. If an image is 100x100, and pixels_per_sample_side is 10, then there will be 10x10 samples.
-    pixels_per_sample_side = 15
+    for character in text_to_draw.lower():
+        paths = draw_character(
+            character,
+            font_size,
+            x_start,
+            y_start,
+            point_offset=point_offset,
+        )
 
-    # The number of points to plot per sample. If points_per_sample_side is 2, then there will be 4 points per sample.
-    # The higher the number of points per sample, the more accurate the color will be, but the longer it will take to plot.
-    points_per_sample_side = 2
+        for path in paths:
+            plotter.layers["black"].add_path(path)
 
-    # Resize image to render faster, useful for testing
-    resize_percent = 1
+        x_start += segment_length + char_spacing
+    return paths
 
-    # ========================================================================================================
-    # Don't modify anything below these lines
-    # ========================================================================================================
 
-    start_time = time.time()
+chars = "".join(character_map.keys())
 
-    # It is useful to set the resize_percent to a lower number while iterating
-    img = read_and_prep_image(
-        filename, pixels_per_sample_side, resize_percent=resize_percent
+
+def split_into_chunks(input_string, chunk_size=15):
+    return [
+        input_string[i : i + chunk_size]
+        for i in range(0, len(input_string), chunk_size)
+    ]
+
+
+rows = split_into_chunks(chars)
+
+for index, row in enumerate(rows):
+    draw_text(
+        row,
+        font_size=15,
+        char_spacing=5,
+        x_start=0,
+        y_start=plotter.y_max - index * 24 - 20,
     )
-    [rows, columns, color_channels] = img.shape
-    print(img[0][0])
-    width_samples = rows / pixels_per_sample_side
-    height_samples = columns / pixels_per_sample_side
 
-    print("width samples", width_samples)
-    print("height samples", height_samples)
+draw_text(
+    "It's fun to see progress!!", font_size=10, char_spacing=2, x_start=0, y_start=0
+)
 
-    mm_per_sample_width = plotter.width / width_samples
-    mm_per_sample_height = plotter.height / height_samples
+plotter.preview()
 
-    print("mm per sample width", mm_per_sample_width)
-    print("mm per sample height", mm_per_sample_height)
-
-    # To maintain an aspect ratio and have all points fit on the canvas, we need to use the smaller of the two mm_per_sample values.
-    mm_per_sample_side = min(mm_per_sample_width, mm_per_sample_height)
-    print("mm", mm_per_sample_side)
-    cmyk_color_ratios = image_to_cmyk_color_ratios(
-        img, pixels_per_sample_side=pixels_per_sample_side
-    )
-
-    for row_index, row in enumerate(cmyk_color_ratios):
-        for col_index, cmyk_ratio in enumerate(row):
-            x_start_mm = col_index * mm_per_sample_side
-            y_start_mm = row_index * mm_per_sample_side
-            plot_points_per_cmyk_ratio(
-                cmyk_ratio=cmyk_ratio,
-                x_start_mm=x_start_mm,
-                y_start_mm=y_start_mm,
-                mm_per_sample_side=mm_per_sample_side,
-                points_per_sample_side=points_per_sample_side,
-            )
-
-    end_time = time.time()
-    print(f"Total time: {end_time - start_time}")
-    plotter.preview()
-    plotter.save()
-
-
-if __name__ == "__main__":
-    main()
+plotter.save()
