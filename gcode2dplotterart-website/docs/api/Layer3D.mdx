@@ -180,7 +180,7 @@ Adds a text to the layer. `add_text` calls `add_path` under the hood, for more c
 - font_size (float) : The height of each character of text in mm.
 - x_start (float) : The x-coordinate of the starting point of the text. Located to the left of the text.
 - y_start (float) : The y-coordinate of the starting point of the text. Located at the bottom of the text.
-- char_spacing (float) : The spacing between each character in mm.
+- char_spacing (float) : The spacing between each character in mm. Defaults to layer `line_width`.
 - point_offset (float, optional) : The offset of the point in the character, units are mm. Used for characters such as `!`.
   Defaults to the layer `line_width`.
 - instruction_phase (`setup` | `plotting` | `teardown`, optional):
