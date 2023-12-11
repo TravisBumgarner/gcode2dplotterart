@@ -17,6 +17,7 @@ from ..instruction import (
     InstructionUnitsMM,
     InstructionProgramEnd,
 )
+from .draw_character import draw_character
 
 SETUP_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################
@@ -450,32 +451,50 @@ class _AbstractLayer(ABC):
 
     def add_text(
         self,
+        text: str,
+        font_size: float,
         x_start: float,
         y_start: float,
-        font_size: float,
-        text: str,
-        raise_plotter_head_after_path: bool = True,
+        char_spacing: Optional[float] = None,
+        point_offset: Optional[float] = None,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Adds a text to the layer. `add_circle` calls `add_path` under the hood, for more control, use `add_path` directly.
+        Adds a text to the layer. `add_text` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
+        - text (str) : The text to add.
+        - font_size (float) : The height of each character of text in mm.
         - x_start (float) : The x-coordinate of the starting point of the text. Located to the left of the text.
         - y_start (float) : The y-coordinate of the starting point of the text. Located at the bottom of the text.
-        - font_size (float) : The height of each character of text in mm.
-        - text (str) : The text to add.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
+        - char_spacing (float) : The spacing between each character in mm.
+        - point_offset (float, optional) : The offset of the point in the character, units are mm. Used for characters such as `!`.
+          Defaults to the layer `line_width`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-        of plotting to send the instruction to. Defaults to `plotting`.
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
 
         self.add_comment(f"Text: {text}", instruction_phase)
+        segment_length = font_size / 2
+
+        for character in text.lower():
+            paths = draw_character(
+                character=character,
+                x_start=x_start,
+                y_start=y_start,
+                segment_length=segment_length,
+                point_offset=self.line_width if point_offset is None else point_offset,
+            )
+
+            for path in paths:
+                self.add_path(path)
+
+            x_start += segment_length
+            x_start += char_spacing if char_spacing is not None else segment_length
 
         return self
 
