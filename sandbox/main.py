@@ -5,6 +5,6 @@ plotter = Plotter2D(
 )
 plotter.add_layer("black", line_width=2.5)
 
-plotter.layers["black"].add_text("opqrstuvwxyz", x_start=10, y_start=10, font_size=10)
+plotter.layers["black"].add_text("hello world", x_start=10, y_start=10, font_size=10)
 
 plotter.preview()
