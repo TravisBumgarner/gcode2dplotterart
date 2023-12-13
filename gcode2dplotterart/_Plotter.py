@@ -80,23 +80,19 @@ class _AbstractPlotter(ABC):
         title: str,
         color: Optional[str] = None,
         line_width: float = 2.0,
-        preview_only: bool = False,
     ) -> Union[Layer2D, Layer3D]:
         """
         Add a new layer to the plotter.
 
         Args:
         - title (str) : The title of the layer. Used when saving a layer to G-Code.
-        - color (str) : A hex color (such as `#00FF00`) or human-readable color name
-            (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors)
+        - color (str) : A hex color (such as `#00FF00`) or human-readable color name \
+            (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors) \
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
         - line_width (Optional[float]) : The width of the line to be plotted. Used with the `preview` method. Defaults to`2.0`.
-        - preview_only (bool) : Whether the layer is a preview layer. Preview layers show the
-            plotter head in motion but do not come in contact with
-            [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate). Defaults to `False`.
-
+        
         Returns:
-        - Layer : The newly created [layer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#layer).
+        - Layer : The newly created [layer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#layer). \
           Allows for chaining of the layer's add methods.
         """
 
@@ -110,13 +106,28 @@ class _AbstractPlotter(ABC):
         """
         points = self.get_min_and_max_points()
 
-        self.add_layer("preview", preview_only=True)
+        self.add_layer("preview")
         self.layers["preview"].add_rectangle(
-            points["x_min"], points["y_min"], points["x_max"], points["y_max"]
+            points["x_min"],
+            points["y_min"],
+            points["x_max"],
+            points["y_max"],
+            lower_plotter_head_before_path=False,
+            raise_plotter_head_after_path=False,
         ).add_line(
-            points["x_min"], points["y_min"], points["x_max"], points["y_max"]
+            points["x_min"],
+            points["y_min"],
+            points["x_max"],
+            points["y_max"],
+            lower_plotter_head_before_path=False,
+            raise_plotter_head_after_path=False,
         ).add_line(
-            points["x_min"], points["y_max"], points["x_max"], points["y_min"]
+            points["x_min"],
+            points["y_max"],
+            points["x_max"],
+            points["y_min"],
+            lower_plotter_head_before_path=False,
+            raise_plotter_head_after_path=False,
         )
 
     @property
@@ -163,9 +174,9 @@ class _AbstractPlotter(ABC):
 
         Returns:
         - dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
-            A dictionary of dictionaries containing
-            [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - setup, plotting,
-            and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
+            A dictionary of dictionaries containing \
+            [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - \
+            `setup`, `plotting`, and `teardown` as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
         """
 
         # Creates a new layer titled preview
@@ -182,7 +193,7 @@ class _AbstractPlotter(ABC):
         Only looks at instructions during the `plotting` phase.
 
         Args:
-        - show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the
+        - show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the \
           size of the art to be plotted. Defaults to `True`.
         """
 
@@ -236,7 +247,7 @@ class _AbstractPlotter(ABC):
         saved as an individual file with the filename defined by `{layer_number}_{layer_title}.gcode`.
 
         Args:
-        - clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
+        - clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory \
             (defined as `[output_directory]/[title]`) before saving. Defaults to `True`.
         - include_layer_number (bool, optional): Whether to prepend filename with `layer_number`. Defaults to `True`.
         """

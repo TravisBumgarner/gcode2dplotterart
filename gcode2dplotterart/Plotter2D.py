@@ -31,14 +31,15 @@ class Plotter2D(_AbstractPlotter):
         - y_min (float) : The minimum Y-coordinate of the plotter.
         - x_max (float) : The maximum X-coordinate of the plotter.
         - y_max (float) : The maximum Y-coordinate of the plotter.
-        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional):
-            How to handle out-of-bounds points.
-            `Warning` will print a warning, skip the point, and continue.
-            `Error` will throw an error and stop.
-            Defaults to `Warning`.
+        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), \
+          for the plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional): \
+            How to handle out-of-bounds points. \
+            `Warning` will print a warning, skip the point, and continue. \
+            `Error` will throw an error and stop. \
+            Defaults to `Warning`. \
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
-        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
           Defaults to `True`.
         """
 
@@ -59,7 +60,6 @@ class Plotter2D(_AbstractPlotter):
         title: str,
         color: Optional[str] = None,
         line_width: float = 2.0,
-        preview_only: bool = False,
     ) -> Layer2D:
         new_layer = Layer2D(
             plotter_x_min=self.x_min,
@@ -68,7 +68,6 @@ class Plotter2D(_AbstractPlotter):
             plotter_y_max=self.y_max,
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
-            preview_only=preview_only,
             line_width=line_width,
             color=color,
             include_comments=self.include_comments,

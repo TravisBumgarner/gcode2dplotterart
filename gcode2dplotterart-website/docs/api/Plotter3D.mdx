@@ -20,27 +20,16 @@ Initializes a new instance of the Plotter3D class.
 - y_min (float) : The minimum Y-coordinate of the plotter.
 - x_max (float) : The maximum X-coordinate of the plotter.
 - y_max (float) : The maximum Y-coordinate of the plotter.
-- z_plotting_height (float) : The height of the
-  [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the
-  [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate).
-- z_navigation_height (float) : The height of the
-  [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating
-  to a new location.
-- feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-- handle_out_of_bounds (`Warning` | `Error`, optional):
-  How to handle out-of-bounds points.
-  `Warning` will print a warning, skip the point, and continue.
-  `Error` will throw an error and stop.
-  Defaults to `Warning`.
-- output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
-- include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. D
-  efaults to `True`.
+- z_plotting_height (float) : The height of the           [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)           when plotting on the [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate).         - z_navigation_height (float) : The height of the           [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating           to a new location.
+- feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the           plotter.
+- handle_out_of_bounds (`Warning` | `Error`, optional):           How to handle out-of-bounds points.           `Warning` will print a warning, skip the point, and continue.           `Error` will throw an error and stop.           Defaults to `Warning`.         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
+- include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.           Defaults to `True`.
 
 ## add_layer
 
 ```python
 add_layer(
-self, title: str, color: Optional[str] = None, line_width: float = 2.0, preview_only: bool = False )
+self, title: str, color: Optional[str] = None, line_width: float = 2.0 )
  ->  gcode2dplotterart.layer.Layer3D.Layer3D
 ```
 
@@ -50,7 +39,6 @@ Adds a new layer to the plotter.
 - title (str): The title of the layer.
 - color (Optional[str], optional): The color of the layer. Defaults to `None`.
 - line_width (float, optional): The line width of the layer. Defaults to `2.0`.
-- preview_only (bool, optional): Whether the layer is for preview only. Defaults to `False`.
 
 **Returns:** 
 - Layer3D: The newly created [layer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#layer).
@@ -81,9 +69,7 @@ Get current plotting data.
 
 **Returns:** 
 - dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
-    A dictionary of dictionaries containing
-    [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - setup, plotting,
-    and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
+    A dictionary of dictionaries containing             [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) -             `setup`, `plotting`, and `teardown` as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
 
 ## is_point_in_bounds
 
@@ -114,8 +100,7 @@ Generate a preview image of the plotter's layers. Layers will be plotted in the 
 Only looks at instructions during the `plotting` phase.
 
 **Args:** 
-- show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the
-  size of the art to be plotted. Defaults to `True`.
+- show_entire_plotting_area (bool, optional): Whether to show the entire plotting area or just the           size of the art to be plotted. Defaults to `True`.
 
 ## save
 
@@ -129,7 +114,6 @@ Save all the layers to the output directory defined by the `output_directory` Pl
 saved as an individual file with the filename defined by `{layer_number}_{layer_title}.gcode`.
 
 **Args:** 
-- clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory
-    (defined as `[output_directory]/[title]`) before saving. Defaults to `True`.
+- clear_output_before_save (bool, optional): Whether to remove all files from the artwork output directory             (defined as `[output_directory]/[title]`) before saving. Defaults to `True`.
 - include_layer_number (bool, optional): Whether to prepend filename with `layer_number`. Defaults to `True`.
 

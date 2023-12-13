@@ -62,7 +62,6 @@ class _AbstractLayer(ABC):
         color: Optional[str],
         line_width: float,
         include_comments: bool,
-        preview_only: bool = False,
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
 
@@ -71,7 +70,6 @@ class _AbstractLayer(ABC):
             "plotting": [],
             "teardown": [],
         }
-        self.preview_only = preview_only
 
         # For calculating if a point is out of the range of the plotter.
         self.plotter_x_min = plotter_x_min
@@ -147,8 +145,8 @@ class _AbstractLayer(ABC):
 
         Args:
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) to set.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The
-          [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The \
+          [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
           of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -164,12 +162,12 @@ class _AbstractLayer(ABC):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Connect [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
-          to [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument).
-          Should be used when starting a path.
+        Connect [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument) \
+        to [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument). \
+        Should be used when starting a path.
 
         Args:
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction \
         phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -184,14 +182,14 @@ class _AbstractLayer(ABC):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
-        Separate [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
-        from [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-surface).
+        Separate [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument) \
+        from [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-surface). \
         Should be used once plotting a path is complete before moving on to the next path.
 
         Args:
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-          of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : \
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
+          of plotting to send the instruction to. Defaults to `plotting`. 
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -226,9 +224,9 @@ class _AbstractLayer(ABC):
 
         Args:
         - text (str): The text to add.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-        of plotting to send the instruction to. Defaults to `plotting`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional): \
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer: The Layer object. Allows for chaining of add methods.
@@ -243,6 +241,7 @@ class _AbstractLayer(ABC):
     def add_path(
         self,
         points: List[Tuple[float, float]],
+        lower_plotter_head_before_path: bool = True,
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
@@ -251,9 +250,11 @@ class _AbstractLayer(ABC):
 
         Args:
         - points (List[Tuple[float, float]]) : An array of (x,y) points to add.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction
+        - lower_plotter_head_before_path (bool, optional) : Whether to lower the plotter head before the path is complete. Useful to set to `False` \
+          if previewing a path and not actually plotting. Defaults to `True`.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to `False` if \
+          subsequent paths are plotted nearby. Defaults to `True`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The instruction \
           phase of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -285,7 +286,7 @@ class _AbstractLayer(ABC):
         self.add_comment(f"Path: {points}", instruction_phase)
         for index, [x, y] in enumerate(points):
             self._add_coordinate(x, y, instruction_phase)
-            if index == 0 and not self.preview_only:
+            if index == 0 and lower_plotter_head_before_path:
                 self.set_mode_to_plotting(instruction_phase=instruction_phase)
         if raise_plotter_head_after_path:
             self.set_mode_to_navigation(instruction_phase=instruction_phase)
@@ -295,6 +296,7 @@ class _AbstractLayer(ABC):
         self,
         x: float,
         y: float,
+        lower_plotter_head_before_path: bool = True,
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
@@ -304,10 +306,12 @@ class _AbstractLayer(ABC):
         Args:
         - x (float) : The x-coordinate of the point.
         - y (float) : The y-coordinate of the point.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
+        - lower_plotter_head_before_path (bool, optional) : Whether to lower the plotter head before the path is complete. Useful to set to `False` \
+          if previewing a path and not actually plotting. Defaults to `True`.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to `False` if \
+          subsequent paths are plotted nearby. Defaults to `True`.
         - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
           of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -317,6 +321,7 @@ class _AbstractLayer(ABC):
         self.add_comment(f"Point: {x}, {y}", instruction_phase)
         self.add_path(
             [(x, y)],
+            lower_plotter_head_before_path=lower_plotter_head_before_path,
             raise_plotter_head_after_path=raise_plotter_head_after_path,
             instruction_phase=instruction_phase,
         )
@@ -328,6 +333,7 @@ class _AbstractLayer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
+        lower_plotter_head_before_path: bool = True,
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
@@ -339,10 +345,12 @@ class _AbstractLayer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the line.
         - x_end (float) : The x-coordinate of the ending point of the line.
         - y_end (float) : The y-coordinate of the ending point of the line.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        - lower_plotter_head_before_path (bool, optional) : Whether to lower the plotter head before the path is complete. Useful to set to `False` \
+          if previewing a path and not actually plotting. Defaults to `True`.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to `False` if \
+          subsequent paths are plotted nearby. Defaults to `True`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : \
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
           of plotting to send the instruction to. Defaults to `plotting`.
         """
 
@@ -352,6 +360,7 @@ class _AbstractLayer(ABC):
         )
         self.add_path(
             points,
+            lower_plotter_head_before_path=lower_plotter_head_before_path,
             raise_plotter_head_after_path=raise_plotter_head_after_path,
             instruction_phase=instruction_phase,
         )
@@ -363,6 +372,7 @@ class _AbstractLayer(ABC):
         y_start: float,
         x_end: float,
         y_end: float,
+        lower_plotter_head_before_path: bool = True,
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
@@ -374,10 +384,12 @@ class _AbstractLayer(ABC):
         - y_start (float) : The y-coordinate of the starting point of the rectangle.
         - x_end (float) : The x-coordinate of the ending point of the rectangle.
         - y_end (float) : The y-coordinate of the ending point of the rectangle.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional) :
-        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        - lower_plotter_head_before_path (bool, optional) : Whether to lower the plotter head before the path is complete. Useful to set to `False` \
+          if previewing a path and not actually plotting. Defaults to `True`.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to `False` \
+          if subsequent paths are plotted nearby. Defaults to `True`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional) : The \
+          [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
         of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -395,6 +407,7 @@ class _AbstractLayer(ABC):
         ]
         self.add_path(
             points,
+            lower_plotter_head_before_path=lower_plotter_head_before_path,
             raise_plotter_head_after_path=raise_plotter_head_after_path,
             instruction_phase=instruction_phase,
         )
@@ -406,23 +419,26 @@ class _AbstractLayer(ABC):
         y_center: float,
         radius: float,
         num_points: int = 36,
+        lower_plotter_head_before_path: bool = True,
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        """
+        """ 
         Adds a circle to the layer. `add_circle` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
         - x_center (float) : The x-coordinate of the center of the circle.
         - y_center (float) : The y-coordinate of the center of the circle.
         - radius (float) : The radius of the circle.
-        - num_points (int) : The number of points to use to approximate the circle. More points leads to a circle with less visible straight lines.
+        - num_points (int) : The number of points to use to approximate the circle. More points leads to a circle with less visible straight lines. \
           Defaults to `36`.
-        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to False if subsequent
-          paths are plotted nearby. Defaults to `True`.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-        The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
-        of plotting to send the instruction to. Defaults to `plotting`.
+        - lower_plotter_head_before_path (bool, optional) : Whether to lower the plotter head before the path is complete. Useful to set to `False` \
+          if previewing a path and not actually plotting. Defaults to `True`.
+        - raise_plotter_head_after_path (bool, optional) : Whether to raise the plotter head after the path is complete. Useful to set to `False` if \
+          subsequent paths are plotted nearby. Defaults to `True`.
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional): \
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -444,6 +460,7 @@ class _AbstractLayer(ABC):
         points.append(points[0])  # Close the circle
         self.add_path(
             points,
+            lower_plotter_head_before_path=lower_plotter_head_before_path,
             raise_plotter_head_after_path=raise_plotter_head_after_path,
             instruction_phase=instruction_phase,
         )
@@ -468,10 +485,10 @@ class _AbstractLayer(ABC):
         - x_start (float) : The x-coordinate of the starting point of the text. Located to the left of the text.
         - y_start (float) : The y-coordinate of the starting point of the text. Located at the bottom of the text.
         - char_spacing (float) : The spacing between each character in mm. Defaults to layer `line_width`.
-        - point_offset (float, optional) : The offset of the point in the character, units are mm. Used for characters such as `!`.
+        - point_offset (float, optional) : The offset of the point in the character, units are mm. Used for characters such as `!`. \
           Defaults to the layer `line_width`.
-        - instruction_phase (`setup` | `plotting` | `teardown`, optional):
-          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+        - instruction_phase (`setup` | `plotting` | `teardown`, optional): \
+          The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
           of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
@@ -596,9 +613,9 @@ class _AbstractLayer(ABC):
 
         Returns:
         - dict: {"setup": [], "plotting": [], "teardown": []}
-            A dictionary containing
-            [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - setup, plotting,
-            and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
+            A dictionary containing \
+            [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - \
+            `setup`, `plotting`, and `teardown` as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
         """
         return {
             "setup": [

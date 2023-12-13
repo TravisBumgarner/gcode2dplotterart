@@ -38,21 +38,22 @@ class Plotter3D(_AbstractPlotter):
         - y_min (float) : The minimum Y-coordinate of the plotter.
         - x_max (float) : The maximum X-coordinate of the plotter.
         - y_max (float) : The maximum Y-coordinate of the plotter.
-        - z_plotting_height (float) : The height of the
-          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the
-          [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate).
-        - z_navigation_height (float) : The height of the
-          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating
+        - z_plotting_height (float) : The height of the \
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
+          when plotting on the [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate). \
+        - z_navigation_height (float) : The height of the \
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating \
           to a new location.
-        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional):
-          How to handle out-of-bounds points.
-          `Warning` will print a warning, skip the point, and continue.
-          `Error` will throw an error and stop.
-          Defaults to `Warning`.
+        - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the \
+          plotter.
+        - handle_out_of_bounds (`Warning` | `Error`, optional): \
+          How to handle out-of-bounds points. \
+          `Warning` will print a warning, skip the point, and continue. \
+          `Error` will throw an error and stop. \
+          Defaults to `Warning`. \
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
-        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. D
-          efaults to `True`.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
+          Defaults to `True`.
         """
 
         super().__init__(
@@ -74,7 +75,6 @@ class Plotter3D(_AbstractPlotter):
         title: str,
         color: Optional[str] = None,
         line_width: float = 2.0,
-        preview_only: bool = False,
     ) -> Layer3D:
         """
         Adds a new layer to the plotter.
@@ -83,7 +83,6 @@ class Plotter3D(_AbstractPlotter):
         - title (str): The title of the layer.
         - color (Optional[str], optional): The color of the layer. Defaults to `None`.
         - line_width (float, optional): The line width of the layer. Defaults to `2.0`.
-        - preview_only (bool, optional): Whether the layer is for preview only. Defaults to `False`.
 
         Returns:
         - Layer3D: The newly created [layer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#layer).
@@ -96,7 +95,6 @@ class Plotter3D(_AbstractPlotter):
             plotter_y_max=self.y_max,
             feed_rate=self.feed_rate,
             handle_out_of_bounds=self.handle_out_of_bounds,
-            preview_only=preview_only,
             line_width=line_width,
             z_plotting_height=self.z_plotting_height,
             z_navigation_height=self.z_navigation_height,

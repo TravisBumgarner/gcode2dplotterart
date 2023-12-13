@@ -28,7 +28,6 @@ class Layer2D(_AbstractLayer):
         color: Optional[str],
         line_width: float,
         include_comments: bool,
-        preview_only: bool = False,
     ) -> None:
         """
         Args:
@@ -44,7 +43,6 @@ class Layer2D(_AbstractLayer):
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
-        - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
         """
         super().__init__(
@@ -54,7 +52,6 @@ class Layer2D(_AbstractLayer):
             plotter_y_max=plotter_y_max,
             feed_rate=feed_rate,
             handle_out_of_bounds=handle_out_of_bounds,
-            preview_only=preview_only,
             line_width=line_width,
             color=color,
             include_comments=include_comments,
