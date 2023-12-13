@@ -81,6 +81,14 @@ const config = {
             label: 'Documentation',
           },
           {
+            label: 'API',
+            to: '/docs/category/api',
+          },
+          {
+            label: 'Release Notes',
+            to: '/docs/releases',
+          },
+          {
             href: 'https://github.com/TravisBumgarner/gcode2dplotterart',
             label: 'GitHub',
             position: 'right',
@@ -104,7 +112,15 @@ const config = {
               {
                 label: 'Documentation',
                 to: '/docs/category/documentation',
-              }
+              },
+              {
+                label: 'API',
+                to: '/docs/category/api',
+              },
+              {
+                label: 'Release Notes',
+                to: '/docs/releases',
+              },
             ],
           },
           {
