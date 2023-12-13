@@ -90,7 +90,7 @@ class _AbstractPlotter(ABC):
             (see [MatplotLib](https://matplotlib.org/stable/gallery/color/named_colors.html#css-colors) \
             for a list of colors). Used with the `preview` method. Defaults to a random color if not provided.
         - line_width (Optional[float]) : The width of the line to be plotted. Used with the `preview` method. Defaults to`2.0`.
-        
+
         Returns:
         - Layer : The newly created [layer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#layer). \
           Allows for chaining of the layer's add methods.

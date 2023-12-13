@@ -189,7 +189,7 @@ class _AbstractLayer(ABC):
         Args:
         - instruction_phase (`setup` | `plotting` | `teardown`, optional) : \
           The [instruction phase](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) \
-          of plotting to send the instruction to. Defaults to `plotting`. 
+          of plotting to send the instruction to. Defaults to `plotting`.
 
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
@@ -423,7 +423,7 @@ class _AbstractLayer(ABC):
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        """ 
+        """
         Adds a circle to the layer. `add_circle` calls `add_path` under the hood, for more control, use `add_path` directly.
 
         Args:
