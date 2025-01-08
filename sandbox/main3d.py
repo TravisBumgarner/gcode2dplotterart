@@ -1,4 +1,4 @@
-from gcode2dplotterart import Plotter2D
+from gcode2dplotterart import Plotter3D
 
 plotter = Plotter3D(
     title="Plotter2D Quickstart",
@@ -7,6 +7,8 @@ plotter = Plotter3D(
     x_max=200,  # This will be the value `X+`
     y_min=0,  # This will be the value `Y-` or 0
     y_max=200,  # This will be the value `Y+` or 0
+    z_plotting_height=10,
+    z_navigation_height=10,
     # This value is from the `Get the plotting device's feed rate` article above.
     feed_rate=0,
     output_directory="./output",
