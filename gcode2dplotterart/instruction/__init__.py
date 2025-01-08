@@ -11,6 +11,7 @@ from .SimpleInstruction import (
     Instruction2DPlotterPlottingHeight,
     InstructionProgramEnd,
     InstructionUnitsMM,
+    InstructionHome,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "Instruction2DPlotterPlottingHeight",
     "InstructionProgramEnd",
     "InstructionUnitsMM",
+    "InstructionHome",
 ]

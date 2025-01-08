@@ -68,3 +68,12 @@ class InstructionProgramEnd(_AbstractSimpleInstruction):
         super().__init__(
             "M2", "Instruct the plotting device that plotting has completed"
         )
+
+
+class InstructionHome(_AbstractSimpleInstruction):
+    """
+    Return the plotter to the home position.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("G28", "Return the plotter to the home position")

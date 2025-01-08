@@ -1,6 +1,6 @@
 from gcode2dplotterart import Plotter2D
 
-plotter = Plotter2D(
+plotter = Plotter3D(
     title="Plotter2D Quickstart",
     # The following 4 values are from the `Get the plotting device's dimensions` article above.
     x_min=0,  # This will be the value `X-` or 0
@@ -32,4 +32,4 @@ plotter.layers[green_marker_layer].add_text(
     "hello world", x_start=10, y_start=100, font_size=10
 )
 
-plotter.preview()
+plotter.save()
