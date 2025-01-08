@@ -1,5 +1,6 @@
-poetry run python docstrings2md.py &&
-poetry run pytest && 
-poetry run flake8 --max-line-length 160 ./gcode2dplotterart &&
-poetry run black ./gcode2dplotterart --check &&
-poetry run mypy ./gcode2dplotterart 
+source ./venv/bin/activate
+python docstrings2md.py &&
+pytest && 
+flake8 --max-line-length 160 ./gcode2dplotterart &&
+black ./gcode2dplotterart --check &&
+mypy ./gcode2dplotterart 
