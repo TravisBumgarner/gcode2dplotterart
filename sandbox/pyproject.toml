@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68.2.2", "wheel>=0.41.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gcode2dplotterart-sandbox"
+version = "0.0.1"
+description = "Sandbox environment for testing gcode2dplotterart"
+requires-python = ">=3.13"
+
+[project.dependencies]
+gcode2dplotterart = {path = "..", develop = true} 

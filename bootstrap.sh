@@ -8,27 +8,25 @@
 # Setup Library                               #
 ###############################################
 
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-# Make it so Python can reference the library's live changes.
 pip install -e .
-deactivate
 
 ###############################################
 # Setup Sandbox                               #
 ###############################################
 
 cd sandbox
-python -m venv .venv-sandbox
-source ./.venv-sandbox/bin/activate
+python3 -m venv .venv-sandbox
+source .venv-sandbox/bin/activate
 pip install -r requirements.txt
-
+deactivate
 
 ###############################################
 # Setup the pre-commit hook script            #
 ###############################################
 
+cd ..
 cp git/hooks/pre-commit .git/hooks
 chmod +x .git/hooks/pre-commit
 
