@@ -5,15 +5,25 @@
 ###############################################
 
 ###############################################
-# Install dependencies                        #
+# Setup Library                               #
 ###############################################
 
-python3 -m venv sandbox-venv
-source ./sandbox-venv/bin/activate
-pip install -r requirements-sandbox.txt
-
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 # Make it so Python can reference the library's live changes.
-pip install --editable .
+pip install -e .
+deactivate
+
+###############################################
+# Setup Sandbox                               #
+###############################################
+
+cd sandbox
+python -m venv .venv-sandbox
+source ./.venv-sandbox/bin/activate
+pip install -r requirements.txt
+
 
 ###############################################
 # Setup the pre-commit hook script            #

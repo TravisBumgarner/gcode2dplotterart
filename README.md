@@ -13,13 +13,11 @@ Here are a few examples of what's been made with this library.
 
 ![Preview Image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-53389bb1cc21dc7a9aba3a302f04e952.jpg)
 
-
 # Quick Start
 
-Below is a quick start example to get you up and running. For a quick start, gallery, and documentation, . [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
+Below is a quick start example to get you up and running. For a quick start, gallery, and documentation, [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
 
 ```python
-
 from gcode2dplotterart import Plotter2D # Change to `Plotter3D` if using a converted 3D printer.
 
 plotter = Plotter2D(

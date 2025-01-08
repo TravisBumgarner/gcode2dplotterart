@@ -1,0 +1,3 @@
+- [ ] Find new home for test code
+- [ ] Update CONTRIBUTORS.md
+- [ ] Fresh clone to mak sure things actually work
