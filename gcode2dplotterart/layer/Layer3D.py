@@ -79,7 +79,6 @@ class Layer3D(_AbstractLayer):
     def set_mode_to_plotting(
         self,
         instruction_phase: TInstructionPhase = "plotting",
-        pause_duration: float = 0.25,
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterPlottingHeight(
@@ -88,14 +87,13 @@ class Layer3D(_AbstractLayer):
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(pause_duration), instruction_phase)
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self
 
     def set_mode_to_navigation(
         self,
         instruction_phase: TInstructionPhase = "plotting",
-        pause_duration: float = 0.25,
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterNavigationHeight(
@@ -104,6 +102,6 @@ class Layer3D(_AbstractLayer):
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(pause_duration), instruction_phase)
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self

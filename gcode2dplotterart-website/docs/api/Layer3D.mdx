@@ -269,7 +269,7 @@ moves.
 
 ```python
 set_mode_to_navigation(
-self, instruction_phase: Union[Literal['setup'], Literal['plotting'], Literal['teardown']] = 'plotting', pause_duration: float = 0.25 )
+self, instruction_phase: Union[Literal['setup'], Literal['plotting'], Literal['teardown']] = 'plotting' )
  ->  Self
 ```
 
@@ -289,7 +289,7 @@ Should be used once plotting a path is complete before moving on to the next pat
 
 ```python
 set_mode_to_plotting(
-self, instruction_phase: Union[Literal['setup'], Literal['plotting'], Literal['teardown']] = 'plotting', pause_duration: float = 0.25 )
+self, instruction_phase: Union[Literal['setup'], Literal['plotting'], Literal['teardown']] = 'plotting' )
  ->  Self
 ```
 
