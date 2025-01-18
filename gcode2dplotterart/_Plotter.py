@@ -19,7 +19,6 @@ class _AbstractPlotter(ABC):
     output_directory: str
     handle_out_of_bounds: THandleOutOfBounds
     include_comments: bool
-    number_of_dimensions: Literal[2, 3]
 
     def __init__(
         self,

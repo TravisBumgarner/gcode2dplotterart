@@ -68,7 +68,7 @@ class Layer2D(_AbstractLayer):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(Instruction2DPlotterPlottingHeight(), instruction_phase)
-        self._add_instruction(InstructionPause(), instruction_phase)
+        # self._add_instruction(InstructionPause(), instruction_phase)
 
         return self
 
@@ -77,6 +77,6 @@ class Layer2D(_AbstractLayer):
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(Instruction2DPlotterNavigationHeight(), instruction_phase)
-        self._add_instruction(InstructionPause(), instruction_phase)
+        # self._add_instruction(InstructionPause(), instruction_phase)
 
         return self

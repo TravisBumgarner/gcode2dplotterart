@@ -6,7 +6,6 @@ from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from ..instruction import (
     Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
-    InstructionPause,
 )
 
 
@@ -80,27 +79,31 @@ class Layer3D(_AbstractLayer):
     def set_mode_to_plotting(
         self,
         instruction_phase: TInstructionPhase = "plotting",
+        pause_duration: float = 0.25,
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterPlottingHeight(
-                z_plotting_height=self.z_plotting_height
+                z_plotting_height=self.z_plotting_height,
+                feed_rate=self.feed_rate,
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(), instruction_phase)
+        self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self
 
     def set_mode_to_navigation(
         self,
         instruction_phase: TInstructionPhase = "plotting",
+        pause_duration: float = 0.25,
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterNavigationHeight(
-                z_navigating_height=self.z_navigation_height
+                z_navigating_height=self.z_navigation_height,
+                feed_rate=self.feed_rate,
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(), instruction_phase)
+        self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self
