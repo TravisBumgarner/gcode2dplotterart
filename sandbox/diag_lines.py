@@ -1,79 +1,117 @@
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import cv2
 import numpy as np
+from gcode2dplotterart import Plotter3D
 
+GAP_BETWEEN_DIAGONALS = 3
+GAP_BETWEEN_COLINEAR_LINES = 3
 
-def load_image(image_path, resize_to_max_dimension):
-    """
-    Load an image from the specified path and reshape it for clustering.
+X_MIN = 0
+X_MAX = 180
+Y_MIN = 70
+Y_MAX = 230
+Z_PLOTTING_HEIGHT = 0
+Z_NAVIGATION_HEIGHT = 4
 
-    Parameters:
-    - image_path: str
-        The file path to the image.
+plotter = Plotter3D(
+    title="Diag Lines",
+    # The following 4 values are from the `Get the plotting device's dimensions` article above.
+    x_min=X_MIN,  # This will be the value `X-` or 0
+    x_max=X_MAX,  # This will be the value `X+`
+    y_min=Y_MIN,  # This will be the value `Y-` or 0
+    y_max=Y_MAX,  # This will be the value `Y+` or 0
+    z_plotting_height=Z_PLOTTING_HEIGHT,
+    z_navigation_height=Z_NAVIGATION_HEIGHT,
+    # This value is from the `Get the plotting device's feed rate` article above.
+    feed_rate=10000,
+    output_directory="./output",
+    handle_out_of_bounds="Warning",  # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
+    return_home_before_plotting=True,
+)
 
-    Returns:
-    - data: np.ndarray, shape (n_pixels, 3)
-        The pixel data reshaped for K-Means clustering.
-    """
-    global image
-    image = mpimg.imread(image_path)
-    image = cv2.resize(image, (resize_to_max_dimension, resize_to_max_dimension))
-    # If the image has an alpha channel, ignore it
-    if image.shape[2] == 4:
-        image = image[:, :, :3]
-    data = image.reshape(-1, 3)
-    return data
+LAYERS = [
+    {
+        "title": "cyan",
+        "color": "cyan",
+        "line_width": 1.0,
+    },
+    {
+        "title": "magenta",
+        "color": "magenta",
+        "line_width": 1.0,
+    },
+    {
+        "title": "yellow",
+        "color": "yellow",
+        "line_width": 1.0,
+    },
+    {
+        "title": "black",
+        "color": "black",
+        "line_width": 1.0,
+    },
+]
 
-
-def perform_kmeans(data, n_clusters=3):
-    """
-    Perform K-Means clustering on the given data.
-
-    Parameters:
-    - data: np.ndarray, shape (n_samples, n_features)
-        The input data to cluster.
-    - n_clusters: int
-        The number of clusters to form.
-
-    Returns:
-    - labels: np.ndarray, shape (n_samples,)
-        Cluster labels for each point.
-    - centers: np.ndarray, shape (n_clusters, n_features)
-        Coordinates of cluster centers.
-    """
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    kmeans.fit(data)
-    labels = kmeans.labels_
-    centers = kmeans.cluster_centers_
-    return labels, centers
-
-
-# Replace the random data with image data
-image_path = "./test.jpeg"
-data = load_image(image_path, resize_to_max_dimension=500)
-
-# Perform K-Means
-labels, centers = perform_kmeans(data, n_clusters=4)
-print(centers)
+for layer in LAYERS:
+    plotter.add_layer(
+        layer["title"], color=layer["color"], line_width=layer["line_width"]
+    )
 
 # Define the color mapping for each cluster
 color_mapping = {
-    3: [0, 255, 255],  # Cyan
-    2: [255, 0, 255],  # Magenta
-    1: [255, 255, 0],  # Yellow
-    0: [0, 0, 0],  # Black
+    3: "cyan",
+    0: "magenta",
+    2: "yellow",
+    1: "black",
 }
 
-# Map each label to the corresponding color
-mapped_data = np.array([color_mapping[label] for label in labels])
 
-# Reshape the mapped data to the original image shape
-mapped_image = mapped_data.reshape(image.shape)
+data = np.load("./labels.npy")
 
-# Display the new image with the mapped colors
-plt.imshow(mapped_image.astype(np.uint8))
-plt.title("Image with Clustered Colors")
-plt.axis("off")  # Hide axis
-plt.show()
+rows, cols = data.shape[:2]
+
+# Process origin at column 0
+
+
+def is_point_in_bounds(x, y):
+    return x >= 0 and x < cols and y >= 0 and y < rows
+
+
+def create_path(start_x, start_y):
+    path = []
+    x = start_x
+    y = start_y
+    while is_point_in_bounds(x, y):
+        path.append((y, x))
+        x += 1
+        y -= 1
+    return path
+
+
+paths: list[tuple[int, int]] = []
+start_col = 0
+for row in range(0, rows, GAP_BETWEEN_DIAGONALS):
+    paths.append(create_path(start_col, row))
+
+# # Process origin at row n
+start_row = rows - 1
+for col in range(0, cols, GAP_BETWEEN_COLINEAR_LINES):
+    paths.append(create_path(col, start_row))
+
+
+for path in paths:
+    line_start = path[0]
+    color = color_mapping[data[line_start]]
+    for point in path[1:]:
+        current_color = color_mapping[data[point]]
+        if current_color == color:
+            continue
+        else:
+            x_start, y_start = line_start
+            x_end, y_end = point
+            plotter.layers[color].add_line(
+                x_start + X_MIN, y_start + Y_MIN, x_end + X_MIN, y_end + Y_MIN
+            )
+            color = current_color
+            line_start = point
+
+plotter.preview()
+plotter.save()

@@ -50,11 +50,17 @@ LAYERS = [
     },
 ]
 
-
-
 for layer in LAYERS:
     plotter.add_layer(
         layer["title"], color=layer["color"], line_width=layer["line_width"]
     )
+
+
+
+
+
+
+
+
 plotter.preview()
 plotter.save()
