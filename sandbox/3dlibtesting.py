@@ -2,13 +2,14 @@ import random
 
 from gcode2dplotterart import Plotter3D
 
+# Todo - Add support for when X_MIN and X_MAX are not 0.
 
 X_MIN = 0
 X_MAX = 180
 Y_MIN = 70
 Y_MAX = 230
 Z_PLOTTING_HEIGHT = 0
-Z_NAVIGATION_HEIGHT = 10
+Z_NAVIGATION_HEIGHT = 4
 
 plotter = Plotter3D(
     title="3D Plotting",
@@ -17,12 +18,12 @@ plotter = Plotter3D(
     x_max=X_MAX,  # This will be the value `X+`
     y_min=Y_MIN,  # This will be the value `Y-` or 0
     y_max=Y_MAX,  # This will be the value `Y+` or 0
-    z_plotting_height=0,
-    z_navigation_height=10,
+    z_plotting_height=Z_PLOTTING_HEIGHT,
+    z_navigation_height=Z_NAVIGATION_HEIGHT,
     # This value is from the `Get the plotting device's feed rate` article above.
     feed_rate=10000,
     output_directory="./output",
-    handle_out_of_bounds="Warning",  # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
+    handle_out_of_bounds="Error",  # If a plotted point is outside of the bounds, give a warning, don't plot the point, and keep going.
     return_home_before_plotting=True,
 )
 
@@ -49,23 +50,11 @@ LAYERS = [
     },
 ]
 
+
+
 for layer in LAYERS:
     plotter.add_layer(
         layer["title"], color=layer["color"], line_width=layer["line_width"]
     )
-
-CIRCLE_COUNT = 50
-
-for i in range(CIRCLE_COUNT):
-    color = random.choice(LAYERS)
-
-    rand_x = random.randint(X_MIN, X_MAX)
-    rand_y = random.randint(Y_MIN, Y_MAX)
-    rand_radius = random.randint(1, 10)
-
-    plotter.layers[color["title"]].add_circle(
-        x_center=rand_x, y_center=rand_y, radius=rand_radius
-    )
-
 plotter.preview()
 plotter.save()
