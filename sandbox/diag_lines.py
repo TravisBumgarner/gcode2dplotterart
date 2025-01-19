@@ -5,7 +5,7 @@ GAP_BETWEEN_DIAGONALS = 3
 GAP_BETWEEN_COLINEAR_LINES = 3
 
 X_MIN = 0
-X_MAX = 180
+X_MAX = 170
 Y_MIN = 70
 Y_MAX = 230
 Z_PLOTTING_HEIGHT = 0
@@ -93,16 +93,19 @@ for row in range(0, rows, GAP_BETWEEN_DIAGONALS):
 
 # # Process origin at row n
 start_row = rows - 1
-for col in range(0, cols, GAP_BETWEEN_COLINEAR_LINES):
+for col in range(0, cols, 3):
     paths.append(create_path(col, start_row))
 
 
 for path in paths:
     line_start = path[0]
     color = color_mapping[data[line_start]]
-    for point in path[1:]:
+    index = 0
+    while index < len(path):
+        point = path[index]
         current_color = color_mapping[data[point]]
         if current_color == color:
+            index += 1
             continue
         else:
             x_start, y_start = line_start
@@ -110,7 +113,11 @@ for path in paths:
             plotter.layers[color].add_line(
                 x_start + X_MIN, y_start + Y_MIN, x_end + X_MIN, y_end + Y_MIN
             )
-            color = current_color
+            index += GAP_BETWEEN_COLINEAR_LINES
+            if index >= len(path):
+                break
+            point = path[index]
+            color = color_mapping[data[point]]
             line_start = point
 
 plotter.preview()
