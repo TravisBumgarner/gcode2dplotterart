@@ -70,7 +70,12 @@ def resize_image(
     Returns:
         Resized image as numpy array
     """
+    if max_width <= 0 or max_height <= 0:
+        raise ValueError("Maximum dimensions must be positive")
+
     height, width = image.shape[:2]
+    if width == 0 or height == 0:
+        raise ValueError("Image dimensions cannot be zero")
 
     # Calculate scaling factors for both dimensions
     width_scale = max_width / width
@@ -80,8 +85,8 @@ def resize_image(
     scale = min(width_scale, height_scale)
 
     # Calculate new dimensions
-    new_width = int(width * scale)
-    new_height = int(height * scale)
+    new_width = max(1, int(width * scale))
+    new_height = max(1, int(height * scale))
 
     # Resize image using cv2
     resized = cv2.resize(image, (new_width, new_height))
@@ -157,13 +162,15 @@ def buck_image_even_histogram_distribution(
     """
 
     histogram, bins = np.histogram(image.ravel(), 256, (0, 256))
-    bucket_size = len(histogram) / layer_count
-    bucket_bins = []
+    segment_size = len(histogram) / layer_count
+    segment_bins = []
+    current_segment = segment_size
 
-    for i in range(layer_count):
-        bucket_bins.append(histogram[i * bucket_size])
-
-    image = np.digitize(image, bucket_bins)
+    for pixel_value, pixel_count in enumerate(histogram):
+        if pixel_value >= current_segment:
+            segment_bins.append(pixel_value)
+            current_segment += segment_size
+    image = np.digitize(image, segment_bins)
 
     if preview:
         plt.imshow(image, cmap="gray")

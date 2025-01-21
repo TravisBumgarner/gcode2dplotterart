@@ -6,9 +6,10 @@ from wip_photo_utils import (
     resize_image,
     grayscale_image,
     bucket_image_even_pixel_count,
+    buck_image_even_histogram_distribution,
 )
 
-image_path = "./1.jpg"
+image_path = "./5.jpg"
 
 GAP_BETWEEN_DIAGONALS = 3
 GAP_BETWEEN_COLINEAR_LINES = 1
@@ -19,8 +20,8 @@ Y_MIN = 40
 Y_MAX = 230
 Z_PLOTTING_HEIGHT = 0
 Z_NAVIGATION_HEIGHT = 4
-PLOTTER_WIDTH = Y_MAX - Y_MIN
-PLOTTER_HEIGHT = X_MAX - X_MIN
+PLOTTER_WIDTH = X_MAX - X_MIN
+PLOTTER_HEIGHT = Y_MAX - Y_MIN
 OFFSET_X = 0
 OFFSET_Y = 0
 
@@ -56,14 +57,15 @@ shuffle(LAYERS)
 
 
 image = load_image(image_path, preview=True)
-
 image = resize_image(
     image, max_width=PLOTTER_WIDTH, max_height=PLOTTER_HEIGHT, preview=True
 )
-
+print("max dimensions", PLOTTER_WIDTH, PLOTTER_HEIGHT)
+print("resized to", image.shape)
 image = grayscale_image(image, method="luminosity", preview=True)
-
-image = bucket_image_even_pixel_count(image, layer_count=len(LAYERS), preview=True)
+image = buck_image_even_histogram_distribution(
+    image, layer_count=len(LAYERS), preview=True
+)
 
 
 plotter = Plotter3D(
