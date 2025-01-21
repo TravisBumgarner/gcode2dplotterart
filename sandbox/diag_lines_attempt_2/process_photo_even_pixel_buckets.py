@@ -1,13 +1,14 @@
 # Take a photo, process it into N buckets where each bucket has roughly the same number of pixels.
 from random import shuffle
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import cv2
-from typing import Literal
-import numpy as np
 from gcode2dplotterart import Plotter3D
+from wip_photo_utils import (
+    load_image,
+    resize_image,
+    grayscale_image,
+    bucket_image_even_pixel_count,
+)
 
-image_path = "./e3.jpeg"
+image_path = "./1.jpg"
 
 GAP_BETWEEN_DIAGONALS = 3
 GAP_BETWEEN_COLINEAR_LINES = 1
@@ -54,150 +55,15 @@ LAYERS = [
 shuffle(LAYERS)
 
 
-def grayscale_image(
-    image, method: Literal["average", "luminosity", "lightness"]
-) -> np.ndarray:
-    """Convert RGB image to grayscale using specified method.
+image = load_image(image_path, preview=True)
 
-    Args:
-        image: RGB image as numpy array
-        method: Conversion method - "average", "luminosity", or "lightness"
+image = resize_image(
+    image, max_width=PLOTTER_WIDTH, max_height=PLOTTER_HEIGHT, preview=True
+)
 
-    Returns:
-        2D numpy array of grayscale values
-    """
-    # Create output array of proper dimensions
-    (row, col) = image.shape[0:2]
-    output = np.zeros((row, col))
+image = grayscale_image(image, method="luminosity", preview=True)
 
-    if method == "average":
-        for i in range(row):
-            for j in range(col):
-                output[i, j] = sum(image[i, j]) / 3.0
-
-    elif method == "luminosity":
-        for i in range(row):
-            for j in range(col):
-                output[i, j] = (
-                    image[i, j][0] * 0.21  # Red
-                    + image[i, j][1] * 0.72  # Green
-                    + image[i, j][2] * 0.07  # Blue
-                )
-
-    elif method == "lightness":
-        for i in range(row):
-            for j in range(col):
-                pixel = image[i, j]
-                output[i, j] = (
-                    max(pixel[0], pixel[1], pixel[2])
-                    + min(pixel[0], pixel[1], pixel[2])
-                ) / 2.0
-
-    return output
-
-
-def bucket_image(image, n_buckets=len(LAYERS)):
-    """
-    Ensures that each bucket has roughly the same number of pixels.
-
-    Args:
-        image: np.ndarray
-            The grayscale image to process
-        n_buckets: int
-            Number of buckets to distribute pixels into
-
-    Returns:
-        np.ndarray
-            Image mapped to n buckets where each bucket has roughly
-            the same number of pixels
-    """
-    import numpy as np
-
-    total_pixels = image.size
-    pixel_bins = []
-    histogram, bins = np.histogram(image.ravel(), 256, (0, 256))
-    count = 0
-
-    # Iterate through all possible pixel values (0-255)
-    for pixel_value, pixel_count in enumerate(histogram):
-        # If we've accumulated enough pixels for a bucket, create a new bin
-        if count >= total_pixels / n_buckets:
-            count = 0
-            pixel_bins.append(pixel_value)
-        count += pixel_count
-
-    # Use np.digitize to assign each pixel to a bucket
-    # Subtract 1 to make buckets 0-based instead of 1-based
-    return np.digitize(image, pixel_bins)
-
-
-def load_image(image_path):
-    image = mpimg.imread(image_path)
-
-    # If the image has an alpha channel, ignore it
-    if image.shape[2] == 4:
-        image = image[:, :, :3]
-
-    return image
-
-
-def resize_image(image, resize_to_max_dimension):
-    """
-    Resize image to fit within max dimensions while maintaining aspect ratio.
-
-    Args:
-        image: numpy array of image
-        resize_to_max_dimension: int, maximum width/height to resize to
-
-    Returns:
-        Resized image as numpy array
-    """
-    height, width = image.shape[:2]
-
-    # Calculate scaling factors for both dimensions
-    width_scale = resize_to_max_dimension / width
-    height_scale = resize_to_max_dimension / height
-
-    # Use the smaller scaling factor to ensure image fits within bounds
-    scale = min(width_scale, height_scale)
-
-    # Calculate new dimensions
-    new_width = int(width * scale)
-    new_height = int(height * scale)
-
-    # Resize image using cv2
-    resized = cv2.resize(image, (new_width, new_height))
-
-    return resized
-
-
-image = load_image(image_path)
-# plt.imshow(image, cmap="viridis")
-# plt.title("Bucketed Image")
-# plt.axis("off")  # Hide axis
-# plt.show()
-
-image = resize_image(image, resize_to_max_dimension=min(PLOTTER_WIDTH, PLOTTER_HEIGHT))
-# plt.imshow(image, cmap="viridis")
-# plt.title("Bucketed Image")
-# plt.axis("off")  # Hide axis
-# plt.show()
-
-image = grayscale_image(image, method="luminosity")
-# plt.imshow(image, cmap="gray")
-# plt.title("Cluster Labels")
-# plt.axis("off")  # Hide axis
-# plt.show()
-
-image = bucket_image(image, n_buckets=len(LAYERS))
-# Count of values in each bucket
-print(np.unique(image))
-
-# This is mostly going to be all back if n_buckets is small.
-# plt.imshow(image, cmap="gray")
-# plt.title("Bucketed Image")
-# plt.axis("off")  # Hide axis
-# plt.show()
+image = bucket_image_even_pixel_count(image, layer_count=len(LAYERS), preview=True)
 
 
 plotter = Plotter3D(
