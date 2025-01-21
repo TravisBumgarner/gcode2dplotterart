@@ -7,6 +7,8 @@ from typing import Literal
 import numpy as np
 from gcode2dplotterart import Plotter3D
 
+image_path = "./e3.jpeg"
+
 GAP_BETWEEN_DIAGONALS = 3
 GAP_BETWEEN_COLINEAR_LINES = 1
 
@@ -18,7 +20,7 @@ Z_PLOTTING_HEIGHT = 0
 Z_NAVIGATION_HEIGHT = 4
 PLOTTER_WIDTH = Y_MAX - Y_MIN
 PLOTTER_HEIGHT = X_MAX - X_MIN
-OFFSET_X = 80
+OFFSET_X = 0
 OFFSET_Y = 0
 
 
@@ -29,27 +31,22 @@ LAYERS = [
         "color": "darkgrey",
         "line_width": 1.0,
     },
-    {
-        "title": "purple",
-        "color": "purple",
-        "line_width": 1.0,
-    },
     # 40
     {
-        "title": "lightblue",
-        "color": "lightblue",
+        "title": "cyan",
+        "color": "cyan",
         "line_width": 1.0,
     },
     # 18
     # 15
     {
-        "title": "lightgrey",
-        "color": "lightgrey",
+        "title": "magenta",
+        "color": "magenta",
         "line_width": 1.0,
     },
     {
-        "title": "pink",
-        "color": "pink",
+        "title": "yellow",
+        "color": "yellow",
         "line_width": 1.0,
     },
 ]
@@ -145,27 +142,34 @@ def load_image(image_path):
 
 
 def resize_image(image, resize_to_max_dimension):
-    # Get original dimensions
+    """
+    Resize image to fit within max dimensions while maintaining aspect ratio.
+
+    Args:
+        image: numpy array of image
+        resize_to_max_dimension: int, maximum width/height to resize to
+
+    Returns:
+        Resized image as numpy array
+    """
     height, width = image.shape[:2]
 
-    # Calculate aspect ratio
-    aspect_ratio = width / height
+    # Calculate scaling factors for both dimensions
+    width_scale = resize_to_max_dimension / width
+    height_scale = resize_to_max_dimension / height
 
-    # Calculate new dimensions maintaining aspect ratio
-    if width > height:
-        new_width = resize_to_max_dimension
-        new_height = int(new_width / aspect_ratio)
-    else:
-        new_height = resize_to_max_dimension
-        new_width = int(new_height * aspect_ratio)
+    # Use the smaller scaling factor to ensure image fits within bounds
+    scale = min(width_scale, height_scale)
 
-    # Resize image maintaining aspect ratio
-    image = cv2.resize(image, (new_width, new_height))
-    return image
+    # Calculate new dimensions
+    new_width = int(width * scale)
+    new_height = int(height * scale)
 
+    # Resize image using cv2
+    resized = cv2.resize(image, (new_width, new_height))
 
-# Replace the random data with image data
-image_path = "./8.jpg"
+    return resized
+
 
 image = load_image(image_path)
 # plt.imshow(image, cmap="viridis")
