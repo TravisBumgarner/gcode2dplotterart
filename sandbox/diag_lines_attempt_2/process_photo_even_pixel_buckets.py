@@ -1,5 +1,5 @@
 # Take a photo, process it into N buckets where each bucket has roughly the same number of pixels.
-
+from random import shuffle
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import cv2
@@ -7,14 +7,20 @@ from typing import Literal
 import numpy as np
 from gcode2dplotterart import Plotter3D
 
+GAP_BETWEEN_DIAGONALS = 1
+GAP_BETWEEN_COLINEAR_LINES = 1
+
+X_MIN = 0
+X_MAX = 170
+Y_MIN = 70
+Y_MAX = 230
+Z_PLOTTING_HEIGHT = 0
+Z_NAVIGATION_HEIGHT = 4
+PLOTTER_WIDTH = Y_MAX - Y_MIN
+PLOTTER_HEIGHT = X_MAX - X_MIN
+
 
 LAYERS = [
-    # 1
-    {
-        "title": "gray",
-        "color": "gray",
-        "line_width": 1.0,
-    },
     # 33
     {
         "title": "purple",
@@ -64,6 +70,8 @@ LAYERS = [
         "line_width": 1.0,
     },
 ]
+
+shuffle(LAYERS)
 
 
 def grayscale_image(
@@ -143,47 +151,67 @@ def bucket_image(image, n_buckets=len(LAYERS)):
     return np.digitize(image, pixel_bins)
 
 
-def load_image(image_path, resize_to_max_dimension):
+def load_image(image_path):
     image = mpimg.imread(image_path)
-    image = cv2.resize(image, (resize_to_max_dimension, resize_to_max_dimension))
+
     # If the image has an alpha channel, ignore it
     if image.shape[2] == 4:
         image = image[:, :, :3]
+
+    return image
+
+
+def resize_image(image, resize_to_max_dimension):
+    # Get original dimensions
+    height, width = image.shape[:2]
+
+    # Calculate aspect ratio
+    aspect_ratio = width / height
+
+    # Calculate new dimensions maintaining aspect ratio
+    if width > height:
+        new_width = resize_to_max_dimension
+        new_height = int(new_width / aspect_ratio)
+    else:
+        new_height = resize_to_max_dimension
+        new_width = int(new_height * aspect_ratio)
+
+    # Resize image maintaining aspect ratio
+    image = cv2.resize(image, (new_width, new_height))
     return image
 
 
 # Replace the random data with image data
-image_path = "./2.jpg"
-image = load_image(image_path, resize_to_max_dimension=150)
+image_path = "./5.jpg"
+
+image = load_image(image_path)
+# plt.imshow(image, cmap="viridis")
+# plt.title("Bucketed Image")
+# plt.axis("off")  # Hide axis
+# plt.show()
+
+image = resize_image(image, resize_to_max_dimension=min(PLOTTER_WIDTH, PLOTTER_HEIGHT))
+# plt.imshow(image, cmap="viridis")
+# plt.title("Bucketed Image")
+# plt.axis("off")  # Hide axis
+# plt.show()
+
 image = grayscale_image(image, method="luminosity")
+# plt.imshow(image, cmap="gray")
+# plt.title("Cluster Labels")
+# plt.axis("off")  # Hide axis
+# plt.show()
 
-
-# Optionally, visualize the label map
-plt.imshow(image, cmap="viridis")
-plt.title("Cluster Labels")
-plt.axis("off")  # Hide axis
-plt.show()
-
-image = bucket_image(image, n_buckets=9)
+image = bucket_image(image, n_buckets=len(LAYERS))
 # Count of values in each bucket
 print(np.unique(image))
 
 # This is mostly going to be all back if n_buckets is small.
-plt.imshow(image, cmap="viridis")
-plt.title("Bucketed Image")
-plt.axis("off")  # Hide axis
-plt.show()
+# plt.imshow(image, cmap="gray")
+# plt.title("Bucketed Image")
+# plt.axis("off")  # Hide axis
+# plt.show()
 
-
-GAP_BETWEEN_DIAGONALS = 2
-GAP_BETWEEN_COLINEAR_LINES = 2
-
-X_MIN = 0
-X_MAX = 170
-Y_MIN = 70
-Y_MAX = 230
-Z_PLOTTING_HEIGHT = 0
-Z_NAVIGATION_HEIGHT = 4
 
 plotter = Plotter3D(
     title="Diag Lines",
@@ -228,24 +256,41 @@ def create_path(start_x, start_y):
 
 paths: list[tuple[int, int]] = []
 start_col = 0
+last_row = 0
 for row in range(0, rows, GAP_BETWEEN_DIAGONALS):
     paths.append(create_path(start_col, row))
+    last_row = row
+
+# This should take care of the gap between the last row and the first column.
+delta = abs(last_row - rows) - 1
+print(f"Delta: {delta}")
 
 # # Process origin at row n
 start_row = rows - 1
-for col in range(0, cols, GAP_BETWEEN_DIAGONALS):
+for col in range(delta, cols, GAP_BETWEEN_DIAGONALS):
     paths.append(create_path(col, start_row))
 
 
 for path in paths:
     line_start = path[0]
-    color = LAYERS[image[line_start]]["color"]
+    color = LAYERS[image[line_start]]["title"]
     index = 0
     while index < len(path):
         point = path[index]
-        current_color = LAYERS[image[point]]["color"]
+        current_color = LAYERS[image[point]]["title"]
         if current_color == color:
             index += 1
+
+            if index >= len(path):
+                row_start, col_start = line_start
+                row_end, col_end = path[-1]
+                plotter.layers[color].add_line(
+                    col_start + X_MIN,
+                    Y_MAX - row_start,
+                    col_end + X_MIN,
+                    Y_MAX - row_end,
+                )
+                break
             continue
         else:
             row_start, col_start = line_start
@@ -255,9 +300,17 @@ for path in paths:
             )
             index += GAP_BETWEEN_COLINEAR_LINES
             if index >= len(path):
+                row_start, col_start = line_start
+                row_end, col_end = path[-1]
+                plotter.layers[color].add_line(
+                    col_start + X_MIN,
+                    Y_MAX - row_start,
+                    col_end + X_MIN,
+                    Y_MAX - row_end,
+                )
                 break
             point = path[index]
-            color = LAYERS[image[point]]["color"]
+            color = LAYERS[image[point]]["title"]
             line_start = point
 
 plotter.preview()
