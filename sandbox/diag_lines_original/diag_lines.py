@@ -59,8 +59,8 @@ for layer in LAYERS:
 color_mapping = {
     3: "cyan",
     0: "magenta",
-    2: "yellow",
-    1: "black",
+    1: "yellow",
+    2: "black",
 }
 
 
