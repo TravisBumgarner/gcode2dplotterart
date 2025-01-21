@@ -7,21 +7,28 @@ from typing import Literal
 import numpy as np
 from gcode2dplotterart import Plotter3D
 
-GAP_BETWEEN_DIAGONALS = 1
+GAP_BETWEEN_DIAGONALS = 3
 GAP_BETWEEN_COLINEAR_LINES = 1
 
 X_MIN = 0
-X_MAX = 170
-Y_MIN = 70
+X_MAX = 180
+Y_MIN = 40
 Y_MAX = 230
 Z_PLOTTING_HEIGHT = 0
 Z_NAVIGATION_HEIGHT = 4
 PLOTTER_WIDTH = Y_MAX - Y_MIN
 PLOTTER_HEIGHT = X_MAX - X_MIN
+OFFSET_X = 80
+OFFSET_Y = 0
 
 
 LAYERS = [
     # 33
+    {
+        "title": "darkgrey",
+        "color": "darkgrey",
+        "line_width": 1.0,
+    },
     {
         "title": "purple",
         "color": "purple",
@@ -29,44 +36,20 @@ LAYERS = [
     },
     # 40
     {
-        "title": "blue",
-        "color": "blue",
+        "title": "lightblue",
+        "color": "lightblue",
         "line_width": 1.0,
     },
     # 18
-    {
-        "title": "green",
-        "color": "green",
-        "line_width": 1.0,
-    },
     # 15
     {
-        "title": "lime",
-        "color": "lime",
+        "title": "lightgrey",
+        "color": "lightgrey",
         "line_width": 1.0,
     },
-    # 37
-    {
-        "title": "turquoise",
-        "color": "turquoise",
-        "line_width": 1.0,
-    },
-    # 7
-    {
-        "title": "orange",
-        "color": "orange",
-        "line_width": 1.0,
-    },
-    # 25
     {
         "title": "pink",
         "color": "pink",
-        "line_width": 1.0,
-    },
-    # 11
-    {
-        "title": "yellow",
-        "color": "yellow",
         "line_width": 1.0,
     },
 ]
@@ -182,7 +165,7 @@ def resize_image(image, resize_to_max_dimension):
 
 
 # Replace the random data with image data
-image_path = "./5.jpg"
+image_path = "./8.jpg"
 
 image = load_image(image_path)
 # plt.imshow(image, cmap="viridis")
@@ -214,7 +197,7 @@ print(np.unique(image))
 
 
 plotter = Plotter3D(
-    title="Diag Lines",
+    title="Diag Lines2",
     # The following 4 values are from the `Get the plotting device's dimensions` article above.
     x_min=X_MIN,  # This will be the value `X-` or 0
     x_max=X_MAX,  # This will be the value `X+`
@@ -285,10 +268,10 @@ for path in paths:
                 row_start, col_start = line_start
                 row_end, col_end = path[-1]
                 plotter.layers[color].add_line(
-                    col_start + X_MIN,
-                    Y_MAX - row_start,
-                    col_end + X_MIN,
-                    Y_MAX - row_end,
+                    col_start + X_MIN + OFFSET_X,
+                    Y_MAX - row_start + OFFSET_Y,
+                    col_end + X_MIN + OFFSET_X,
+                    Y_MAX - row_end + OFFSET_Y,
                 )
                 break
             continue
@@ -296,17 +279,20 @@ for path in paths:
             row_start, col_start = line_start
             row_end, col_end = point
             plotter.layers[color].add_line(
-                col_start + X_MIN, Y_MAX - row_start, col_end + X_MIN, Y_MAX - row_end
+                col_start + X_MIN + OFFSET_X,
+                Y_MAX - row_start + OFFSET_Y,
+                col_end + X_MIN + OFFSET_X,
+                Y_MAX - row_end + OFFSET_Y,
             )
             index += GAP_BETWEEN_COLINEAR_LINES
             if index >= len(path):
                 row_start, col_start = line_start
                 row_end, col_end = path[-1]
                 plotter.layers[color].add_line(
-                    col_start + X_MIN,
-                    Y_MAX - row_start,
-                    col_end + X_MIN,
-                    Y_MAX - row_end,
+                    col_start + X_MIN + OFFSET_X,
+                    Y_MAX - row_start + OFFSET_Y,
+                    col_end + X_MIN + OFFSET_X,
+                    Y_MAX - row_end + OFFSET_Y,
                 )
                 break
             point = path[index]
