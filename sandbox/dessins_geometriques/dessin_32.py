@@ -30,12 +30,12 @@ black_pen_layer = "black_pen_layer"
 plotter.add_layer(black_pen_layer, color="black", line_width=1.0)
 
 # Design parameters for Dessin 32
-NP = 100
+NP = 140
 PI = math.pi
-K = 300  # Number of iterations
+K = 100  # Number of iterations
 AN = 2 * PI / 5 + 0.01  # Angle increment
 RA = 0.993  # Radius decay factor
-RR = 0.60 * NP  # Initial radius
+RR = 0.6 * NP  # Initial radius
 AA = 0  # Initial angle
 X = (NP - RR) / 2
 Y = (NP - RR) / 2
