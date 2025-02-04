@@ -1,16 +1,21 @@
+# This code was offered by Copilot. It does a reasonable job of sending G-Code commands.
+# I don't actually need it at this point, don't want to throw it away, so I'm keeping it here.
+
 import cmd
 import serial
 import serial.tools.list_ports
 import sys
 import threading
+from typing import Optional
+
 
 class GCodeCLI(cmd.Cmd):
     intro = "Welcome to the G-Code CLI. Type help or ? to list commands.\n"
     prompt = "(gcode) "
-    ser = None
+    ser: Optional[serial.Serial] = None
     stop_thread = False
 
-    def do_list_ports(self, arg):
+    def do_list_ports(self, arg: str) -> None:
         "List available serial ports."
         ports = serial.tools.list_ports.comports()
         if not ports:
@@ -19,14 +24,14 @@ class GCodeCLI(cmd.Cmd):
         for port in ports:
             print(f"{port.device}: {port.description}")
 
-    def do_connect(self, arg):
+    def do_connect(self, arg: str) -> None:
         "Connect to a serial port. Usage: connect <port> [baudrate]"
         args = arg.split()
         if not args:
             print("Error: Port name is required. Usage: connect <port> [baudrate]")
             return
         port = args[0]
-        baudrate = 9600  # Default baudrate
+        baudrate = 115200  # Default baudrate
         if len(args) > 1:
             try:
                 baudrate = int(args[1])
@@ -42,7 +47,7 @@ class GCodeCLI(cmd.Cmd):
         except serial.SerialException as e:
             print(f"Error connecting to {port}: {e}")
 
-    def do_disconnect(self, arg):
+    def do_disconnect(self, arg: str) -> None:
         "Disconnect from the current serial port."
         if self.ser and self.ser.is_open:
             self.stop_thread = True
@@ -51,7 +56,7 @@ class GCodeCLI(cmd.Cmd):
         else:
             print("No active connection.")
 
-    def do_send(self, arg):
+    def do_send(self, arg: str) -> None:
         "Send a G-Code command. Usage: send <command>"
         if self.ser and self.ser.is_open:
             command = arg.strip()
@@ -59,14 +64,14 @@ class GCodeCLI(cmd.Cmd):
                 print("Error: G-Code command is required. Usage: send <command>")
                 return
             try:
-                self.ser.write((command + '\n').encode())
+                self.ser.write((command + "\n").encode())
                 print(f"Sent: {command}")
             except serial.SerialException as e:
                 print(f"Error sending command: {e}")
         else:
             print("Error: Not connected to any serial port.")
 
-    def do_exit(self, arg):
+    def do_exit(self, arg: str) -> bool:
         "Exit the CLI."
         print("Exiting...")
         if self.ser and self.ser.is_open:
@@ -74,24 +79,28 @@ class GCodeCLI(cmd.Cmd):
             self.ser.close()
         return True
 
-    def do_EOF(self, arg):
+    def do_EOF(self, arg: str) -> bool:
         "Exit the CLI using Ctrl+D."
         print()
         return self.do_exit(arg)
 
-    def read_from_port(self):
+    def read_from_port(self) -> None:
         while not self.stop_thread:
             try:
-                if self.ser.in_waiting:
-                    line = self.ser.readline().decode(errors='ignore').strip()
+                if self.ser and self.ser.in_waiting:
+                    line = self.ser.readline().decode(errors="ignore").strip()
                     if line:
-                        print(f"\nReceived: {line}\n(gcode) ", end='', flush=True)
+                        print(f"\nReceived: {line}\n(gcode) ", end="", flush=True)
+                else:
+                    print("No data to read.")
             except serial.SerialException:
-                print("\nConnection lost.")
+                print("\nSerialException, probably fine.")
                 break
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
+        print("TL;DR 1. list_ports 2. connect <port> 3. send <command>")
         GCodeCLI().cmdloop()
     except KeyboardInterrupt:
         print("\nExiting...")

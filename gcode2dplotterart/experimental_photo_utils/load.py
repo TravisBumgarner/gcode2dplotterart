@@ -1,8 +1,9 @@
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-def load_image(image_path: str, preview: bool = False):
+def load_image(image_path: str, preview: bool = False) -> np.ndarray:
     """
     Load an image from a file path.
 
@@ -14,8 +15,8 @@ def load_image(image_path: str, preview: bool = False):
     """
     image = mpimg.imread(image_path)
 
-    # If the image has an alpha channel, ignore it
-    if image.shape[2] == 4:
+    # Handle both RGB/RGBA and grayscale images
+    if len(image.shape) == 3 and image.shape[2] == 4:
         image = image[:, :, :3]
 
     if preview:

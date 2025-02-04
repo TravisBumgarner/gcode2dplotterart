@@ -5,7 +5,9 @@ from typing import Literal
 
 
 def grayscale_image(
-    image, method: Literal["average", "luminosity", "lightness"], preview: bool = False
+    image: np.ndarray,
+    method: Literal["average", "luminosity", "lightness"],
+    preview: bool = False,
 ) -> np.ndarray:
     """Convert RGB image to grayscale using specified method.
 
@@ -58,7 +60,7 @@ def grayscale_image(
 
 def resize_image(
     image: np.ndarray, max_width: int, max_height: int, preview: bool = False
-):
+) -> np.ndarray:
     """
     Resize image to fit within max dimensions while maintaining aspect ratio.
 
@@ -102,7 +104,7 @@ def resize_image(
 
 def bucket_image_even_pixel_count(
     image: np.ndarray, layer_count: int, preview: bool = False
-):
+) -> np.ndarray:
     """
     Ensures that each bucket has roughly the same number of pixels.
 
@@ -145,7 +147,7 @@ def bucket_image_even_pixel_count(
 # Not sure if this is the correct implementation.
 def buck_image_even_histogram_distribution(
     image: np.ndarray, layer_count: int, preview: bool = False
-):
+) -> np.ndarray:
     """
     Each bucket will correspond to the same segment of the histogram.
 
