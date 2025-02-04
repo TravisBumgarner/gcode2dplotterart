@@ -31,6 +31,7 @@ class _AbstractPlotter(ABC):
         handle_out_of_bounds: THandleOutOfBounds,
         output_directory: str,
         include_comments: bool,
+        return_home_before_plotting: bool,
     ):
         self.title = title
         self.x_min = x_min
@@ -42,6 +43,7 @@ class _AbstractPlotter(ABC):
         self.output_directory = output_directory
         self.handle_out_of_bounds = handle_out_of_bounds
         self.include_comments = include_comments
+        self.return_home_before_plotting = return_home_before_plotting
 
     def get_min_and_max_points(
         self,
@@ -105,18 +107,19 @@ class _AbstractPlotter(ABC):
     def _add_preview_layer(self) -> None:
         """
         Creates a new layer titled preview. The preview layer outlines the
-        plotting area and plots an X through the middle without plotting anything.
-        Useful for checking the the [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) is flat.
+        plotting area without plotting anything.
+        Useful for checking the the [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-surface) \
+        is flat.
         """
         points = self.get_min_and_max_points()
 
         self.add_layer("preview", preview_only=True)
+
+        if self.return_home_before_plotting:
+            self.layers["preview"]._add_home(instruction_phase="setup")
+
         self.layers["preview"].add_rectangle(
             points["x_min"], points["y_min"], points["x_max"], points["y_max"]
-        ).add_line(
-            points["x_min"], points["y_min"], points["x_max"], points["y_max"]
-        ).add_line(
-            points["x_min"], points["y_max"], points["x_max"], points["y_min"]
         )
 
     @property

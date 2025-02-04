@@ -1,7 +1,7 @@
-import React from 'react';
-import clsx from 'clsx';
-import styles from './styles.module.css';
-import Link from '@docusaurus/Link';
+import Link from "@docusaurus/Link";
+import clsx from "clsx";
+import React from "react";
+import styles from "./styles.module.css";
 
 type FeatureItem = {
   title: string;
@@ -10,18 +10,22 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Gallery',
+    title: "Gallery",
     description: (
       <>
-        Find inspiration in the gallery of plotted art created by other users. <Link to="/docs/category/gallery">Browse Now</Link>
+        Find inspiration in the gallery of plotted art created by other users.
+        <br />
+        <Link to="/docs/category/gallery">Browse Now</Link>
       </>
     ),
   },
   {
-    title: 'Documentation',
+    title: "Documentation",
     description: (
       <>
-        Learn everything you need to know to take full advantage of the library. <Link to="/docs/category/documentation">Learn Now</Link>
+        Learn everything you need to know to take full advantage of the library.{" "}
+        <br />
+        <Link to="/docs/category/documentation">Learn Now</Link>
       </>
     ),
   },
@@ -29,7 +33,7 @@ const FeatureList: FeatureItem[] = [
 
 function Feature({ title, description }: FeatureItem) {
   return (
-    <div className={clsx('col col--6')}>
+    <div className={clsx("col col--6")}>
       <div className="text--center padding-horiz--md">
         <h3>{title}</h3>
         <p>{description}</p>

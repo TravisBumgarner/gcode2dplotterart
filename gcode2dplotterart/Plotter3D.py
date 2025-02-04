@@ -28,6 +28,7 @@ class Plotter3D(_AbstractPlotter):
         handle_out_of_bounds: THandleOutOfBounds = "Warning",
         output_directory: str = "./output",
         include_comments: bool = True,
+        return_home_before_plotting: bool = True,
     ) -> None:
         """
         Initializes a new instance of the Plotter3D class.
@@ -39,20 +40,22 @@ class Plotter3D(_AbstractPlotter):
         - x_max (float) : The maximum X-coordinate of the plotter.
         - y_max (float) : The maximum Y-coordinate of the plotter.
         - z_plotting_height (float) : The height of the
-          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the \
           [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate).
-        - z_navigation_height (float) : The height of the
-          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating
+        - z_navigation_height (float) : The height of the \
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating \
           to a new location.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional):
-          How to handle out-of-bounds points.
-          `Warning` will print a warning, skip the point, and continue.
-          `Error` will throw an error and stop.
+        - handle_out_of_bounds (`Warning` | `Error`, optional): \
+          How to handle out-of-bounds points. \
+          `Warning` will print a warning, skip the point, and continue. \
+          `Error` will throw an error and stop. \
           Defaults to `Warning`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
-        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. D
-          efaults to `True`.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
+           Defaults to `True`.
+        - return_home_before_plotting (bool, optional) : Whether to return the plotter to the home position before plotting. Defaults to `True`. \
+          Can cause issues if plotter doesn't support returning to the home position.
         """
 
         super().__init__(
@@ -65,6 +68,7 @@ class Plotter3D(_AbstractPlotter):
             handle_out_of_bounds=handle_out_of_bounds,
             output_directory=output_directory,
             include_comments=include_comments,
+            return_home_before_plotting=return_home_before_plotting,
         )
         self.z_plotting_height = z_plotting_height
         self.z_navigation_height = z_navigation_height

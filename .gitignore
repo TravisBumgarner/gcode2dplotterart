@@ -6,3 +6,4 @@ sandbox-venv
 output/
 .DS_Store
 Sphinx-docs/
+venv/

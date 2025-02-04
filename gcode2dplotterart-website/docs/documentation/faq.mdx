@@ -26,7 +26,9 @@ When the plotting device is turned on, it has no memory of where the plotter hea
 
 Therefore, it's important, when first turning on the device, to let it know where it is. 
 
-The first step is to define the lower and upper bounds of the plotting area. This involves manually moving the plotter head to the bottom left, to the most `-X` and `-Y` position, then hitting the [reset zero](./ugs#reset-zero) button in UGS. 
+All 3D printers and some 2D plotters ship with limit switches which allow you to automatically home the device. Send the [G28 Command](./gcode#g28) to the plotting device to automatically home it. If your plotting device doesn't have limit switches, continue below.
+
+The first step is to define the lower and upper bounds of the plotting area. This involves manually moving the plotter head to the bottom left, to the most `-X` and `-Y` position, and if applicable `-Z` position, then hitting the [reset zero](./ugs#reset-zero) button in UGS. 
 
 With the lower bound defined, it is also important to know the upper bound. Move the plotting head to the top right corner. The [controller state](./ugs#controller-state) values for `X0` will display the width, and `Y0` will display the height. 
 

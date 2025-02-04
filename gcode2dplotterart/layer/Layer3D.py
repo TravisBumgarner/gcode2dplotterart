@@ -6,7 +6,6 @@ from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from ..instruction import (
     Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
-    InstructionPause,
 )
 
 
@@ -48,15 +47,16 @@ class Layer3D(_AbstractLayer):
           [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
           when navigating to a new location.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional):
-            How to handle out-of-bounds points.
-            `Warning` will print a warning, skip the point, and continue.
-            `Error` will throw an error and stop.
+        - handle_out_of_bounds (`Warning` | `Error`, optional): \
+            How to handle out-of-bounds points. \
+            `Warning` will print a warning, skip the point, and continue. \
+            `Error` will throw an error and stop. \
             Defaults to `Warning`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.
-        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
+        - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
+            Defaults to `True`.
 
         """
         super().__init__(
@@ -82,11 +82,12 @@ class Layer3D(_AbstractLayer):
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterPlottingHeight(
-                z_plotting_height=self.z_plotting_height
+                z_plotting_height=self.z_plotting_height,
+                feed_rate=self.feed_rate,
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(), instruction_phase)
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self
 
@@ -96,10 +97,11 @@ class Layer3D(_AbstractLayer):
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterNavigationHeight(
-                z_navigating_height=self.z_navigation_height
+                z_navigating_height=self.z_navigation_height,
+                feed_rate=self.feed_rate,
             ),
             instruction_phase,
         )
-        self._add_instruction(InstructionPause(), instruction_phase)
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self

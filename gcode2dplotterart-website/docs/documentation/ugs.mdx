@@ -6,7 +6,7 @@ sidebar_position: 1
 
 :::danger
 
-Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting-device-running-into-the-wall)
 
 :::
 
@@ -36,36 +36,38 @@ Device naming may not be intuitive. An easy way to figure out which device is th
 
 :::danger
 
-Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting-device-running-into-the-wall)
 
 :::
 
 1. Open the [jog controller](#jog-controller). 
 1. Select `millimeters` for units.
 1. Set the `Step size XY` to 10, `Step size Z` to 1, `Feed Rate` to 1,000. (For information on setting feed rate, check the [Get the plotting devices's feed rate](#get-the-plotting -devicess-feed-rate) section)
-1. Move the [plotter head](./terminology#plotter-head) to the most negative X direction (`X-`) and most negative Y direction (`Y-`). 
-1. **For 3D printers only**, attach the [plotting instrument](./terminology#plotting-instrument) to the plotter head. (For help with 3D printer setup, check out [Convert a 3D printer to 2D plotter](convert-3d-to-2d) guide) Move the plotter head in the Z Direction (`Z-` or `Z+` depending on the 3D printer) until the point of the plotting instrument is about 5mm separated from the [plotting surface](./terminology#plotting-surface). **Write this numbers down.**
+1. Move the [plotter head](./terminology#plotter-head) to the most negative X direction (`X-`) and most negative Y direction (`Y-`). If the plotter supports limit switches, send the [G28 Command](./gcode#g28) to move the plotter head to the limit switch.
+1. **For 3D printers only**, attach the [plotting instrument](./terminology#plotting-instrument) to the plotter head. (For help with 3D printer setup, check out [Convert a 3D printer to 2D plotter](convert-3d-to-2d) guide) Move the plotter head in the Z Direction (`Z-` or `Z+` depending on the 3D printer) until the point of the plotting instrument is a comfortable height (3mm is good) above the [plotting surface](./terminology#plotting-surface). You can find a ruler for measuring Z-Height [here](https://www.thingiverse.com/thing:6936941). **Write this number down, it'll be the `z_navigation_height` variable.**
 1. Switch to the [Toolbox](#toolbox) and Click `Reset Zero`. This defines the `X = 0`, `Y = 0`, and for 3D printers only, the `Z = 0` starting point for the plotting device as the plotter head's current location.
 1. Switch back to the Jog Controller. Move the plotter head to the most positive X direction (`X+`) and most positive Y direction (`Y+`) it can go. **Write these numbers down.**
-1. **For 3D printers only**, move the plotting head so that the plotting instrument's point is comfortably touching the plotting surface. **Write this number down.**
+1. **For 3D printers only**, move the plotting head so that the plotting instrument's point is comfortably touching the plotting surface. This will most likely be `0`. **Write this number down, it'll be the `z_plotting_height` variable.**
 
 ### Reset Zero
 
 :::danger
 
-Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting-device-running-into-the-wall)
 
 :::
 
+This step is not applicable if the plotting device has limit switches and get be reset with a [G28 Command](./gcode#g28).
+
 This step should be performed every time the plotting device is turned on. Additionally, it should be performed any time the plotter head is accidentally given coordinates that are outside of the bounds of the plotting device. 
 
-Repeat steps 1 through 6 from the [getting the plotting device's dimensions](#get-the-plotting -devicess-dimensions) section.
+Repeat steps 1 through 6 from the [getting the plotting device's dimensions](#get-the-plotting-devicess-dimensions) section.
 
 ### Get the plotting devices's feed rate
 
 :::danger
 
-Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting -device-running-into-the-wall)
+Do not try anything in this guide until reading it through completely. For more information, check out the FAQ question [Why is the plotting device running into the wall?](./faq#why-is-the-plotting-device-running-into-the-wall)
 
 :::
 

@@ -1,31 +1,26 @@
 [build-system]
-requires = ["hatchling", "setuptools", "wheel"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-version = "1.2.0"
 name = "gcode2dplotterart"
-
-[tool.poetry]
-name = "gcode2dplotterart"
-authors = ["Travis Bumgarner"]
-version = "1.2.0"
-description = "Easily generate plotter art with your 2D plotter or 3D printer. This library abstracts away G-Code so you can focus on making art."
+version = "2.0.3"
+authors = [
+    { name = "Travis Bumgarner" },
+]
+description = "A Python library for creating 2D plotter art using GCode"
 readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "matplotlib>=3.8.2",
+    "numpy>=1.26.4",
+    "opencv-python>=4.11.0.86",
+    "pillow>=11.1.0",  
+    "typing-extensions>=4.12.2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11.5"
-matplotlib = "^3.8.2"
+[tool.hatch.build.targets.wheel]
+packages = ["gcode2dplotterart"]
 
-[tool.poetry.dev-dependencies]
-mypy="^1.7.0"
-black="^23.10.1"
-flake8="^6.1.0"
-pytest="^7.4.3"
-setuptools = "^68.2.2"
-wheel = "^0.41.3"
-
-
-[project.urls]
-"Homepage" = "https://github.com/TravisBumgarner/gcode2dplotterart"
-"Bug Tracker" = "https://github.com/TravisBumgarner/gcode2dplotterart/issues"
+[tool.hatch.build.targets.sdist]
+packages = ["gcode2dplotterart"]

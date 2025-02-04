@@ -15,6 +15,7 @@ from ..instruction import (
     Instruction2DPlotterNavigationHeight,
     Instruction2DPlotterPlottingHeight,
     InstructionUnitsMM,
+    InstructionHome,
     InstructionProgramEnd,
 )
 from .draw_character import draw_character
@@ -45,6 +46,7 @@ TInstructionUnion = Union[
     InstructionProgramEnd,
     Instruction3DPrinterPlottingHeight,
     Instruction3DPrinterNavigationHeight,
+    InstructionHome,
 ]
 
 
@@ -198,6 +200,13 @@ class _AbstractLayer(ABC):
         """
 
         pass
+
+    def _add_home(self, instruction_phase: TInstructionPhase = "plotting") -> Self:
+        """
+        Add a home instruction to the layer.
+        """
+        self._add_instruction(InstructionHome(), instruction_phase)
+        return self
 
     def _add_coordinate(
         self, x: float, y: float, instruction_phase: TInstructionPhase

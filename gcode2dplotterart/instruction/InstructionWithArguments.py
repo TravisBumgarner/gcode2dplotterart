@@ -133,8 +133,9 @@ class Instruction3DPrinterPlottingHeight:
       z_plotting_height (float) : The height of the plotter head when plotting
     """
 
-    def __init__(self, z_plotting_height: float):
+    def __init__(self, z_plotting_height: float, feed_rate: float):
         self.z_plotting_height = z_plotting_height
+        self.feed_rate = feed_rate
 
     def __str__(self) -> str:
         return "Connect plotting instrument to plotting surface"
@@ -145,7 +146,7 @@ class Instruction3DPrinterPlottingHeight:
         Returns:
           str : The plotting height in G-Code format.
         """
-        return f"G1 Z{self.z_plotting_height}"
+        return f"G1 Z{self.z_plotting_height} F{self.feed_rate}"
 
 
 class Instruction3DPrinterNavigationHeight:
@@ -155,8 +156,9 @@ class Instruction3DPrinterNavigationHeight:
       z_navigating_height (float) : The height of the plotter head when navigating
     """
 
-    def __init__(self, z_navigating_height: float):
+    def __init__(self, z_navigating_height: float, feed_rate: float):
         self.z_navigating_height = z_navigating_height
+        self.feed_rate = feed_rate
 
     def __str__(self) -> str:
         return "Separate plotting instrument from plotting surface"
@@ -167,4 +169,4 @@ class Instruction3DPrinterNavigationHeight:
         Returns:
           str : The navigating height in G-Code format.
         """
-        return f"G1 Z{self.z_navigating_height}"
+        return f"G1 Z{self.z_navigating_height} F{self.feed_rate}"
