@@ -17,10 +17,12 @@ plotter.add_layer("foo", "red", line_width=1)
 
 plotter.layers["foo"].add_line(
     x_start=0,
-    y_start=0,
+    y_start=100,
     x_end=100,
-    y_end=100,
+    y_end=0,
 )
+plotter.layers["foo"].add_text("Hello from", 8, 0, 10)
+plotter.layers["foo"].add_text("the sandbox", 8, 0, 0)
 
 plotter.preview()
 

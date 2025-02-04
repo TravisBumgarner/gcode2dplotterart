@@ -7,8 +7,8 @@
 
 ## Running Tests
 
-1. `pytest`
-2. If tests fail, run `GENERATE_SNAPSHOTS=yes pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
+1. `source ./venv/bin/activate && pytest`
+2. If tests fail, run `GENERATE_SNAPSHOTS=yes pytest` to generate new snapshots, compare git diff to ensure changes are expected, and commit the new snapshots.
 
 ## Local Development
 
