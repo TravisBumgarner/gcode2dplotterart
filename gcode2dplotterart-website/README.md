@@ -1,3 +1,8 @@
+# Local Development
+
+1. `yarn` install dependencies
+2. `yarn run start` start locally
+
 # Website
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
