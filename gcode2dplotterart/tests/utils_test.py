@@ -14,7 +14,7 @@ def run_test_and_snapshot(
     snapshot_directory: str,
     snapshot_file_path: str,
     plotter: Union[Plotter3D, Plotter2D],
-):
+) -> None:
     os.makedirs(snapshot_directory, exist_ok=True)
 
     # Save snapshot to snapshots directory if it's first time seeing test. Otherwise, compare contents are the same.

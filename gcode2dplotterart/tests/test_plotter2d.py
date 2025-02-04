@@ -1,8 +1,8 @@
 import os
 import unittest
 
-from gcode2dplotterart.Plotter2D import Plotter2D
-from utils_test import run_test_and_snapshot
+from ..Plotter2D import Plotter2D
+from gcode2dplotterart.tests.utils_test import run_test_and_snapshot
 
 
 class TestSnapshot(unittest.TestCase):
@@ -22,6 +22,7 @@ class TestSnapshot(unittest.TestCase):
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
         snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")
+        snapshot_file_path2 = os.path.join(snapshot_directory, f"{layer2}.json")
 
         plotter.add_layer(layer)
 
@@ -39,6 +40,7 @@ class TestSnapshot(unittest.TestCase):
         plotter.layers[layer2].add_circle(25, 25, 12)
 
         run_test_and_snapshot(snapshot_directory, snapshot_file_path, plotter)
+        run_test_and_snapshot(snapshot_directory, snapshot_file_path2, plotter)
 
 
 if __name__ == "__main__":
