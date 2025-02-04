@@ -10,7 +10,6 @@
 1. `pytest`
 2. If tests fail, run `GENERATE_SNAPSHOTS=yes pytest` to generate new snapshots, compare diff to ensure changes are expected, and commit the new snapshots.
 
-
 ## Local Development
 
 1. Make changes to code.
@@ -34,19 +33,20 @@ index-servers =
     pypi
     testpypi
 
-[pypi]
-username = __token__
-password = your-pypi-token
-
 [testpypi]
 repository = https://test.pypi.org/legacy/
+username = sillysideprojects
+password = foobar
+
+[pypi]
+repository = https://upload.pypi.org/legacy/ 
 username = __token__
-password = your-testpypi-token
+password = buzzfizz
 ```
 
 2. Increment package number.
 3. Build package `rm -rf ./dist && python -m build`
-4. Deploy package `python -m twine upload --repository testpypi dist/*` or `
+4. Deploy package `python -m twine upload --repository testpypi dist/*`
 5. Navigate to [TestPyPI](https://test.pypi.org/project/gcode2dplotterart/), create new `venv`
 6. Install package with `pip install -i https://test.pypi.org/simple/ gcode2dplotterart==2.0.3 --extra-index-url https://pypi.org/simple/`
 7. Run the following test code.
@@ -80,6 +80,8 @@ plotter.preview()
 
 plotter.save()
 ```
+
+8. Deploy to production `python -m twine upload --repository pypi dist/*`
 
 ## Generating Timelapses
 
