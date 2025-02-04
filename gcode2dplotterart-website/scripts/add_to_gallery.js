@@ -39,6 +39,15 @@ image: /img/gallery/${generatedName}/example1.jpg
 
 ## Code
 
+:::warning
+
+This code may or may not run and is intended more as a reference. Additionally, it was most likely not written with the latest version of the library. To ensure compatibility, check the date of this post against the [version history](https://pypi.org/project/gcode2dplotterart/#history) and install the corresponding version.
+
+:::
+
+This code may or may not run and is intended more as a reference. Additionally, it was most likely not written with the latest version of the library. To ensure compatibility, check the date of this post against the [version history](https://pypi.org/project/gcode2dplotterart/#history) and install the corresponding version.
+
+
 \`\`\`python
 
 \`\`\`
