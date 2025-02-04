@@ -1,32 +1,29 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-"typescript.tsc.autoDetect": "off",
-"json.schemas": [
-  {
-    "fileMatch": [
-      "/*electron-builder.json5",
-      "/*electron-builder.json"
-    ],
-    "url": "https://json.schemastore.org/electron-builder"
-  }
-],
-"editor.codeActionsOnSave": {
-  "source.fixAll.eslint": true
-},
-"eslint.validate": ["typescript"],
-"editor.formatOnSave": true,
-"editor.defaultFormatter": "dbaeumer.vscode-eslint",
-"[javascript]": {
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-},
-"[typescript]": {
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-},
-"[typescriptreact]": {
-  "editor.defaultFormatter": "vscode.typescript-language-features"
-},
-"[html]": {
-  "editor.defaultFormatter": "vscode.html-language-features"
-},
-"files.autoSave": "afterDelay",
+  "typescript.tsc.autoDetect": "off",
+  "json.schemas": [
+    {
+      "fileMatch": ["/*electron-builder.json5", "/*electron-builder.json"],
+      "url": "https://json.schemastore.org/electron-builder"
+    }
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["typescript"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "files.autoSave": "afterDelay"
 }
