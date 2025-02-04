@@ -16,7 +16,7 @@ class TestSnapshot(unittest.TestCase):
             y_min=-100,
             y_max=100,
             feed_rate=20000,
-            output_directory="./snapshots",
+            output_directory="./gcode2dplotterart/tests/snapshots",
             handle_out_of_bounds="Warning",
             z_plotting_height=0,
             z_navigation_height=10,

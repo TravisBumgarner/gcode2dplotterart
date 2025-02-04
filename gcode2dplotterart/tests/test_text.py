@@ -17,7 +17,7 @@ class TestSnapshot(unittest.TestCase):
             y_min=-100,
             y_max=100,
             feed_rate=10000,
-            output_directory="./snapshots",
+            output_directory="./gcode2dplotterart/tests/snapshots",
             handle_out_of_bounds="Warning",
         )
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
