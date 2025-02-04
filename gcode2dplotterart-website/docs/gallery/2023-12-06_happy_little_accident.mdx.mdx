@@ -1,0 +1,151 @@
+---
+description: Doot Doot.
+image: /img/gallery/9_happy_little_accident/id/example1.jpg
+draft: true
+---
+
+# 2023-12-06 Happy Little Accident
+
+## Description
+
+Was aiming for something else, but ended up with this.
+
+## Images
+
+![example of plotted code](/img/gallery/9_happy_little_accident/example1.jpg)
+
+
+## Plotter Preview
+
+![preview screenshot](/img/gallery/9_happy_little_accident/preview.png)
+
+
+## Code
+
+:::warning
+
+This code may or may not run and is intended more as a reference. Additionally, it was most likely not written with the latest version of the library. To ensure compatibility, check the date of this post against the [version history](https://pypi.org/project/gcode2dplotterart/#history) and install the corresponding version.
+
+:::
+
+```python
+from gcode2dplotterart import Plotter2D
+import math
+
+LINE_WIDTH = 0.5
+LAYER_0 = {"title": "black", "color": "black", "line_width": LINE_WIDTH}
+
+plotter = Plotter2D(
+    title="Expanding Shapes",
+    x_min=0,
+    x_max=180,
+    y_min=0,
+    y_max=180,
+    feed_rate=10000,
+    include_comments=False,
+)
+plotter.add_layer(**LAYER_0)
+
+
+def is_point_in_circle(x, y, x_center, y_center, radius):
+    distance = math.sqrt((x - x_center) ** 2 + (y - y_center) ** 2)
+    return distance <= radius
+
+
+def closest_point_on_circle_edge(x, y, x_center, y_center, radius):
+    vector_x = x - x_center
+    vector_y = y - y_center
+
+    distance = math.sqrt(vector_x**2 + vector_y**2)
+
+    normalized_vector_x = vector_x / distance
+    normalized_vector_y = vector_y / distance
+
+    closest_x = x_center + normalized_vector_x * radius
+    closest_y = y_center + normalized_vector_y * radius
+
+    return closest_x, closest_y
+
+
+def point_along_line(x1, y1, x2, y2, hypotenuse):
+    print(x1, y1, x2, y2)
+    vector_x = x2 - x1
+    vector_y = y2 - y1
+
+    distance = math.sqrt(vector_x**2 + vector_y**2)
+
+    normalized_vector_x = vector_x / distance
+    normalized_vector_y = vector_y / distance
+
+    scaled_vector_x = normalized_vector_x * hypotenuse
+    scaled_vector_y = normalized_vector_y * hypotenuse
+
+    x3 = x1 + scaled_vector_x
+    y3 = y1 + scaled_vector_y
+
+    return x3, y3
+
+
+def expand_path_outwards(path: list, x_center, y_center, radius) -> [list, bool]:
+    some_points_inside_circle = False
+    next_path = []
+
+    for point in path[0:-1]:
+        point_to_move_towards = closest_point_on_circle_edge(
+            point[0], point[1], x_center, y_center, radius
+        )
+
+        if point == point_to_move_towards:
+            next_path.append(point)
+            continue
+
+        next_point = point_along_line(
+            point[0],
+            point[1],
+            point_to_move_towards[0],
+            point_to_move_towards[1],
+            hypotenuse=1,
+        )
+
+        if is_point_in_circle(next_point[0], next_point[1], x_center, y_center, radius):
+            some_points_inside_circle = True
+            next_path.append(next_point)
+            point = next_point
+        else:
+            next_path.append(point)
+
+    next_path.append(path[0])
+    return [next_path, some_points_inside_circle]
+
+
+def main():
+    x_center = (plotter.x_max - plotter.x_min) / 2
+    y_center = (plotter.y_max - plotter.y_min) / 2
+    radius = plotter.width / 2
+
+    current_path = [
+        (50, 50),
+        (50, 100),
+        (100, 100),
+        (100, 50),
+        (50, 50),
+    ]
+    plotter.layers[LAYER_0["title"]].add_path(current_path)
+
+    some_points_inside_circle = True
+    while some_points_inside_circle:
+        some_points_inside_circle = False
+        [next_path, some_points_inside_circle] = expand_path_outwards(
+            path=current_path, x_center=x_center, y_center=y_center, radius=radius
+        )
+
+        plotter.layers[LAYER_0["title"]].add_path(current_path)
+        current_path = next_path
+
+    plotter.preview()
+    plotter.save()
+
+
+if __name__ == "__main__":
+    main()
+```
