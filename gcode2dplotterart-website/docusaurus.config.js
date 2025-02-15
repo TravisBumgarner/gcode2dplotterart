@@ -85,6 +85,11 @@ const config = {
             label: "Documentation",
           },
           {
+            to: "https://discord.gg/J8jwMxEEff",
+            label: "Join the Community",
+            position: "right",
+          },
+          {
             href: "https://github.com/TravisBumgarner/gcode2dplotterart",
             label: "GitHub",
             position: "right",
@@ -115,25 +120,33 @@ const config = {
             title: "Community",
             items: [
               {
-                label: "GitHub Discussions",
-                href: "https://github.com/TravisBumgarner/gcode2dplotterart/discussions",
+                to: "https://discord.gg/J8jwMxEEff",
+                label: "Discord",
               },
               {
-                label: "GitHub Issues",
-                href: "https://github.com/TravisBumgarner/gcode2dplotterart/issues",
+                to: "https://github.com/TravisBumgarner/gcode2dplotterart",
+                label: "GitHub",
               },
             ],
           },
           {
-            title: "More",
+            title: "From the Creator",
             items: [
               {
-                label: "Silly Side Projects",
-                href: "https://sillysideprojects.com",
+                label: "Portfolio",
+                href: "https://travisbumgarner.dev",
               },
               {
                 label: "Instagram",
                 href: "https://instagram.com/sillysideprojects",
+              },
+              {
+                label: "Reddit",
+                href: "https://www.reddit.com/user/travis_the_maker/",
+              },
+              {
+                label: "Bluesky",
+                href: "https://bsky.app/profile/sillysideprojects.bsky.social",
               },
             ],
           },
