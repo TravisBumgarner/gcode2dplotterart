@@ -123,18 +123,30 @@ const config = {
                 to: "https://discord.gg/J8jwMxEEff",
                 label: "Discord",
               },
+              {
+                to: "https://github.com/TravisBumgarner/gcode2dplotterart",
+                label: "GitHub",
+              },
             ],
           },
           {
-            title: "More",
+            title: "From the Creator",
             items: [
               {
-                label: "More from the Creator",
+                label: "Portfolio",
                 href: "https://travisbumgarner.dev",
               },
               {
                 label: "Instagram",
                 href: "https://instagram.com/sillysideprojects",
+              },
+              {
+                label: "Reddit",
+                href: "https://www.reddit.com/user/travis_the_maker/",
+              },
+              {
+                label: "Bluesky",
+                href: "https://bsky.app/profile/sillysideprojects.bsky.social",
               },
             ],
           },
