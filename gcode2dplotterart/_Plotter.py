@@ -52,7 +52,7 @@ class _AbstractPlotter(ABC):
         Find the min and max plot points of the plotter.
 
         Returns:
-        - dict : {x_min (float), y_min (float), x_max (float), y_max (float)}
+        - dict : x_min (float), y_min (float), x_max (float), y_max (float)
             A dictionary containing the min and max plot points of the plotter.
         """
         all_layers_mins_and_maxes = [
@@ -165,7 +165,7 @@ class _AbstractPlotter(ABC):
         Get current plotting data.
 
         Returns:
-        - dict: {"layer" : {"setup": [], "plotting": [], "teardown": []}}
+        - dict: "layer" : "setup": [], "plotting": [], "teardown": []
             A dictionary of dictionaries containing
             [instruction phases](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) - setup, plotting,
             and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
