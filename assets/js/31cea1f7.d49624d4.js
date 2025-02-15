@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[3272],{4376:e=>{e.exports=JSON.parse('{"authors":[{"name":"Travis Bumgarner","title":"Maintainer of gcode2dplotterart","url":"https://github.com/travisbumgarner","imageURL":"abc.png","key":"endi","page":null,"count":0}]}')}}]);
