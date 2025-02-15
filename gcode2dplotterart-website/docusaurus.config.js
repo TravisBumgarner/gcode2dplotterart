@@ -85,6 +85,11 @@ const config = {
             label: "Documentation",
           },
           {
+            to: "https://discord.gg/J8jwMxEEff",
+            label: "Join the Community",
+            position: "right",
+          },
+          {
             href: "https://github.com/TravisBumgarner/gcode2dplotterart",
             label: "GitHub",
             position: "right",
@@ -115,12 +120,8 @@ const config = {
             title: "Community",
             items: [
               {
-                label: "GitHub Discussions",
-                href: "https://github.com/TravisBumgarner/gcode2dplotterart/discussions",
-              },
-              {
-                label: "GitHub Issues",
-                href: "https://github.com/TravisBumgarner/gcode2dplotterart/issues",
+                to: "https://discord.gg/J8jwMxEEff",
+                label: "Discord",
               },
             ],
           },
@@ -128,8 +129,8 @@ const config = {
             title: "More",
             items: [
               {
-                label: "Silly Side Projects",
-                href: "https://sillysideprojects.com",
+                label: "More from the Creator",
+                href: "https://travisbumgarner.dev",
               },
               {
                 label: "Instagram",
