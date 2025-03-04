@@ -9,6 +9,7 @@
 
 1. `source ./venv/bin/activate && pytest`
 2. If tests fail, run `GENERATE_SNAPSHOTS=yes pytest` to generate new snapshots, compare git diff to ensure changes are expected, and commit the new snapshots.
+3. If you want to see previews of the plots, run `SHOW_PREVIEWS=yes pytest`
 
 ## Local Development
 

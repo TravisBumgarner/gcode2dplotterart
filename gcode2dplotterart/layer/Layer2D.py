@@ -37,11 +37,11 @@ class Layer2D(_AbstractLayer):
         - plotter_x_max (float) : The maximum X-coordinate of the plotter.
         - plotter_y_max (float) : The maximum Y-coordinate of the plotter.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional): \
-            How to handle out-of-bounds points. \
-            `Warning` will print a warning, skip the point, and continue. \
-            `Error` will throw an error and stop. \
-            Defaults to `Warning`.
+        - handle_out_of_bounds (`Warning` | `Error` | `Partial`, optional): \\
+            How to handle out-of-bounds points. \\
+            `Warning` will print a warning, skip the point, and continue. \\
+            `Error` will throw an error and stop. \\
+            Defaults to `Partial`.
         - color (str, optional) : The color of the layer. Defaults to a random color.
         - line_width (float) : The width of the line being plotted.
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.

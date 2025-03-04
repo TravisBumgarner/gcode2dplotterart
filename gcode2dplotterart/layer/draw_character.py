@@ -69,15 +69,6 @@ def point_dp(
     ]
 
 
-def space(
-    segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
-    return [
-        (char_x_start, char_y_start),
-        (char_x_start + segment_length, char_y_start),
-    ]
-
-
 # TODO -  Characters have been manually ordered such that the least amount of pen lifts occurs. _ indicates a pen lift
 character_map = {
     "1": "bc",
@@ -144,7 +135,6 @@ primitive_map: Dict[str, PrimitiveFunction] = {
     "e": line_e,
     "f": line_f,
     "g": line_g,
-    " ": space,
 }
 
 
@@ -180,10 +170,9 @@ def draw_character(
     paths = []
     for primitive in primitives:
         if primitive == "_":
-            # Note - _ was supposed to denote seperate paths. But the logic to do so is decently complicated. Leaving in to be computed later.
+            # Note - _ was supposed to denote separate paths. But the logic to do so is decently complicated. Leaving in to be computed later.
             continue
 
-        draw_primitive = primitive_map[primitive]
         if primitive == "p":
             paths.append(
                 point_dp(
@@ -199,5 +188,5 @@ def draw_character(
             x_start += segment_length
             continue
 
-        paths.append(draw_primitive(segment_length, x_start, y_start))
+        paths.append(primitive_map[primitive](segment_length, x_start, y_start))
     return paths

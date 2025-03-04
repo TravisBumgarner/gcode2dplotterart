@@ -26,7 +26,7 @@ class TestSnapshot(unittest.TestCase):
 
         plotter.add_layer(layer)
 
-        plotter.layers[layer].add_point(30, 40).add_circle(1, 1, 10).add_rectangle(
+        plotter.layers[layer].add_point(30, 40).add_circle(10, 10, 10).add_rectangle(
             50, 50, 75, 75
         ).add_path([(10, 10), (20, 20), (30, 30)]).add_line(0, 15, 0, 15).add_comment(
             "Test comment", instruction_phase="teardown"

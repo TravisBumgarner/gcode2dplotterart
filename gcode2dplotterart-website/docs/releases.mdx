@@ -22,7 +22,19 @@ YYYY-MM-DD
 
  -->
 
-## 
+## 3.0.0
+
+#### Added
+
+- **`handle_out_of_bounds` now supports `Partial`.** Under the hood, everything is plotted as a path, or array of points. An example would be `[(1,1), (2,2), (100,100), (3,3), (4,4)]`. With `Warning`, if any of the points in the path are out of bounds, the whole path will be skipped. With `Error`, the whole program will crash. With the introduction of `Partial`, if a point is out of bounds, the remaining points will be plotted as separate paths. Continuing with the example, if `(100,100)` is out of bounds, this would result in two paths being plotted at `[(1,1), (2,2)]` and `[(3,3), (4,4)]`
+
+#### Changed
+
+- **Offsets are now calculated from the plotter's origin.** Before, if the Plotter's min was defined as (10,20) and the user attempted to plot something at (0,0) it would fail because it was outside the plotter's bounds. Now, when a point is plotted at (0,0), it'll be translated to (10,20) and plot successfully. 
+
+#### Fixed 
+
+- **Can now plot characters with dots such as `!` and `.`** This was a bug with the implementation of text and has now been resolved. 
 
 ## 2.0.3
 

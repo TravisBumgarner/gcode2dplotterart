@@ -25,7 +25,7 @@ class Plotter3D(_AbstractPlotter):
         z_plotting_height: float,
         z_navigation_height: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds = "Warning",
+        handle_out_of_bounds: THandleOutOfBounds = "Partial",
         output_directory: str = "./output",
         include_comments: bool = True,
         return_home_before_plotting: bool = True,
@@ -46,11 +46,12 @@ class Plotter3D(_AbstractPlotter):
           [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when navigating \
           to a new location.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional): \
+        - handle_out_of_bounds (`Warning` | `Error` | `Partial`, optional): \
           How to handle out-of-bounds points. \
           `Warning` will print a warning, skip the point, and continue. \
+          `Partial` will print a warning, print a partial path, and continue. \
           `Error` will throw an error and stop. \
-          Defaults to `Warning`.
+          Defaults to `Partial`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
            Defaults to `True`.
