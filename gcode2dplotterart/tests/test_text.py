@@ -23,9 +23,9 @@ class TestSnapshot(unittest.TestCase):
         snapshot_directory = os.path.join(plotter.output_directory, plotter.title)
         snapshot_file_path = os.path.join(snapshot_directory, f"{layer}.json")
 
-        plotter.add_layer(layer)
+        plotter.add_layer(layer, "red", 1)
 
-        plotter.layers[layer].add_text("Hello World", 0, 0, 10, 10, 0)
+        plotter.layers[layer].add_text("Hello World.!", 10, 0, 0)
 
         run_test_and_snapshot(snapshot_directory, snapshot_file_path, plotter)
 

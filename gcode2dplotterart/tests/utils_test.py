@@ -5,6 +5,7 @@ from typing import Union
 from gcode2dplotterart import Plotter2D, Plotter3D
 
 skip_test_and_generate_snapshots = os.environ.get("GENERATE_SNAPSHOTS", "no")
+show_previews = os.environ.get("SHOW_PREVIEWS", "no")
 
 
 INDENT = 4
@@ -15,6 +16,8 @@ def run_test_and_snapshot(
     snapshot_file_path: str,
     plotter: Union[Plotter3D, Plotter2D],
 ) -> None:
+    if show_previews == "yes":
+        plotter.preview()
     os.makedirs(snapshot_directory, exist_ok=True)
 
     # Save snapshot to snapshots directory if it's first time seeing test. Otherwise, compare contents are the same.

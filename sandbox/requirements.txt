@@ -1,4 +1,26 @@
+black==23.10.1
+click==8.1.8
+contourpy==1.3.1
+cycler==0.12.1
+flake8==6.1.0
+fonttools==4.55.8
+-e git+ssh://git@github.com/TravisBumgarner/gcode2dplotterart.git@5101846e4fa59852eed9b09905e1fc041caeb750#egg=gcode2dplotterart
+Jinja2==3.1.5
+kiwisolver==1.4.8
+MarkupSafe==3.0.2
 matplotlib==3.8.2
+mccabe==0.7.0
+mypy==1.7.0
+mypy-extensions==1.0.0
 numpy==1.26.4
 opencv-python==4.11.0.86
+packaging==24.2
+pathspec==0.12.1
 pillow==11.1.0
+platformdirs==4.3.6
+pycodestyle==2.11.1
+pyflakes==3.1.0
+pyparsing==3.2.1
+python-dateutil==2.9.0.post0
+six==1.17.0
+typing_extensions==4.12.2

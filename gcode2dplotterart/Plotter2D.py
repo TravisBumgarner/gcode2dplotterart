@@ -20,7 +20,7 @@ class Plotter2D(_AbstractPlotter):
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds = "Warning",
+        handle_out_of_bounds: THandleOutOfBounds = "Partial",
         output_directory: str = "./output",
         include_comments: bool = True,
         return_home_before_plotting: bool = True,
@@ -33,11 +33,12 @@ class Plotter2D(_AbstractPlotter):
         - x_max (float) : The maximum X-coordinate of the plotter.
         - y_max (float) : The maximum Y-coordinate of the plotter.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate), for the plotter.
-        - handle_out_of_bounds (`Warning` | `Error`, optional): \
-            How to handle out-of-bounds points. \
-            `Warning` will print a warning, skip the point, and continue. \
-            `Error` will throw an error and stop. \
-            Defaults to `Warning`.
+        - handle_out_of_bounds (`Warning` | `Error` | `Partial`, optional): \\
+            How to handle out-of-bounds points. \\
+            `Warning` will print a warning, skip the path, and continue. \\
+            `Partial` will print a warning, print a partial path, and continue. \\
+            `Error` will throw an error and stop. \\
+            Defaults to `Partial`.
         - output_directory (str, optional) : The directory where G-code files will be saved. Defaults to `./output`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging.
           Defaults to `True`.
@@ -61,7 +62,7 @@ class Plotter2D(_AbstractPlotter):
     def add_layer(
         self,
         title: str,
-        color: Optional[str] = None,
+        color: Optional[str] = "#000000",
         line_width: float = 2.0,
         preview_only: bool = False,
     ) -> Layer2D:

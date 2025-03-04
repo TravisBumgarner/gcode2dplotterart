@@ -208,18 +208,6 @@ class _AbstractLayer(ABC):
         self._add_instruction(InstructionHome(), instruction_phase)
         return self
 
-    def _add_coordinate(
-        self, x: float, y: float, instruction_phase: TInstructionPhase
-    ) -> Self:
-        """
-        Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
-        """
-        self._update_max_and_min(x, y)
-
-        point = InstructionPoint(self.feed_rate, x, y)
-        self._add_instruction(point, instruction_phase)
-        return self
-
     def _add_instruction(
         self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
@@ -268,13 +256,24 @@ class _AbstractLayer(ABC):
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
+
+        origin_adjusted_points = [
+            (point[0] + self.plotter_x_min, point[1] + self.plotter_y_min)
+            for point in points
+        ]
+
         out_of_bounds_points = []
-        for point in points:
+        for point in origin_adjusted_points:
             if not self._is_point_in_bounds(point[0], point[1]):
                 out_of_bounds_points.append(point)
 
         if len(out_of_bounds_points) > 0:
-            if self.handle_out_of_bounds == "Warning":
+            if self.handle_out_of_bounds == "Partial":
+                print(
+                    "Partial path added with points outside of plotter's dimensions",
+                    out_of_bounds_points,
+                )
+            elif self.handle_out_of_bounds == "Warning":
                 print(
                     "Failed to add path with points outside of plotter's dimensions",
                     out_of_bounds_points,
@@ -291,13 +290,23 @@ class _AbstractLayer(ABC):
                     self.handle_out_of_bounds,
                 )
 
-        self.add_comment(f"Path: {points}", instruction_phase)
-        for index, [x, y] in enumerate(points):
-            self._add_coordinate(x, y, instruction_phase)
-            if index == 0 and not self.preview_only:
-                self.set_mode_to_plotting(instruction_phase=instruction_phase)
-        if raise_plotter_head_after_path:
-            self.set_mode_to_navigation(instruction_phase=instruction_phase)
+        # Will return len == 1 if "Warning" or "Error", else len > 1
+        paths = self._in_bounds_paths(origin_adjusted_points)
+        for path in paths:
+            path_type = "Full Path" if len(paths) == 1 else "Partial Path"
+            self.add_comment(f"{path_type}: {path}", instruction_phase)
+            for index, [x, y] in enumerate(path):
+                # Plotter previews expect points not adjusted for the origin."
+                self._update_max_and_min(x - self.plotter_x_min, y - self.plotter_y_min)
+                self._add_instruction(
+                    InstructionPoint(self.feed_rate, x, y),
+                    instruction_phase,
+                )
+
+                if index == 0 and not self.preview_only:
+                    self.set_mode_to_plotting(instruction_phase=instruction_phase)
+            if raise_plotter_head_after_path:
+                self.set_mode_to_navigation(instruction_phase=instruction_phase)
         return self
 
     def add_point(
@@ -540,9 +549,29 @@ class _AbstractLayer(ABC):
                 )
             )
 
+    def _in_bounds_paths(
+        self, points: List[Tuple[float, float]]
+    ) -> List[List[Tuple[float, float]]]:
+        """
+        Returns a list of paths that are within the plotter bounds.
+        """
+        paths = []
+        current_path = []
+        for point in points:
+            if self._is_point_in_bounds(point[0], point[1]):
+                current_path.append(point)
+            else:
+                if len(current_path) > 0:
+                    paths.append(current_path)
+                    current_path = []
+        if len(current_path) > 0:
+            paths.append(current_path)
+        return paths
+
     def _is_point_in_bounds(self, x: float, y: float) -> bool:
         """
         Whether the point to be plotted is within the plotter bounds.
+        Points are plotted relative to the plotter's origin.
 
         Args:
         - x (float) : The x-coordinate of the point to be plotted.
@@ -552,9 +581,15 @@ class _AbstractLayer(ABC):
         - bool : Whether the point to be plotted is within the plotter bounds.
         """
 
+        width = self.plotter_x_max - self.plotter_x_min
+        height = self.plotter_y_max - self.plotter_y_min
         too_low = x < self.plotter_x_min or y < self.plotter_y_min
         too_high = x > self.plotter_x_max or y > self.plotter_y_max
-
+        if too_low or too_high:
+            print(
+                f"""Point {x}, {y} is out of bounds for plotter of width {width} and height {height}. \\
+                    As of version 3.0.0, points are plotted relative to the plotter's origin."""
+            )
         return not too_low and not too_high
 
     def preview_paths(self) -> List[List[Tuple[float, float]]]:

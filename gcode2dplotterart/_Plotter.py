@@ -226,7 +226,7 @@ class _AbstractPlotter(ABC):
         ax.spines["right"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
-
+        plt.title(self.title)
         plt.gca().set_aspect("equal", adjustable="box")
 
         plt.show()
