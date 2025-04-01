@@ -1,5 +1,7 @@
 # V3.0 Push
 
+- Branch name is v3.0.0 all changes will merge into that
+
 ## Functionality
 
 - [x] Implement `Partial` Paths
