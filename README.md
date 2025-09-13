@@ -5,7 +5,7 @@
 
 # Introduction
 
-[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add paths, points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or [converted 3D Printer](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/convert-3d-to-2d).
+[G-Code](https://marlinfw.org/meta/gcode/) wrapper to generate G-Code for 2D plotter art. Add paths, points, lines, circles, and more and get G-Code instructions to send to your 2D Plotter or converted 3D Printer.
 
 Here are a few examples of what's been made with this library.
 
@@ -13,26 +13,29 @@ Here are a few examples of what's been made with this library.
 
 ![Preview Image](https://travisbumgarner.github.io/gcode2dplotterart/assets/images/example1-53389bb1cc21dc7a9aba3a302f04e952.jpg)
 
-
 # Quick Start
 
-Below is a quick start example to get you up and running. For a quick start, gallery, and documentation, . [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
+For full documentation, [check out the website](https://travisbumgarner.github.io/gcode2dplotterart/).
+
+Below is a quick start example to get you up and running.
 
 ```python
 
 from gcode2dplotterart import Plotter2D # Change to `Plotter3D` if using a converted 3D printer.
 
 plotter = Plotter2D(
-    # Specify the dimensions of your plotter
+    # Specify plotter dimensions
     x_min=0,
     x_max=200,
     y_min=0,
     y_max=200,
     feed_rate=10000,
-    # G-Code files are located in `output_directory/title/layer.gcode`
+
+    # Specify outputs
     title="Plotter2D Quickstart",
     output_directory="./output",
-    # Give a warning if a plotted point is outside the plotting device's dimensions.
+
+    # How to handle attempting to plot points outside plotter dimensions
     handle_out_of_bounds="Warning",
 )
 
@@ -63,6 +66,10 @@ plotter.preview()
 plotter.save()
 ```
 
-# Changelog
+# Get Help
 
-[View the changelog](https://travisbumgarner.github.io/gcode2dplotterart/docs/releases)
+Join the [Discord Channel](https://discord.gg/J8jwMxEEff).
+
+# Release Notes
+
+Check out the latest changes [here](https://travisbumgarner.github.io/gcode2dplotterart/docs/releases).
