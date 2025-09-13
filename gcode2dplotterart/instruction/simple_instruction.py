@@ -1,9 +1,4 @@
-from abc import ABC
-
-
-class _AbstractSimpleInstruction(
-    ABC,
-):
+class BaseSimpleInstruction:
     """Abstract class representing an instruction in G-Code. Used for simple instructions that do not require
     user inputs, such as "M2".
 
@@ -29,7 +24,7 @@ class _AbstractSimpleInstruction(
         return f"{self.instruction}"
 
 
-class Instruction2DPlotterPlottingHeight(_AbstractSimpleInstruction):
+class Instruction2DPlotterPlottingHeight(BaseSimpleInstruction):
     """
     Connect plotting instrument to plotting surface
     """
@@ -38,7 +33,7 @@ class Instruction2DPlotterPlottingHeight(_AbstractSimpleInstruction):
         super().__init__("M3 S1000", "Connect plotting instrument to plotting surface")
 
 
-class Instruction2DPlotterNavigationHeight(_AbstractSimpleInstruction):
+class Instruction2DPlotterNavigationHeight(BaseSimpleInstruction):
     """
     Separate plotting instrument from plotting surface
     """
@@ -50,7 +45,7 @@ class Instruction2DPlotterNavigationHeight(_AbstractSimpleInstruction):
         )
 
 
-class InstructionUnitsMM(_AbstractSimpleInstruction):
+class InstructionUnitsMM(BaseSimpleInstruction):
     """
     Set the units of the layer to mm
     """
@@ -59,18 +54,16 @@ class InstructionUnitsMM(_AbstractSimpleInstruction):
         super().__init__("G21", "Set the units of the layer to mm")
 
 
-class InstructionProgramEnd(_AbstractSimpleInstruction):
+class InstructionProgramEnd(BaseSimpleInstruction):
     """
     Instruct the plotting device that plotting has completed
     """
 
     def __init__(self) -> None:
-        super().__init__(
-            "M2", "Instruct the plotting device that plotting has completed"
-        )
+        super().__init__("M2", "Instruct the plotting device that plotting has completed")
 
 
-class InstructionHome(_AbstractSimpleInstruction):
+class InstructionHome(BaseSimpleInstruction):
     """
     Return the plotter to the home position.
     """

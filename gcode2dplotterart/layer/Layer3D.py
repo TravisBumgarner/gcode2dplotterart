@@ -1,12 +1,13 @@
 from typing import Optional
+
 from typing_extensions import Self
 
-from ._Layer import _AbstractLayer
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from ..instruction import (
     Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
 )
+from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from .base_layer import _AbstractLayer
 
 
 class Layer3D(_AbstractLayer):

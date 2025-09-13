@@ -1,13 +1,14 @@
 from typing import Optional
+
 from typing_extensions import Self
 
-from ._Layer import _AbstractLayer
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from ..instruction import (
-    InstructionPause,
     Instruction2DPlotterNavigationHeight,
     Instruction2DPlotterPlottingHeight,
+    InstructionPause,
 )
+from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from .base_layer import _AbstractLayer
 
 
 class Layer2D(_AbstractLayer):

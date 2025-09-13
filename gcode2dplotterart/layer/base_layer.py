@@ -1,23 +1,22 @@
-from typing import List, Tuple, Union, Dict, Optional
-from typing_extensions import Self
 import math
-from abc import ABC, abstractmethod
 import secrets
+from abc import ABC, abstractmethod
+from typing import Self
 
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from ..instruction import (
-    InstructionPoint,
+    Instruction2DPlotterNavigationHeight,
+    Instruction2DPlotterPlottingHeight,
+    Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
     InstructionComment,
     InstructionFeedRate,
-    InstructionPause,
-    Instruction3DPrinterNavigationHeight,
-    Instruction2DPlotterNavigationHeight,
-    Instruction2DPlotterPlottingHeight,
-    InstructionUnitsMM,
     InstructionHome,
+    InstructionPause,
+    InstructionPoint,
     InstructionProgramEnd,
+    InstructionUnitsMM,
 )
+from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from .draw_character import draw_character
 
 SETUP_INSTRUCTIONS_DISPLAY = """
@@ -35,23 +34,23 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """
 ##############################           TEARDOWN INSTRUCTIONS          ##############################
 ######################################################################################################"""
 
-TInstructionUnion = Union[
-    InstructionPoint,
-    InstructionComment,
-    InstructionFeedRate,
-    Instruction2DPlotterPlottingHeight,
-    Instruction2DPlotterNavigationHeight,
-    InstructionPause,
-    InstructionUnitsMM,
-    InstructionProgramEnd,
-    Instruction3DPrinterPlottingHeight,
-    Instruction3DPrinterNavigationHeight,
-    InstructionHome,
-]
+TInstructionUnion = (
+    InstructionPoint
+    | InstructionComment
+    | InstructionFeedRate
+    | Instruction2DPlotterPlottingHeight
+    | Instruction2DPlotterNavigationHeight
+    | InstructionPause
+    | InstructionUnitsMM
+    | InstructionProgramEnd
+    | Instruction3DPrinterPlottingHeight
+    | Instruction3DPrinterNavigationHeight
+    | InstructionHome
+)
 
 
 class _AbstractLayer(ABC):
-    instructions: Dict[TInstructionPhase, List[TInstructionUnion]]
+    instructions: dict[TInstructionPhase, list[TInstructionUnion]]
 
     def __init__(
         self,
@@ -61,14 +60,13 @@ class _AbstractLayer(ABC):
         plotter_y_max: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
-        color: Optional[str],
+        color: str | None,
         line_width: float,
         include_comments: bool,
         preview_only: bool = False,
     ):
-        self.color = color if color else f"#{secrets.token_hex(3, )}"
-
-        self.instructions: Dict[TInstructionPhase, TInstructionUnion] = {
+        self.color = color if color else f"#{secrets.token_hex(3)}"
+        self.instructions: dict[TInstructionPhase, TInstructionUnion] = {
             "setup": [],
             "plotting": [],
             "teardown": [],
@@ -113,16 +111,12 @@ class _AbstractLayer(ABC):
         - x : (float) The x-coordinate of the point to add.
         - y : (float) The y-coordinate of the point to add.
         """
-        if x < self.layer_x_min:
-            self.layer_x_min = x
-        if x > self.layer_x_max:
-            self.layer_x_max = x
-        if y < self.layer_y_min:
-            self.layer_y_min = y
-        if y > self.layer_y_max:
-            self.layer_y_max = y
+        self.layer_x_min = min(self.layer_x_min, x)
+        self.layer_x_max = max(self.layer_x_max, x)
+        self.layer_y_min = min(self.layer_y_min, y)
+        self.layer_y_max = max(self.layer_y_max, y)
 
-    def get_min_and_max_points(self) -> Dict[str, float]:
+    def get_min_and_max_points(self) -> dict[str, float]:
         """
         Find the min and max plot points of the layer.
 
@@ -208,9 +202,7 @@ class _AbstractLayer(ABC):
         self._add_instruction(InstructionHome(), instruction_phase)
         return self
 
-    def _add_coordinate(
-        self, x: float, y: float, instruction_phase: TInstructionPhase
-    ) -> Self:
+    def _add_coordinate(self, x: float, y: float, instruction_phase: TInstructionPhase) -> Self:
         """
         Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
         """
@@ -224,9 +216,7 @@ class _AbstractLayer(ABC):
         self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
     ) -> Self:
         if not isinstance(instruction, InstructionComment) and self.include_comments:
-            self.instructions[instruction_phase].append(
-                InstructionComment(str(instruction))
-            )
+            self.instructions[instruction_phase].append(InstructionComment(str(instruction)))
         self.instructions[instruction_phase].append(instruction)
         return self
 
@@ -251,7 +241,7 @@ class _AbstractLayer(ABC):
 
     def add_path(
         self,
-        points: List[Tuple[float, float]],
+        points: list[tuple[float, float]],
         raise_plotter_head_after_path: bool = True,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
@@ -356,9 +346,7 @@ class _AbstractLayer(ABC):
         """
 
         points = [(x_start, y_start), (x_end, y_end)]
-        self.add_comment(
-            f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
-        )
+        self.add_comment(f"Line: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase)
         self.add_path(
             points,
             raise_plotter_head_after_path=raise_plotter_head_after_path,
@@ -392,9 +380,7 @@ class _AbstractLayer(ABC):
         Returns:
         - Layer : The Layer object. Allows for chaining of add methods.
         """
-        self.add_comment(
-            f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase
-        )
+        self.add_comment(f"Rectangle: {x_start}, {y_start}, {x_end}, {y_end}", instruction_phase)
         points = [
             (x_start, y_start),
             (x_start, y_end),
@@ -444,7 +430,7 @@ class _AbstractLayer(ABC):
         # Calculate angle step between points to approximate the circle
         angle_step = 360.0 / num_points
 
-        points: List[Tuple[float, float]] = []
+        points: list[tuple[float, float]] = []
         for point in range(num_points):
             angle = math.radians(point * angle_step)
             x = x_center + radius * math.cos(angle)
@@ -464,8 +450,8 @@ class _AbstractLayer(ABC):
         font_size: float,
         x_start: float,
         y_start: float,
-        char_spacing: Optional[float] = None,
-        point_offset: Optional[float] = None,
+        char_spacing: float | None = None,
+        point_offset: float | None = None,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
         """
@@ -516,27 +502,16 @@ class _AbstractLayer(ABC):
         """
         with open(file_path, "w") as file:
             file.write(
+                "\n".join([instruction.to_g_code() for instruction in self.instructions["setup"]])
+            )
+            file.write(
                 "\n".join(
-                    [
-                        instruction.to_g_code()
-                        for instruction in self.instructions["setup"]
-                    ]
+                    [instruction.to_g_code() for instruction in self.instructions["plotting"]]
                 )
             )
             file.write(
                 "\n".join(
-                    [
-                        instruction.to_g_code()
-                        for instruction in self.instructions["plotting"]
-                    ]
-                )
-            )
-            file.write(
-                "\n".join(
-                    [
-                        instruction.to_g_code()
-                        for instruction in self.instructions["teardown"]
-                    ]
+                    [instruction.to_g_code() for instruction in self.instructions["teardown"]]
                 )
             )
 
@@ -557,7 +532,7 @@ class _AbstractLayer(ABC):
 
         return not too_low and not too_high
 
-    def preview_paths(self) -> List[List[Tuple[float, float]]]:
+    def preview_paths(self) -> list[list[tuple[float, float]]]:
         """
         Generate an array of paths for the given layer. This will be used by the `Plotter`
         to generate a preview image of what will be plotted. Only looks at instructions during the `plotting`
@@ -568,24 +543,24 @@ class _AbstractLayer(ABC):
             An array of paths for the given layer.
         """
         is_plotting = False  # Layer is set to initially be in navigation mode.
-        paths: List[List[Tuple[float, float]]] = []
-        current_path: List[Tuple[float, float]] = []
+        paths: list[list[tuple[float, float]]] = []
+        current_path: list[tuple[float, float]] = []
         # Before the plotter begins plotting, it needs to move to a point, switch to plotting mode, and begin plotting.
         # This will hold the most recent navigation point before the switch to plotting mode is made.
         previous_navigation_point = None
 
         for instruction in self.instructions["plotting"]:
-            if isinstance(
-                instruction, Instruction2DPlotterNavigationHeight
-            ) or isinstance(instruction, Instruction3DPrinterNavigationHeight):
+            if isinstance(instruction, Instruction2DPlotterNavigationHeight) or isinstance(
+                instruction, Instruction3DPrinterNavigationHeight
+            ):
                 is_plotting = False
                 if len(current_path) > 0:
                     paths.append(current_path)
                     current_path = []
 
-            if isinstance(
-                instruction, Instruction2DPlotterPlottingHeight
-            ) or isinstance(instruction, Instruction3DPrinterPlottingHeight):
+            if isinstance(instruction, Instruction2DPlotterPlottingHeight) or isinstance(
+                instruction, Instruction3DPrinterPlottingHeight
+            ):
                 is_plotting = True
                 if previous_navigation_point:
                     current_path.append(previous_navigation_point)
@@ -599,7 +574,7 @@ class _AbstractLayer(ABC):
 
         return paths
 
-    def get_plotting_data(self) -> Dict[str, List[str]]:
+    def get_plotting_data(self) -> dict[str, list[str]]:
         """
         Get current plotting data.
 
@@ -610,13 +585,7 @@ class _AbstractLayer(ABC):
             and teardown as an array of G-Code instruction strings per layer. Mostly used for testing purposes.
         """
         return {
-            "setup": [
-                instruction.to_g_code() for instruction in self.instructions["setup"]
-            ],
-            "plotting": [
-                instruction.to_g_code() for instruction in self.instructions["plotting"]
-            ],
-            "teardown": [
-                instruction.to_g_code() for instruction in self.instructions["teardown"]
-            ],
+            "setup": [instruction.to_g_code() for instruction in self.instructions["setup"]],
+            "plotting": [instruction.to_g_code() for instruction in self.instructions["plotting"]],
+            "teardown": [instruction.to_g_code() for instruction in self.instructions["teardown"]],
         }

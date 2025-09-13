@@ -1,4 +1,4 @@
-from typing import Union, Literal
+from typing import Literal
 
-THandleOutOfBounds = Union[Literal["Warning"], Literal["Error"]]
-TInstructionPhase = Union[Literal["setup"], Literal["plotting"], Literal["teardown"]]
+THandleOutOfBounds = Literal["Warning"] | Literal["Error"]
+TInstructionPhase = Literal["setup"] | Literal["plotting"] | Literal["teardown"]

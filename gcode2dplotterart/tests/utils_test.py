@@ -1,8 +1,8 @@
-import os
 import json
+import os
 from typing import Union
 
-from gcode2dplotterart import Plotter2D, Plotter3D
+from .. import Plotter2D, Plotter3D
 
 skip_test_and_generate_snapshots = os.environ.get("GENERATE_SNAPSHOTS", "no")
 
@@ -35,6 +35,6 @@ def run_test_and_snapshot(
                     file.write(new_snapshot)
                 return
             else:
-                assert (
-                    old_snapshot == new_snapshot
-                ), f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
+                assert old_snapshot == new_snapshot, (
+                    f"\nExpected: {old_snapshot}\nActual  : {new_snapshot}"
+                )

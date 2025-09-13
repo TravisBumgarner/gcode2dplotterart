@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 
-class _BaseInstruction(ABC):
+class BaseInstruction:
     """
     Abstract class representing an instruction in G-Code.
     """
@@ -15,7 +15,7 @@ class _BaseInstruction(ABC):
         pass
 
 
-class InstructionPoint(_BaseInstruction):
+class InstructionPoint(BaseInstruction):
     """
     A point in 2D space with an optional feed rate. The most basic building block for plotting a layer.
 
@@ -55,7 +55,7 @@ class InstructionPoint(_BaseInstruction):
         return output
 
 
-class InstructionComment(_BaseInstruction):
+class InstructionComment(BaseInstruction):
     """
     A comment. Useful for adding notes to the G-Code file.
 
@@ -102,7 +102,7 @@ class InstructionFeedRate:
         return f"F{self.feed_rate}"
 
 
-class InstructionPause(_BaseInstruction):
+class InstructionPause(BaseInstruction):
     """
     Perform a brief pause. Useful, to reduce and prevent vibration.
 

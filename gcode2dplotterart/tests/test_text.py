@@ -2,12 +2,14 @@
 
 import os
 import unittest
+
+from utils_test import run_test_and_snapshot
+
 from ..Plotter2D import Plotter2D
-from gcode2dplotterart.tests.utils_test import run_test_and_snapshot
 
 
 class TestSnapshot(unittest.TestCase):
-    def testSnapshot(self) -> None:
+    def test_snapshot(self) -> None:
         layer = "black"
 
         plotter = Plotter2D(

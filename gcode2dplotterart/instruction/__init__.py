@@ -1,29 +1,29 @@
-from .InstructionWithArguments import (
-    InstructionPoint,
-    InstructionPause,
-    InstructionComment,
-    InstructionFeedRate,
+from .instruction_with_arguments import (
     Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
+    InstructionComment,
+    InstructionFeedRate,
+    InstructionPause,
+    InstructionPoint,
 )
-from .SimpleInstruction import (
+from .simple_instruction import (
     Instruction2DPlotterNavigationHeight,
     Instruction2DPlotterPlottingHeight,
+    InstructionHome,
     InstructionProgramEnd,
     InstructionUnitsMM,
-    InstructionHome,
 )
 
 __all__ = [
-    "InstructionPoint",
-    "InstructionPause",
-    "InstructionComment",
-    "InstructionFeedRate",
-    "Instruction3DPrinterNavigationHeight",
-    "Instruction3DPrinterPlottingHeight",
     "Instruction2DPlotterNavigationHeight",
     "Instruction2DPlotterPlottingHeight",
+    "Instruction3DPrinterNavigationHeight",
+    "Instruction3DPrinterPlottingHeight",
+    "InstructionComment",
+    "InstructionFeedRate",
+    "InstructionHome",
+    "InstructionPause",
+    "InstructionPoint",
     "InstructionProgramEnd",
     "InstructionUnitsMM",
-    "InstructionHome",
 ]

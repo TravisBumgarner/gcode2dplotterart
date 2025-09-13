@@ -1,9 +1,9 @@
-from typing import List, Tuple, Callable, Dict
+from collections.abc import Callable
 
 
 def line_a(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start, char_y_start + segment_length * 2),
         (char_x_start + segment_length, char_y_start + segment_length * 2),
@@ -12,7 +12,7 @@ def line_a(
 
 def line_b(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start + segment_length, char_y_start + segment_length),
         (char_x_start + segment_length, char_y_start + segment_length * 2),
@@ -21,7 +21,7 @@ def line_b(
 
 def line_c(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start + segment_length, char_y_start),
         (char_x_start + segment_length, char_y_start + segment_length),
@@ -30,19 +30,19 @@ def line_c(
 
 def line_d(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [(char_x_start, char_y_start), (char_x_start + segment_length, char_y_start)]
 
 
 def line_e(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [(char_x_start, char_y_start), (char_x_start, char_y_start + segment_length)]
 
 
 def line_f(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start, char_y_start + segment_length),
         (char_x_start, char_y_start + segment_length * 2),
@@ -51,7 +51,7 @@ def line_f(
 
 def line_g(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start, char_y_start + segment_length),
         (char_x_start + segment_length, char_y_start + segment_length),
@@ -63,7 +63,7 @@ def point_dp(
     char_x_start: float,
     char_y_start: float,
     point_offset: float,
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start + segment_length + point_offset, char_y_start),
     ]
@@ -71,7 +71,7 @@ def point_dp(
 
 def space(
     segment_length: float, char_x_start: float, char_y_start: float
-) -> List[Tuple[float, float]]:
+) -> list[tuple[float, float]]:
     return [
         (char_x_start, char_y_start),
         (char_x_start + segment_length, char_y_start),
@@ -133,10 +133,10 @@ character_map = {
 }
 
 
-PrimitiveFunction = Callable[[float, float, float], List[Tuple[float, float]]]
+PrimitiveFunction = Callable[[float, float, float], list[tuple[float, float]]]
 
 
-primitive_map: Dict[str, PrimitiveFunction] = {
+primitive_map: dict[str, PrimitiveFunction] = {
     "a": line_a,
     "b": line_b,
     "c": line_c,
@@ -154,7 +154,7 @@ def draw_character(
     y_start: float,
     segment_length: float,
     point_offset: float,
-) -> List[List[Tuple[float, float]]]:
+) -> list[list[tuple[float, float]]]:
     """
     Draw a single character. The character will be drawn at the specified x and y start coordinates.
 

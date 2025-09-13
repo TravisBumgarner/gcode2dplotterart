@@ -1,7 +1,8 @@
 import os
 import shutil
-from typing import List, Dict, Union, Optional, Literal
 from abc import ABC, abstractmethod
+from typing import Dict, List, Literal, Optional, Union
+
 import matplotlib.pyplot as plt
 
 from .layer import Layer2D, Layer3D

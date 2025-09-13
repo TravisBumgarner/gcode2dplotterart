@@ -1,12 +1,13 @@
 import os
 import unittest
 
+from utils_test import run_test_and_snapshot
+
 from ..Plotter2D import Plotter2D
-from gcode2dplotterart.tests.utils_test import run_test_and_snapshot
 
 
 class TestSnapshot(unittest.TestCase):
-    def testSnapshot(self) -> None:
+    def test_snapshot(self) -> None:
         layer = "black"
         layer2 = "red"
 
@@ -34,9 +35,7 @@ class TestSnapshot(unittest.TestCase):
 
         plotter.add_layer(layer2)
 
-        plotter.layers[layer2].add_circle(
-            25, 25, 10, raise_plotter_head_after_path=False
-        )
+        plotter.layers[layer2].add_circle(25, 25, 10, raise_plotter_head_after_path=False)
         plotter.layers[layer2].add_circle(25, 25, 12)
 
         run_test_and_snapshot(snapshot_directory, snapshot_file_path, plotter)
