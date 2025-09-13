@@ -1,8 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "python.defaultInterpreterPath": "venv/bin/python",
-
+  "python.defaultInterpreterPath": "sandbox-venv/bin/python",
   "[python]": {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {

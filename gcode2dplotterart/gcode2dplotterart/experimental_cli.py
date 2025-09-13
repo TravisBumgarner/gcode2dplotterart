@@ -2,17 +2,17 @@
 # I don't actually need it at this point, don't want to throw it away, so I'm keeping it here.
 
 import cmd
-import serial
-import serial.tools.list_ports
 import sys
 import threading
-from typing import Optional
+
+import serial
+import serial.tools.list_ports
 
 
 class GCodeCLI(cmd.Cmd):
     intro = "Welcome to the G-Code CLI. Type help or ? to list commands.\n"
     prompt = "(gcode) "
-    ser: Optional[serial.Serial] = None
+    ser: serial.Serial | None = None
     stop_thread = False
 
     def do_list_ports(self, arg: str) -> None:

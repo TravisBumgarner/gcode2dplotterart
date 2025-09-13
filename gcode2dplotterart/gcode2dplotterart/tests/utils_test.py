@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Union
 
 from .. import Plotter2D, Plotter3D
 
@@ -13,7 +12,7 @@ INDENT = 4
 def run_test_and_snapshot(
     snapshot_directory: str,
     snapshot_file_path: str,
-    plotter: Union[Plotter3D, Plotter2D],
+    plotter: Plotter3D | Plotter2D,
 ) -> None:
     os.makedirs(snapshot_directory, exist_ok=True)
 
@@ -25,7 +24,7 @@ def run_test_and_snapshot(
 
         print(f"Verify code for {plotter.title} then commit, then run this test again.")
     else:
-        with open(snapshot_file_path, "r") as file:
+        with open(snapshot_file_path) as file:
             old_snapshot = file.read()
             new_snapshot = json.dumps(plotter.get_plotting_data(), indent=INDENT)
 

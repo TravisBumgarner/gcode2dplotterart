@@ -1,4 +1,4 @@
-# 2d-plotter-art-g-code
+# gcode2dplotterart
 
 ## Local Setup
 
@@ -39,7 +39,7 @@ username = sillysideprojects
 password = foobar
 
 [pypi]
-repository = https://upload.pypi.org/legacy/ 
+repository = https://upload.pypi.org/legacy/
 username = __token__
 password = buzzfizz
 ```

@@ -1,7 +1,7 @@
 import os
 import shutil
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 import matplotlib.pyplot as plt
 
@@ -16,7 +16,7 @@ class _AbstractPlotter(ABC):
     y_min: float
     y_max: float
     feed_rate: float
-    layers: Dict[str, Union[Layer2D, Layer3D]]
+    layers: dict[str, Layer2D | Layer3D]
     output_directory: str
     handle_out_of_bounds: THandleOutOfBounds
     include_comments: bool
@@ -48,7 +48,7 @@ class _AbstractPlotter(ABC):
 
     def get_min_and_max_points(
         self,
-    ) -> Dict[Literal["x_min", "y_min", "x_max", "y_max"], float]:
+    ) -> dict[Literal["x_min", "y_min", "x_max", "y_max"], float]:
         """
         Find the min and max plot points of the plotter.
 
@@ -81,10 +81,10 @@ class _AbstractPlotter(ABC):
     def add_layer(
         self,
         title: str,
-        color: Optional[str] = None,
+        color: str | None = None,
         line_width: float = 2.0,
         preview_only: bool = False,
-    ) -> Union[Layer2D, Layer3D]:
+    ) -> Layer2D | Layer3D:
         """
         Add a new layer to the plotter.
 
@@ -161,7 +161,7 @@ class _AbstractPlotter(ABC):
 
         return not too_low and not too_high
 
-    def get_plotting_data(self) -> Dict[str, Dict[str, List[str]]]:
+    def get_plotting_data(self) -> dict[str, dict[str, list[str]]]:
         """
         Get current plotting data.
 
@@ -197,7 +197,7 @@ class _AbstractPlotter(ABC):
             scatter_points_x = []
             scatter_points_y = []
             for preview_path in preview_paths:
-                x_values, y_values = zip(*preview_path)
+                x_values, y_values = zip(*preview_path, strict=False)
 
                 if (len(x_values)) == 1:
                     # A single point does not plot on ax.plot()

@@ -1,6 +1,5 @@
-from typing import Optional
 
-from ._Plotter import _AbstractPlotter
+from .base_plotter import _AbstractPlotter
 from .layer import Layer3D
 from .shared_types import THandleOutOfBounds
 
@@ -76,7 +75,7 @@ class Plotter3D(_AbstractPlotter):
     def add_layer(
         self,
         title: str,
-        color: Optional[str] = None,
+        color: str | None = None,
         line_width: float = 2.0,
         preview_only: bool = False,
     ) -> Layer3D:
