@@ -24,6 +24,7 @@ plotter.layers["foo"].add_line(
 plotter.layers["foo"].add_text("Hello from", 8, 0, 10)
 plotter.layers["foo"].add_text("the sandbox", 8, 0, 0)
 
+plotter.layers["foo"].add_point(10,10)
 plotter.preview()
 
 plotter.save()

@@ -1,0 +1,6 @@
+{
+  "folders": [
+    { "name": "sandbox", "path": "./sandbox" },
+    { "name": "gcode2dplotterart", "path": "./gcode2dplotterart" }
+  ],
+}
