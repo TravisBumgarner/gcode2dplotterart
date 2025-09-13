@@ -1,22 +1,23 @@
-from typing import Optional
 
-from typing_extensions import Self
+from typing import Self
 
 from ..instruction import (
-    Instruction2DPlotterNavigationHeight,
-    Instruction2DPlotterPlottingHeight,
-    InstructionPause,
+    Instruction3DPrinterNavigationHeight,
+    Instruction3DPrinterPlottingHeight,
 )
 from ..shared_types import THandleOutOfBounds, TInstructionPhase
 from .base_layer import _AbstractLayer
 
 
-class Layer2D(_AbstractLayer):
+class Layer3D(_AbstractLayer):
     """
-    `Layer2D` is a layer for a 2D plotter. Layers are added via the `Plotter2D.add_layer` method.
+    `Layer3D` is a layer for a 3D plotter. Layers are added via the `Plotter3D.add_layer` method.
 
-    `Layer2D` extends from the abstract class `Layer`.
+    `Layer3D` extends from the abstract class `Layer`.
     """
+
+    z_plotting_height: float
+    z_navigation_height: float
 
     def __init__(
         self,
@@ -24,9 +25,11 @@ class Layer2D(_AbstractLayer):
         plotter_y_min: float,
         plotter_x_max: float,
         plotter_y_max: float,
+        z_plotting_height: float,
+        z_navigation_height: float,
         feed_rate: float,
         handle_out_of_bounds: THandleOutOfBounds,
-        color: Optional[str],
+        color: str | None,
         line_width: float,
         include_comments: bool,
         preview_only: bool = False,
@@ -37,6 +40,12 @@ class Layer2D(_AbstractLayer):
         - plotter_y_min (float) : The minimum Y-coordinate of the plotter.
         - plotter_x_max (float) : The maximum X-coordinate of the plotter.
         - plotter_y_max (float) : The maximum Y-coordinate of the plotter.
+        - z_plotting_height (float) : The height of the
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase) when plotting on the
+          [plotting surface](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument).
+        - z_navigation_height (float) : The height of the
+          [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#instruction-phase)
+          when navigating to a new location.
         - feed_rate (float) : The [feed rate](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#feed-rate) for the plotter.
         - handle_out_of_bounds (`Warning` | `Error`, optional): \
             How to handle out-of-bounds points. \
@@ -48,6 +57,7 @@ class Layer2D(_AbstractLayer):
         - preview_only (bool, optional) : If true, the layer will not be plotted. Defaults to `False`.
         - include_comments (bool, optional) : Whether to include comments in the G-Code files. Useful for learning about G-Code and debugging. \
             Defaults to `True`.
+
         """
         super().__init__(
             plotter_x_min=plotter_x_min,
@@ -61,6 +71,8 @@ class Layer2D(_AbstractLayer):
             color=color,
             include_comments=include_comments,
         )
+        self.z_plotting_height = z_plotting_height
+        self.z_navigation_height = z_navigation_height
 
         self.set_mode_to_navigation("setup")
 
@@ -68,8 +80,14 @@ class Layer2D(_AbstractLayer):
         self,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        self._add_instruction(Instruction2DPlotterPlottingHeight(), instruction_phase)
-        self._add_instruction(InstructionPause(), instruction_phase)
+        self._add_instruction(
+            Instruction3DPrinterPlottingHeight(
+                z_plotting_height=self.z_plotting_height,
+                feed_rate=self.feed_rate,
+            ),
+            instruction_phase,
+        )
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self
 
@@ -77,7 +95,13 @@ class Layer2D(_AbstractLayer):
         self,
         instruction_phase: TInstructionPhase = "plotting",
     ) -> Self:
-        self._add_instruction(Instruction2DPlotterNavigationHeight(), instruction_phase)
-        self._add_instruction(InstructionPause(), instruction_phase)
+        self._add_instruction(
+            Instruction3DPrinterNavigationHeight(
+                z_navigating_height=self.z_navigation_height,
+                feed_rate=self.feed_rate,
+            ),
+            instruction_phase,
+        )
+        # self._add_instruction(InstructionPause(pause_duration), instruction_phase)
 
         return self

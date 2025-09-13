@@ -1,4 +1,4 @@
-from .Layer2D import Layer2D
-from .Layer3D import Layer3D
+from .layer_2d import Layer2D
+from .layer_3d import Layer3D
 
-__all__ = ["Layer2D", "Layer3D"]
+__all__ = ["layer_2d", "layer_3d"]
