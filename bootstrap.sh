@@ -8,11 +8,13 @@
 # Setup Python Environment                    #
 ###############################################
 
+cd gcode2dplotterart
 python3 -m venv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
 # pip install --editable .
 deactivate
+cd ..
 
 ###############################################
 # Setup Python Sandbox Environment            #
@@ -28,6 +30,7 @@ cd sandbox
 echo "Running sandbox..."
 python main.py
 deactivate
+cd ..
 
 
 ###############################################
