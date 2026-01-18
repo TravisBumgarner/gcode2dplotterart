@@ -68,7 +68,7 @@ tasks:
       - mypy passes with no new errors
     depends_on: []
     effort: 2
-    status: scoped
+    status: testing
 
   - id: 3
     github_issue: 59

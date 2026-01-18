@@ -13,8 +13,10 @@ from .SimpleInstruction import (
     InstructionUnitsMM,
     InstructionHome,
 )
+from .protocol import Instruction
 
 __all__ = [
+    "Instruction",
     "InstructionPoint",
     "InstructionPause",
     "InstructionComment",
