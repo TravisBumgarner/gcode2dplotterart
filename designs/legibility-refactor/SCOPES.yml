@@ -101,7 +101,7 @@ tasks:
       - All existing tests pass
     depends_on: [1, 3]
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 5
     github_issue: 61
