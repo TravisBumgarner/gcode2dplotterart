@@ -4,21 +4,14 @@ from typing import List, Dict, Union, Optional
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
+from .config import PlotterConfig
 from .layer import Layer2D, Layer3D
 from .shared_types import HandleOutOfBounds, Bounds
 
 
 class _AbstractPlotter(ABC):
-    title: str
-    x_min: float
-    x_max: float
-    y_min: float
-    y_max: float
-    feed_rate: float
+    _config: PlotterConfig
     layers: Dict[str, Union[Layer2D, Layer3D]]
-    output_directory: str
-    handle_out_of_bounds: HandleOutOfBounds
-    include_comments: bool
 
     def __init__(
         self,
@@ -33,17 +26,59 @@ class _AbstractPlotter(ABC):
         include_comments: bool,
         return_home_before_plotting: bool,
     ):
-        self.title = title
-        self.x_min = x_min
-        self.x_max = x_max
-        self.y_min = y_min
-        self.y_max = y_max
-        self.feed_rate = feed_rate
+        self._config = PlotterConfig(
+            title=title,
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            output_directory=output_directory,
+            include_comments=include_comments,
+            return_home_before_plotting=return_home_before_plotting,
+        )
         self.layers = {}
-        self.output_directory = output_directory
-        self.handle_out_of_bounds = handle_out_of_bounds
-        self.include_comments = include_comments
-        self.return_home_before_plotting = return_home_before_plotting
+
+    @property
+    def title(self) -> str:
+        return self._config.title
+
+    @property
+    def x_min(self) -> float:
+        return self._config.x_min
+
+    @property
+    def x_max(self) -> float:
+        return self._config.x_max
+
+    @property
+    def y_min(self) -> float:
+        return self._config.y_min
+
+    @property
+    def y_max(self) -> float:
+        return self._config.y_max
+
+    @property
+    def feed_rate(self) -> float:
+        return self._config.feed_rate
+
+    @property
+    def output_directory(self) -> str:
+        return self._config.output_directory
+
+    @property
+    def handle_out_of_bounds(self) -> HandleOutOfBounds:
+        return self._config.handle_out_of_bounds
+
+    @property
+    def include_comments(self) -> bool:
+        return self._config.include_comments
+
+    @property
+    def return_home_before_plotting(self) -> bool:
+        return self._config.return_home_before_plotting
 
     def get_min_and_max_points(
         self,
@@ -131,7 +166,7 @@ class _AbstractPlotter(ABC):
         Returns:
         - float : The width of the plotting area.
         """
-        return abs(self.x_max - self.x_min)
+        return self._config.width
 
     @property
     def height(self) -> float:
@@ -141,7 +176,7 @@ class _AbstractPlotter(ABC):
         Returns:
         - float : The height of the plotting area.
         """
-        return abs(self.y_max - self.y_min)
+        return self._config.height
 
     def is_point_in_bounds(self, x: float, y: float) -> bool:
         """
