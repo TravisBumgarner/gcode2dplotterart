@@ -85,7 +85,7 @@ tasks:
       - All existing tests pass
     depends_on: [1]
     effort: 3
-    status: scoped
+    status: testing
 
   - id: 4
     github_issue: 60
