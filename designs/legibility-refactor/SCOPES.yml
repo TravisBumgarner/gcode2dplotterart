@@ -50,7 +50,7 @@ tasks:
       - mypy passes with no new errors
     depends_on: []
     effort: 2
-    status: implementing
+    status: completed
 
   - id: 2
     github_issue: 58
