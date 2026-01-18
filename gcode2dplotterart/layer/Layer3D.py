@@ -2,7 +2,7 @@ from typing import Optional
 from typing_extensions import Self
 
 from ._Layer import _AbstractLayer
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from ..shared_types import HandleOutOfBounds, InstructionPhase
 from ..instruction import (
     Instruction3DPrinterNavigationHeight,
     Instruction3DPrinterPlottingHeight,
@@ -28,7 +28,7 @@ class Layer3D(_AbstractLayer):
         z_plotting_height: float,
         z_navigation_height: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: HandleOutOfBounds,
         color: Optional[str],
         line_width: float,
         include_comments: bool,
@@ -78,7 +78,7 @@ class Layer3D(_AbstractLayer):
 
     def set_mode_to_plotting(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterPlottingHeight(
@@ -93,7 +93,7 @@ class Layer3D(_AbstractLayer):
 
     def set_mode_to_navigation(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(
             Instruction3DPrinterNavigationHeight(

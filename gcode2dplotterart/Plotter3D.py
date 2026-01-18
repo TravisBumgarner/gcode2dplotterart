@@ -2,7 +2,7 @@ from typing import Optional
 
 from ._Plotter import _AbstractPlotter
 from .layer import Layer3D
-from .shared_types import THandleOutOfBounds
+from .shared_types import HandleOutOfBounds
 
 
 class Plotter3D(_AbstractPlotter):
@@ -25,7 +25,7 @@ class Plotter3D(_AbstractPlotter):
         z_plotting_height: float,
         z_navigation_height: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds = "Warning",
+        handle_out_of_bounds: HandleOutOfBounds = "Warning",
         output_directory: str = "./output",
         include_comments: bool = True,
         return_home_before_plotting: bool = True,

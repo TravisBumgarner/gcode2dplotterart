@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from ..shared_types import HandleOutOfBounds, InstructionPhase, Bounds
 from ..instruction import (
     InstructionPoint,
     Instruction3DPrinterPlottingHeight,
@@ -51,7 +51,7 @@ TInstructionUnion = Union[
 
 
 class _AbstractLayer(ABC):
-    instructions: Dict[TInstructionPhase, List[TInstructionUnion]]
+    instructions: Dict[InstructionPhase, List[TInstructionUnion]]
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class _AbstractLayer(ABC):
         plotter_x_max: float,
         plotter_y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: HandleOutOfBounds,
         color: Optional[str],
         line_width: float,
         include_comments: bool,
@@ -68,7 +68,7 @@ class _AbstractLayer(ABC):
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
 
-        self.instructions: Dict[TInstructionPhase, TInstructionUnion] = {
+        self.instructions: Dict[InstructionPhase, TInstructionUnion] = {
             "setup": [],
             "plotting": [],
             "teardown": [],
@@ -122,7 +122,7 @@ class _AbstractLayer(ABC):
         if y > self.layer_y_max:
             self.layer_y_max = y
 
-    def get_min_and_max_points(self) -> Dict[str, float]:
+    def get_min_and_max_points(self) -> Bounds:
         """
         Find the min and max plot points of the layer.
 
@@ -141,7 +141,7 @@ class _AbstractLayer(ABC):
     def set_feed_rate(
         self,
         feed_rate: float,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Set the speed at which the [plotter head](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
@@ -163,7 +163,7 @@ class _AbstractLayer(ABC):
     @abstractmethod
     def set_mode_to_plotting(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Connect [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
@@ -183,7 +183,7 @@ class _AbstractLayer(ABC):
     @abstractmethod
     def set_mode_to_navigation(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Separate [plotting instrument](https://travisbumgarner.github.io/gcode2dplotterart/docs/documentation/terminology#plotting-instrument)
@@ -201,7 +201,7 @@ class _AbstractLayer(ABC):
 
         pass
 
-    def _add_home(self, instruction_phase: TInstructionPhase = "plotting") -> Self:
+    def _add_home(self, instruction_phase: InstructionPhase = "plotting") -> Self:
         """
         Add a home instruction to the layer.
         """
@@ -209,7 +209,7 @@ class _AbstractLayer(ABC):
         return self
 
     def _add_coordinate(
-        self, x: float, y: float, instruction_phase: TInstructionPhase
+        self, x: float, y: float, instruction_phase: InstructionPhase
     ) -> Self:
         """
         Add a coordinate to the layer. Typically not used directly, instead use one of the other add methods.
@@ -221,7 +221,7 @@ class _AbstractLayer(ABC):
         return self
 
     def _add_instruction(
-        self, instruction: TInstructionUnion, instruction_phase: TInstructionPhase
+        self, instruction: TInstructionUnion, instruction_phase: InstructionPhase
     ) -> Self:
         if not isinstance(instruction, InstructionComment) and self.include_comments:
             self.instructions[instruction_phase].append(
@@ -230,7 +230,7 @@ class _AbstractLayer(ABC):
         self.instructions[instruction_phase].append(instruction)
         return self
 
-    def add_comment(self, text: str, instruction_phase: TInstructionPhase) -> Self:
+    def add_comment(self, text: str, instruction_phase: InstructionPhase) -> Self:
         """Add a comment to the layer.
 
         Args:
@@ -253,7 +253,7 @@ class _AbstractLayer(ABC):
         self,
         points: List[Tuple[float, float]],
         raise_plotter_head_after_path: bool = True,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Add a path to the layer. A path is a series of points that are connected by lines.
@@ -305,7 +305,7 @@ class _AbstractLayer(ABC):
         x: float,
         y: float,
         raise_plotter_head_after_path: bool = True,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Add a point to the layer. `add_point` calls `add_path` under the hood, for more control, use `add_path` directly.
@@ -338,7 +338,7 @@ class _AbstractLayer(ABC):
         x_end: float,
         y_end: float,
         raise_plotter_head_after_path: bool = True,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Add a line to the layer. `add_line` calls `add_path` under the hood, for more control, use `add_path` directly.
@@ -373,7 +373,7 @@ class _AbstractLayer(ABC):
         x_end: float,
         y_end: float,
         raise_plotter_head_after_path: bool = True,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Adds a rectangle to the layer.  `add_rectangle` calls `add_path` under the hood, for more control, use `add_path` directly.
@@ -416,7 +416,7 @@ class _AbstractLayer(ABC):
         radius: float,
         num_points: int = 36,
         raise_plotter_head_after_path: bool = True,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Adds a circle to the layer. `add_circle` calls `add_path` under the hood, for more control, use `add_path` directly.
@@ -466,7 +466,7 @@ class _AbstractLayer(ABC):
         y_start: float,
         char_spacing: Optional[float] = None,
         point_offset: Optional[float] = None,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         """
         Adds a text to the layer. `add_text` calls `add_path` under the hood, for more control, use `add_path` directly.

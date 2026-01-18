@@ -1,0 +1,185 @@
+project: Legibility Refactor
+repo: travisbumgarner/gcode2dplotterart
+design_file: designs/legibility-refactor/DESIGN.md
+scoping_date: 2026-01-17
+
+milestones:
+  - number: 1
+    title: "1. Fix Type Hints for Better IntelliSense"
+    description: Simplify type aliases and ensure all instruction classes have proper interfaces for better IDE support
+    branch:
+      working: 57-fix-type-hints
+      base: claude-rewrite
+
+  - number: 2
+    title: "2. Reduce Repetition with Dataclasses"
+    description: Introduce PlotterConfig and LayerConfig dataclasses to reduce parameter sprawl and duplicated docstrings
+    branch:
+      working: 59-reduce-repetition-dataclasses
+      base: 57-fix-type-hints
+
+  - number: 3
+    title: "3. Consolidate Instruction Classes"
+    description: Merge instruction files and use dataclasses for cleaner instruction definitions
+    branch:
+      working: 61-consolidate-instructions
+      base: 59-reduce-repetition-dataclasses
+
+  - number: 4
+    title: "4. Replace Documentation Generation"
+    description: Delete docstrings2md.py and implement proper documentation tooling
+    branch:
+      working: 63-replace-docs
+      base: 61-consolidate-instructions
+
+tasks:
+  - id: 1
+    github_issue: 57
+    milestone: 1
+    title: Simplify type aliases in shared_types.py
+    description: |
+      Refactor type aliases to use simpler `Literal["a", "b"]` syntax instead of
+      `Union[Literal["a"], Literal["b"]]`. Remove the `T` prefix from type names.
+      Add a `Bounds` TypedDict for structured return types.
+    acceptance_criteria:
+      - Type aliases use Literal["a", "b"] syntax
+      - Remove T prefix from type names (HandleOutOfBounds not THandleOutOfBounds)
+      - Add Bounds TypedDict for min/max point dictionaries
+      - Update all imports throughout codebase
+      - All existing tests pass
+      - mypy passes with no new errors
+    depends_on: []
+    effort: 2
+    status: completed
+
+  - id: 2
+    github_issue: 58
+    milestone: 1
+    title: Create unified Instruction protocol and fix inheritance
+    description: |
+      Create an `Instruction` Protocol that all instruction classes implement.
+      Fix classes that don't inherit from a base class: InstructionFeedRate,
+      Instruction3DPrinterPlottingHeight, Instruction3DPrinterNavigationHeight.
+    acceptance_criteria:
+      - Create Instruction protocol in instruction module
+      - All instruction classes implement the protocol
+      - Update TInstructionUnion type in _Layer.py to use the protocol
+      - All existing tests pass
+      - mypy passes with no new errors
+    depends_on: []
+    effort: 2
+    status: scoped
+
+  - id: 3
+    github_issue: 59
+    milestone: 2
+    title: Create PlotterConfig dataclass to reduce parameter sprawl
+    description: |
+      Create a PlotterConfig dataclass to group the 10 parameters currently passed
+      to _AbstractPlotter.__init__. Maintain backwards-compatible constructors.
+    acceptance_criteria:
+      - Create PlotterConfig dataclass in new config.py file
+      - Update _AbstractPlotter to use config internally
+      - Plotter2D and Plotter3D maintain backwards-compatible constructors
+      - Export PlotterConfig from package __init__.py
+      - All existing tests pass
+    depends_on: [1]
+    effort: 3
+    status: scoped
+
+  - id: 4
+    github_issue: 60
+    milestone: 2
+    title: Create LayerConfig dataclass to reduce layer parameter sprawl
+    description: |
+      Create a LayerConfig dataclass to group layer parameters. Similar pattern
+      to PlotterConfig.
+    acceptance_criteria:
+      - Create LayerConfig dataclass in config.py
+      - Update _AbstractLayer to use config internally
+      - Layer2D and Layer3D use simplified constructors
+      - All existing tests pass
+    depends_on: [1, 3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    github_issue: 61
+    milestone: 3
+    title: Consolidate instruction classes into single module
+    description: |
+      Merge SimpleInstruction.py and InstructionWithArguments.py into a single
+      instructions.py file. Use consistent base class pattern.
+    acceptance_criteria:
+      - Create new instruction/instructions.py with all instruction classes
+      - Use consistent base class pattern for all instructions
+      - Delete SimpleInstruction.py and InstructionWithArguments.py
+      - Update instruction/__init__.py exports
+      - All imports throughout codebase updated
+      - All existing tests pass
+    depends_on: [2]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    github_issue: 62
+    milestone: 3
+    title: Convert instruction classes to dataclasses
+    description: |
+      Convert all instruction classes to dataclasses for cleaner definitions.
+      Move validation to __post_init__ where applicable.
+    acceptance_criteria:
+      - All instruction classes converted to dataclasses
+      - Remove redundant __str__ methods where not needed
+      - Validation moved to __post_init__ where applicable
+      - All existing tests pass
+      - mypy passes
+    depends_on: [5]
+    effort: 2
+    status: scoped
+
+  - id: 7
+    github_issue: 63
+    milestone: 4
+    title: Delete docstrings2md.py
+    description: |
+      Delete the brittle docstrings2md.py script from the repository root.
+    acceptance_criteria:
+      - Delete docstrings2md.py from repository root
+      - Remove any references to the script
+    depends_on: []
+    effort: 1
+    status: scoped
+
+  - id: 8
+    github_issue: 64
+    milestone: 4
+    title: Set up mkdocs with mkdocstrings for API documentation
+    description: |
+      Replace custom documentation generation with mkdocs and mkdocstrings.
+      Configure to generate API docs from Python docstrings.
+    acceptance_criteria:
+      - Add mkdocs and mkdocstrings to dev dependencies
+      - Create mkdocs.yml configuration file
+      - Configure mkdocstrings for Python API docs
+      - Generate API documentation for main classes
+      - Document how to regenerate docs
+    depends_on: [7]
+    effort: 3
+    status: scoped
+
+  - id: 9
+    github_issue: 65
+    milestone: 4
+    title: Standardize docstrings to Google style
+    description: |
+      Standardize all docstrings to Google style format for consistency
+      and better mkdocstrings parsing.
+    acceptance_criteria:
+      - All public methods use Google-style docstrings
+      - Remove redundant type info from docstrings (types are in annotations)
+      - Consistent formatting across all modules
+      - mkdocstrings renders all docstrings correctly
+    depends_on: [5, 6, 8]
+    effort: 3
+    status: scoped
