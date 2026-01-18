@@ -1,4 +1,4 @@
-from .config import PlotterConfig
+from .config import LayerConfig, PlotterConfig
 from .Plotter2D import Plotter2D
 from .Plotter3D import Plotter3D
 from .experimental_photo_utils import (
@@ -9,6 +9,7 @@ from .experimental_photo_utils import (
 )
 
 __all__ = [
+    "LayerConfig",
     "PlotterConfig",
     "Plotter2D",
     "Plotter3D",

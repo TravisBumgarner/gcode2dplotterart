@@ -1,6 +1,37 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from .shared_types import HandleOutOfBounds
+
+
+@dataclass
+class LayerConfig:
+    """
+    Configuration for a layer instance.
+
+    Groups the common parameters used by all layer types (2D and 3D).
+    """
+
+    plotter_x_min: float
+    plotter_x_max: float
+    plotter_y_min: float
+    plotter_y_max: float
+    feed_rate: float
+    handle_out_of_bounds: HandleOutOfBounds
+    line_width: float
+    include_comments: bool
+    color: Optional[str] = None
+    preview_only: bool = False
+
+    @property
+    def plotter_width(self) -> float:
+        """Width of the plotter area."""
+        return abs(self.plotter_x_max - self.plotter_x_min)
+
+    @property
+    def plotter_height(self) -> float:
+        """Height of the plotter area."""
+        return abs(self.plotter_y_max - self.plotter_y_min)
 
 
 @dataclass
