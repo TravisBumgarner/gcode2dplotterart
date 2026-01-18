@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Dict, Optional
+from typing import List, Tuple, Dict, Optional
 from typing_extensions import Self
 import math
 from abc import ABC, abstractmethod
@@ -6,6 +6,7 @@ import secrets
 
 from ..shared_types import HandleOutOfBounds, InstructionPhase, Bounds
 from ..instruction import (
+    Instruction,
     InstructionPoint,
     Instruction3DPrinterPlottingHeight,
     InstructionComment,
@@ -35,23 +36,8 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """
 ##############################           TEARDOWN INSTRUCTIONS          ##############################
 ######################################################################################################"""
 
-TInstructionUnion = Union[
-    InstructionPoint,
-    InstructionComment,
-    InstructionFeedRate,
-    Instruction2DPlotterPlottingHeight,
-    Instruction2DPlotterNavigationHeight,
-    InstructionPause,
-    InstructionUnitsMM,
-    InstructionProgramEnd,
-    Instruction3DPrinterPlottingHeight,
-    Instruction3DPrinterNavigationHeight,
-    InstructionHome,
-]
-
-
 class _AbstractLayer(ABC):
-    instructions: Dict[InstructionPhase, List[TInstructionUnion]]
+    instructions: Dict[InstructionPhase, List[Instruction]]
 
     def __init__(
         self,
@@ -68,7 +54,7 @@ class _AbstractLayer(ABC):
     ):
         self.color = color if color else f"#{secrets.token_hex(3, )}"
 
-        self.instructions: Dict[InstructionPhase, TInstructionUnion] = {
+        self.instructions: Dict[InstructionPhase, List[Instruction]] = {
             "setup": [],
             "plotting": [],
             "teardown": [],
@@ -221,7 +207,7 @@ class _AbstractLayer(ABC):
         return self
 
     def _add_instruction(
-        self, instruction: TInstructionUnion, instruction_phase: InstructionPhase
+        self, instruction: Instruction, instruction_phase: InstructionPhase
     ) -> Self:
         if not isinstance(instruction, InstructionComment) and self.include_comments:
             self.instructions[instruction_phase].append(
