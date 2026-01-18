@@ -26,12 +26,12 @@ class LayerConfig:
     @property
     def plotter_width(self) -> float:
         """Width of the plotter area."""
-        raise NotImplementedError("Stub - to be implemented")
+        return abs(self.plotter_x_max - self.plotter_x_min)
 
     @property
     def plotter_height(self) -> float:
         """Height of the plotter area."""
-        raise NotImplementedError("Stub - to be implemented")
+        return abs(self.plotter_y_max - self.plotter_y_min)
 
 
 @dataclass
