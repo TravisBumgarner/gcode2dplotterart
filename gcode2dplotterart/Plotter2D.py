@@ -2,7 +2,7 @@ from typing import Optional
 
 from ._Plotter import _AbstractPlotter
 from .layer import Layer2D
-from .shared_types import THandleOutOfBounds
+from .shared_types import HandleOutOfBounds
 
 
 class Plotter2D(_AbstractPlotter):
@@ -20,7 +20,7 @@ class Plotter2D(_AbstractPlotter):
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds = "Warning",
+        handle_out_of_bounds: HandleOutOfBounds = "Warning",
         output_directory: str = "./output",
         include_comments: bool = True,
         return_home_before_plotting: bool = True,

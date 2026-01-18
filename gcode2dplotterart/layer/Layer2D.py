@@ -2,7 +2,7 @@ from typing import Optional
 from typing_extensions import Self
 
 from ._Layer import _AbstractLayer
-from ..shared_types import THandleOutOfBounds, TInstructionPhase
+from ..shared_types import HandleOutOfBounds, InstructionPhase
 from ..instruction import (
     InstructionPause,
     Instruction2DPlotterNavigationHeight,
@@ -24,7 +24,7 @@ class Layer2D(_AbstractLayer):
         plotter_x_max: float,
         plotter_y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: HandleOutOfBounds,
         color: Optional[str],
         line_width: float,
         include_comments: bool,
@@ -65,7 +65,7 @@ class Layer2D(_AbstractLayer):
 
     def set_mode_to_plotting(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(Instruction2DPlotterPlottingHeight(), instruction_phase)
         self._add_instruction(InstructionPause(), instruction_phase)
@@ -74,7 +74,7 @@ class Layer2D(_AbstractLayer):
 
     def set_mode_to_navigation(
         self,
-        instruction_phase: TInstructionPhase = "plotting",
+        instruction_phase: InstructionPhase = "plotting",
     ) -> Self:
         self._add_instruction(Instruction2DPlotterNavigationHeight(), instruction_phase)
         self._add_instruction(InstructionPause(), instruction_phase)

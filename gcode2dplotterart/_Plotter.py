@@ -1,11 +1,11 @@
 import os
 import shutil
-from typing import List, Dict, Union, Optional, Literal
+from typing import List, Dict, Union, Optional
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 from .layer import Layer2D, Layer3D
-from .shared_types import THandleOutOfBounds
+from .shared_types import HandleOutOfBounds, Bounds
 
 
 class _AbstractPlotter(ABC):
@@ -17,7 +17,7 @@ class _AbstractPlotter(ABC):
     feed_rate: float
     layers: Dict[str, Union[Layer2D, Layer3D]]
     output_directory: str
-    handle_out_of_bounds: THandleOutOfBounds
+    handle_out_of_bounds: HandleOutOfBounds
     include_comments: bool
 
     def __init__(
@@ -28,7 +28,7 @@ class _AbstractPlotter(ABC):
         y_min: float,
         y_max: float,
         feed_rate: float,
-        handle_out_of_bounds: THandleOutOfBounds,
+        handle_out_of_bounds: HandleOutOfBounds,
         output_directory: str,
         include_comments: bool,
         return_home_before_plotting: bool,
@@ -47,7 +47,7 @@ class _AbstractPlotter(ABC):
 
     def get_min_and_max_points(
         self,
-    ) -> Dict[Literal["x_min", "y_min", "x_max", "y_max"], float]:
+    ) -> Bounds:
         """
         Find the min and max plot points of the plotter.
 
