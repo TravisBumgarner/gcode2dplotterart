@@ -9,7 +9,7 @@ milestones:
     description: Simplify type aliases and ensure all instruction classes have proper interfaces for better IDE support
     branch:
       working: 57-fix-type-hints
-      base: main
+      base: claude-rewrite
 
   - number: 2
     title: "2. Reduce Repetition with Dataclasses"
