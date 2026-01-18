@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from .shared_types import HandleOutOfBounds
 
@@ -26,9 +25,9 @@ class PlotterConfig:
     @property
     def width(self) -> float:
         """Width of the plotting area."""
-        raise NotImplementedError("Stub - to be implemented")
+        return abs(self.x_max - self.x_min)
 
     @property
     def height(self) -> float:
         """Height of the plotting area."""
-        raise NotImplementedError("Stub - to be implemented")
+        return abs(self.y_max - self.y_min)
