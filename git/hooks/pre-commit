@@ -1,6 +1,5 @@
 source ./venv/bin/activate
-python docstrings2md.py &&
-pytest && 
+pytest &&
 flake8 --max-line-length 160 ./gcode2dplotterart &&
 black ./gcode2dplotterart --check &&
-mypy ./gcode2dplotterart 
+mypy ./gcode2dplotterart

@@ -19,6 +19,13 @@ dependencies = [
     "typing-extensions>=4.12.2",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["gcode2dplotterart"]
 
