@@ -1,17 +1,15 @@
-from .InstructionWithArguments import (
-    InstructionPoint,
-    InstructionPause,
-    InstructionComment,
-    InstructionFeedRate,
-    Instruction3DPrinterNavigationHeight,
-    Instruction3DPrinterPlottingHeight,
-)
-from .SimpleInstruction import (
+from .instructions import (
     Instruction2DPlotterNavigationHeight,
     Instruction2DPlotterPlottingHeight,
+    Instruction3DPrinterNavigationHeight,
+    Instruction3DPrinterPlottingHeight,
+    InstructionComment,
+    InstructionFeedRate,
+    InstructionHome,
+    InstructionPause,
+    InstructionPoint,
     InstructionProgramEnd,
     InstructionUnitsMM,
-    InstructionHome,
 )
 from .protocol import Instruction
 

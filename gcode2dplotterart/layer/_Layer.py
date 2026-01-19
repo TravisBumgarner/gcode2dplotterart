@@ -4,6 +4,7 @@ import math
 from abc import ABC, abstractmethod
 import secrets
 
+from ..config import LayerConfig
 from ..shared_types import HandleOutOfBounds, InstructionPhase, Bounds
 from ..instruction import (
     Instruction,
@@ -37,6 +38,7 @@ TEARDOWN_INSTRUCTIONS_DISPLAY = """
 ######################################################################################################"""
 
 class _AbstractLayer(ABC):
+    _config: LayerConfig
     instructions: Dict[InstructionPhase, List[Instruction]]
 
     def __init__(
@@ -52,6 +54,19 @@ class _AbstractLayer(ABC):
         include_comments: bool,
         preview_only: bool = False,
     ):
+        self._config = LayerConfig(
+            plotter_x_min=plotter_x_min,
+            plotter_x_max=plotter_x_max,
+            plotter_y_min=plotter_y_min,
+            plotter_y_max=plotter_y_max,
+            feed_rate=feed_rate,
+            handle_out_of_bounds=handle_out_of_bounds,
+            line_width=line_width,
+            include_comments=include_comments,
+            color=color,
+            preview_only=preview_only,
+        )
+
         self.color = color if color else f"#{secrets.token_hex(3, )}"
 
         self.instructions: Dict[InstructionPhase, List[Instruction]] = {
@@ -59,13 +74,6 @@ class _AbstractLayer(ABC):
             "plotting": [],
             "teardown": [],
         }
-        self.preview_only = preview_only
-
-        # For calculating if a point is out of the range of the plotter.
-        self.plotter_x_min = plotter_x_min
-        self.plotter_x_max = plotter_x_max
-        self.plotter_y_min = plotter_y_min
-        self.plotter_y_max = plotter_y_max
 
         # For plotting a bounding box before printing.
         self.layer_x_min = plotter_x_max
@@ -73,23 +81,51 @@ class _AbstractLayer(ABC):
         self.layer_y_min = plotter_y_max
         self.layer_y_max = plotter_y_min
 
-        self.feed_rate = feed_rate
-
-        self.handle_out_of_bounds = handle_out_of_bounds
-
-        self.line_width = line_width
-
-        self.include_comments = include_comments
-
         self.add_comment(SETUP_INSTRUCTIONS_DISPLAY, "setup")
         self.add_comment(PLOTTING_INSTRUCTIONS_DISPLAY, "plotting")
         self.add_comment(TEARDOWN_INSTRUCTIONS_DISPLAY, "teardown")
 
         self._add_instruction(InstructionUnitsMM(), "setup")
 
-        self.set_feed_rate(feed_rate, "setup")
+        self.set_feed_rate(self.feed_rate, "setup")
 
         self._add_instruction(InstructionProgramEnd(), "teardown")
+
+    @property
+    def plotter_x_min(self) -> float:
+        return self._config.plotter_x_min
+
+    @property
+    def plotter_x_max(self) -> float:
+        return self._config.plotter_x_max
+
+    @property
+    def plotter_y_min(self) -> float:
+        return self._config.plotter_y_min
+
+    @property
+    def plotter_y_max(self) -> float:
+        return self._config.plotter_y_max
+
+    @property
+    def feed_rate(self) -> float:
+        return self._config.feed_rate
+
+    @property
+    def handle_out_of_bounds(self) -> HandleOutOfBounds:
+        return self._config.handle_out_of_bounds
+
+    @property
+    def line_width(self) -> float:
+        return self._config.line_width
+
+    @property
+    def include_comments(self) -> bool:
+        return self._config.include_comments
+
+    @property
+    def preview_only(self) -> bool:
+        return self._config.preview_only
 
     def _update_max_and_min(self, x: float, y: float) -> None:
         """

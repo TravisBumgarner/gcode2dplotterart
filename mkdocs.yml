@@ -1,0 +1,42 @@
+site_name: gcode2dplotterart
+site_description: A Python library for creating 2D plotter art using GCode
+repo_url: https://github.com/travisbumgarner/gcode2dplotterart
+repo_name: travisbumgarner/gcode2dplotterart
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+
+nav:
+  - Home: index.md
+  - API Reference:
+    - Plotters: api/plotters.md
+    - Layers: api/layers.md
+    - Instructions: api/instructions.md
+    - Configuration: api/config.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true

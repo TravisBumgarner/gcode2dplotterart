@@ -14,7 +14,6 @@
 
 1. Make changes to code.
 1. Experiment within `src/sandbox/main.py` to test updated functionality.
-1. Docstrings will be generated automatically with precommit via `docstrings2md.py`, be sure to commit the new docs as well.
 1. Create a pull request with changes.
 
 ## Deploy
