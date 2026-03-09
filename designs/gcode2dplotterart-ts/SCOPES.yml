@@ -64,7 +64,7 @@ tasks:
       - Unit tests verify `toGCode()` output for each instruction class
     depends_on: [1]
     effort: 2
-    status: testing
+    status: implementing
 
   - id: 3
     milestone: 1
