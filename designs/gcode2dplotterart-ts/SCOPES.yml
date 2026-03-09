@@ -30,7 +30,7 @@ tasks:
       - Directory structure has `src/engine/` and `src/components/` folders
     depends_on: []
     effort: 1
-    status: implementing
+    status: completed
 
   - id: 2
     milestone: 1
