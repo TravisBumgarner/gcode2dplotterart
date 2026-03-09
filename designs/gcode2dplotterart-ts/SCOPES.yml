@@ -1,0 +1,351 @@
+project: gcode2dplotterart-ts
+design_file: designs/gcode2dplotterart-ts/DESIGN.md
+scoping_date: 2026-03-09
+
+milestones:
+  - number: 1
+    title: "1. React Web App for G-Code Generation"
+    description: >
+      Build a complete React + TypeScript web app that ports the Python gcode2dplotterart
+      library to the browser, with interactive canvas previews and image processing support.
+    branch:
+      working: task-1-gcode2dplotterart-ts
+      base: main
+
+tasks:
+  - id: 1
+    milestone: 1
+    title: Initialize Vite + React + TypeScript project
+    description: |
+      Create the `gcode2dplotterart-ts/` directory with a new Vite + React + TypeScript project.
+
+      - Run `npm create vite@latest` with the React + TypeScript template
+      - Verify the dev server starts and renders the default page
+      - Clean out boilerplate (remove default Vite demo content)
+      - Set up the directory structure: `src/engine/`, `src/components/`
+      - Add a basic `App.tsx` shell with placeholder text
+    acceptance_criteria:
+      - `gcode2dplotterart-ts/` exists with a working Vite + React + TS setup
+      - `npm run dev` starts the dev server without errors
+      - Directory structure has `src/engine/` and `src/components/` folders
+    depends_on: []
+    effort: 1
+    status: implementing
+
+  - id: 2
+    milestone: 1
+    title: Port instruction system to TypeScript
+    description: |
+      Port the G-Code instruction classes from the Python library to TypeScript.
+      These live in `src/engine/instructions/`.
+
+      **Source files to port:**
+      - `gcode2dplotterart/instruction/SimpleInstruction.py`
+      - `gcode2dplotterart/instruction/InstructionWithArguments.py`
+
+      **Classes to create:**
+      - Simple instructions: `Instruction2DPlotterPlottingHeight` (M3 S1000),
+        `Instruction2DPlotterNavigationHeight` (M3 S0), `InstructionUnitsMM` (G21),
+        `InstructionHome` (G28), `InstructionProgramEnd` (M2)
+      - Instructions with arguments: `InstructionPoint` (G1 X Y F),
+        `InstructionComment` (; text), `InstructionFeedRate` (F),
+        `InstructionPause` (G4 P), `Instruction3DPrinterPlottingHeight` (G1 Z F),
+        `Instruction3DPrinterNavigationHeight` (G1 Z F)
+
+      Each class implements a `toGCode(): string` method.
+
+      Also create `src/engine/types.ts` with shared types:
+      - `THandleOutOfBounds = "Warning" | "Error"`
+      - `TInstructionPhase = "setup" | "plotting" | "teardown"`
+      - `Point = [number, number]` (x, y tuple)
+    acceptance_criteria:
+      - All instruction classes produce correct G-Code strings matching Python output
+      - Shared types are defined and exported
+      - Unit tests verify `toGCode()` output for each instruction class
+    depends_on: [1]
+    effort: 2
+    status: scoped
+
+  - id: 3
+    milestone: 1
+    title: Port layer system to TypeScript
+    description: |
+      Port the layer classes from Python to TypeScript in `src/engine/layers/`.
+
+      **Source files to port:**
+      - `gcode2dplotterart/layer/_Layer.py` → `BaseLayer.ts`
+      - `gcode2dplotterart/layer/Layer2D.py` → `Layer2D.ts`
+      - `gcode2dplotterart/layer/Layer3D.py` → `Layer3D.ts`
+
+      **BaseLayer** must implement the full drawing API:
+      - `addPath(points, raiseAfter?, phase?)` — core path plotting
+      - `addPoint(x, y, raiseAfter?, phase?)`
+      - `addLine(xStart, yStart, xEnd, yEnd, raiseAfter?, phase?)`
+      - `addRectangle(xStart, yStart, xEnd, yEnd, raiseAfter?, phase?)`
+      - `addCircle(xCenter, yCenter, radius, numPoints?, raiseAfter?, phase?)`
+      - `addComment(text, phase?)`
+      - `setFeedRate(feedRate, phase?)`
+      - `setModeToPlotting()` / `setModeToNavigation()` — abstract
+      - `previewPaths()` — extract paths for canvas rendering
+      - `getPlottingData()` — get G-Code instruction strings
+
+      All drawing methods return `this` for chaining.
+
+      **Layer2D** implements pen up/down via M3 instructions.
+      **Layer3D** implements Z-height changes via G1 Z instructions.
+    acceptance_criteria:
+      - BaseLayer, Layer2D, Layer3D classes exist with full drawing API
+      - All drawing methods are chainable
+      - previewPaths() returns path data suitable for canvas rendering
+      - Unit tests verify G-Code output matches Python library for basic shapes
+    depends_on: [2]
+    effort: 3
+    status: scoped
+
+  - id: 4
+    milestone: 1
+    title: Port plotter system to TypeScript
+    description: |
+      Port the plotter classes from Python to TypeScript in `src/engine/plotters/`.
+
+      **Source files to port:**
+      - `gcode2dplotterart/_Plotter.py` → `BasePlotter.ts`
+      - `gcode2dplotterart/Plotter2D.py` → `Plotter2D.ts`
+      - `gcode2dplotterart/Plotter3D.py` → `Plotter3D.ts`
+
+      **BasePlotter** manages:
+      - Layer collection (`addLayer(title, color, lineWidth, previewOnly?)`)
+      - Bounds checking (`isPointInBounds(x, y)`, `width`, `height`)
+      - Out-of-bounds handling (Warning logs vs Error throws)
+      - `getPlottingData()` — aggregates all layer G-Code
+      - `getMinAndMaxPoints()` — bounding box of all paths
+
+      **Plotter2D** constructor: title, xMin, xMax, yMin, yMax, feedRate, handleOutOfBounds
+      **Plotter3D** adds: zPlottingHeight, zNavigationHeight
+
+      Export `Plotter2D` and `Plotter3D` as the main engine entry points from
+      `src/engine/index.ts`.
+    acceptance_criteria:
+      - Plotter2D and Plotter3D classes work with correct layer types
+      - Bounds checking works with Warning and Error modes
+      - getPlottingData() produces valid G-Code matching Python output
+      - Exported from src/engine/index.ts
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 5
+    milestone: 1
+    title: Port 7-segment text rendering to TypeScript
+    description: |
+      Port the character drawing system from `gcode2dplotterart/layer/draw_character.py`
+      to `src/engine/text/drawCharacter.ts`.
+
+      This includes:
+      - Segment definitions (a through g, plus dp) as coordinate tuples
+      - Character map mapping characters to segment combinations
+      - `addText(text, fontSize, xStart, yStart, charSpacing?, pointOffset?)` method
+        integrated into BaseLayer
+
+      The character map encodes alphanumeric characters as combinations of
+      7-segment display segments, with optimized ordering to minimize pen lifts.
+    acceptance_criteria:
+      - All characters from the Python version are supported
+      - addText method on layers produces matching G-Code output
+      - Unit tests verify text rendering for sample strings
+    depends_on: [3]
+    effort: 2
+    status: scoped
+
+  - id: 6
+    milestone: 1
+    title: Port photo processing utils to TypeScript (browser-based)
+    description: |
+      Port `gcode2dplotterart/experimental_photo_utils/` to `src/engine/photo/`
+      using browser APIs instead of OpenCV/NumPy.
+
+      **Functions to implement:**
+      - `loadImage(file: File): Promise<ImageData>` — load image via Canvas API
+      - `resizeImage(imageData, maxWidth, maxHeight): ImageData` — resize maintaining
+        aspect ratio using an offscreen canvas
+      - `grayscaleImage(imageData, method): ImageData` — convert to grayscale
+        - Methods: "average" (r+g+b/3), "luminosity" (0.21r + 0.72g + 0.07b),
+          "lightness" ((max+min)/2)
+      - `bucketImageEvenPixelCount(imageData, layerCount): ImageData` — distribute
+        pixels evenly across histogram buckets
+      - `bucketImageEvenHistogramDistribution(imageData, layerCount): ImageData` —
+        distribute histogram into equal grayscale ranges
+
+      All pixel manipulation uses ImageData arrays (Uint8ClampedArray).
+    acceptance_criteria:
+      - All five functions work in the browser using Canvas API
+      - Grayscale methods produce correct values for known RGB inputs
+      - Bucketing functions assign pixels to correct layer indices
+      - Unit tests verify core math logic
+    depends_on: [1]
+    effort: 3
+    status: scoped
+
+  - id: 7
+    milestone: 1
+    title: Build plotter configuration UI
+    description: |
+      Create the `src/components/PlotterConfig/` component.
+
+      This is a form that lets users configure their plotter:
+      - **Plotter type** toggle: 2D Plotter / 3D Printer
+      - **Bounds**: x_min, x_max, y_min, y_max (number inputs)
+      - **Feed rate**: number input (mm/min)
+      - **3D-specific fields** (shown only when 3D selected):
+        z_plotting_height, z_navigation_height
+      - **Out-of-bounds handling**: dropdown (Warning / Error)
+
+      State is lifted to App.tsx via a context or props. When config changes,
+      the plotter engine instance is recreated.
+
+      Use a Zustand store in `src/store/plotterStore.ts` to hold the plotter
+      instance and config. All components consume this store directly.
+    acceptance_criteria:
+      - Form renders with all fields for both 2D and 3D modes
+      - 3D-specific fields appear/disappear based on plotter type
+      - Changing config values updates the plotter engine instance
+      - Zustand store provides plotter state to all components
+    depends_on: [4]
+    effort: 2
+    status: scoped
+
+  - id: 8
+    milestone: 1
+    title: Build layer management UI
+    description: |
+      Create the `src/components/LayerManager/` component.
+
+      Features:
+      - **Add layer** button with inputs for: title, color (color picker), line width
+      - **Layer list** showing all current layers with their color and title
+      - **Remove layer** button per layer
+      - **Preview-only toggle** per layer
+      - Each layer displays its color as a swatch
+
+      This component reads/writes to the Zustand store. Adding a layer calls
+      `plotter.addLayer(...)` on the engine instance. Removing recreates the
+      plotter without that layer.
+    acceptance_criteria:
+      - Users can add layers with title, color, and line width
+      - Users can remove layers
+      - Layer list shows current layers with color swatches
+      - Changes sync to the plotter engine instance via context
+    depends_on: [7]
+    effort: 2
+    status: scoped
+
+  - id: 9
+    milestone: 1
+    title: Build canvas preview component
+    description: |
+      Create the `src/components/CanvasPreview/` component.
+
+      This renders all plotter layer paths on an HTML5 Canvas element:
+      - Uses `previewPaths()` from each layer to get path data
+      - Draws each layer's paths in its assigned color with its line width
+      - Draws plotter bounds as a dashed border rectangle
+      - Supports basic zoom (scroll wheel) and pan (click + drag)
+      - Re-renders when plotter state changes (layers added/removed, paths change)
+      - Background color: white or light gray
+      - Canvas sizing: fit to container with proper scaling
+
+      Use a React ref for the canvas element and draw in a useEffect.
+    acceptance_criteria:
+      - Canvas renders all layer paths in correct colors
+      - Plotter bounds shown as a border
+      - Zoom and pan work
+      - Preview updates when plotter state changes
+    depends_on: [7]
+    effort: 3
+    status: scoped
+
+  - id: 10
+    milestone: 1
+    title: Build photo upload and processing UI
+    description: |
+      Create the `src/components/PhotoProcessor/` component.
+
+      **Upload section:**
+      - File input (accept image types) or drag-and-drop zone
+      - Show uploaded image thumbnail
+
+      **Processing pipeline UI:**
+      - Resize controls: max width, max height (number inputs)
+      - Grayscale method: dropdown (average, luminosity, lightness)
+      - Bucket method: dropdown (even pixel count, even histogram distribution)
+      - Layer count: number input (how many grayscale buckets)
+      - "Process" button to run the pipeline
+
+      **Preview section:**
+      - Show processed image at each step (original → resized → grayscale → bucketed)
+      - Each preview rendered on a small canvas element
+
+      **Output:**
+      - After processing, provide a way to map bucketed pixels to plotter layers
+        and generate paths (iterate pixels, create addPoint calls for each pixel
+        based on its bucket assignment and corresponding layer)
+      - "Generate Paths" button that creates layer paths from processed image data
+    acceptance_criteria:
+      - Users can upload an image file
+      - Processing pipeline applies resize, grayscale, and bucketing
+      - Preview canvases show the image at each processing step
+      - "Generate Paths" creates plotter layer paths from the processed image
+    depends_on: [6, 8]
+    effort: 3
+    status: scoped
+
+  - id: 11
+    milestone: 1
+    title: Build G-Code export and download
+    description: |
+      Create the `src/components/GCodeExport/` component.
+
+      Features:
+      - "Generate G-Code" button that calls `plotter.getPlottingData()`
+      - Display generated G-Code in a scrollable `<pre>` / `<textarea>` block
+        (one tab or section per layer)
+      - "Download" button that saves as `.gcode` file(s)
+        - Use `Blob` + `URL.createObjectURL` + programmatic `<a>` click
+        - One file per layer, named `{title}_{layerName}.gcode`
+      - "Download All" button that downloads all layers
+    acceptance_criteria:
+      - G-Code text is displayed for each layer
+      - Individual layer files can be downloaded as .gcode
+      - "Download All" downloads all layer files
+      - Generated G-Code matches expected format from the engine
+    depends_on: [7]
+    effort: 2
+    status: scoped
+
+  - id: 12
+    milestone: 1
+    title: App layout and integration
+    description: |
+      Wire all components together in `App.tsx` with a usable layout.
+
+      **Layout:**
+      - Left sidebar (or top section): PlotterConfig + LayerManager
+      - Center: CanvasPreview (takes most space)
+      - Right sidebar (or bottom section): PhotoProcessor + GCodeExport
+      - Responsive: stack vertically on narrow screens
+
+      **Integration work:**
+      - Ensure Zustand store flows correctly to all components
+      - Add a "Demo" button or default state that creates a sample plotter
+        with a few shapes so the app isn't empty on first load
+      - Basic CSS styling to make the layout functional and clean
+      - Verify the full workflow: configure plotter → add layers →
+        (optionally upload/process photo) → preview on canvas → export G-Code
+    acceptance_criteria:
+      - All components render together in a coherent layout
+      - Full workflow works end-to-end: config → layers → preview → export
+      - Photo processing workflow integrates with layer creation
+      - App is usable on desktop screen sizes
+    depends_on: [8, 9, 10, 11]
+    effort: 2
+    status: scoped
