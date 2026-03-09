@@ -1,5 +1,10 @@
 import { THandleOutOfBounds, TInstructionPhase } from "../types";
 import { BaseLayer } from "./BaseLayer";
+import {
+  Instruction2DPlotterPlottingHeight,
+  Instruction2DPlotterNavigationHeight,
+} from "../instructions/SimpleInstruction";
+import { InstructionPause } from "../instructions/InstructionWithArguments";
 
 export class Layer2D extends BaseLayer {
   constructor(
@@ -26,13 +31,25 @@ export class Layer2D extends BaseLayer {
       includeComments,
       previewOnly
     );
+
+    this.setModeToNavigation("setup");
   }
 
-  setModeToPlotting(_instructionPhase: TInstructionPhase = "plotting"): this {
+  setModeToPlotting(instructionPhase: TInstructionPhase = "plotting"): this {
+    this._addInstruction(
+      new Instruction2DPlotterPlottingHeight(),
+      instructionPhase
+    );
+    this._addInstruction(new InstructionPause(), instructionPhase);
     return this;
   }
 
-  setModeToNavigation(_instructionPhase: TInstructionPhase = "plotting"): this {
+  setModeToNavigation(instructionPhase: TInstructionPhase = "plotting"): this {
+    this._addInstruction(
+      new Instruction2DPlotterNavigationHeight(),
+      instructionPhase
+    );
+    this._addInstruction(new InstructionPause(), instructionPhase);
     return this;
   }
 }

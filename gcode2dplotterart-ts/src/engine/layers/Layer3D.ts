@@ -1,7 +1,14 @@
 import { THandleOutOfBounds, TInstructionPhase } from "../types";
 import { BaseLayer } from "./BaseLayer";
+import {
+  Instruction3DPrinterPlottingHeight,
+  Instruction3DPrinterNavigationHeight,
+} from "../instructions/InstructionWithArguments";
 
 export class Layer3D extends BaseLayer {
+  private zPlottingHeight: number;
+  private zNavigationHeight: number;
+
   constructor(
     plotterXMin: number,
     plotterYMin: number,
@@ -28,13 +35,32 @@ export class Layer3D extends BaseLayer {
       includeComments,
       previewOnly
     );
+
+    this.zPlottingHeight = zPlottingHeight;
+    this.zNavigationHeight = zNavigationHeight;
+
+    this.setModeToNavigation("setup");
   }
 
-  setModeToPlotting(_instructionPhase: TInstructionPhase = "plotting"): this {
+  setModeToPlotting(instructionPhase: TInstructionPhase = "plotting"): this {
+    this._addInstruction(
+      new Instruction3DPrinterPlottingHeight(
+        this.zPlottingHeight,
+        this.feedRate
+      ),
+      instructionPhase
+    );
     return this;
   }
 
-  setModeToNavigation(_instructionPhase: TInstructionPhase = "plotting"): this {
+  setModeToNavigation(instructionPhase: TInstructionPhase = "plotting"): this {
+    this._addInstruction(
+      new Instruction3DPrinterNavigationHeight(
+        this.zNavigationHeight,
+        this.feedRate
+      ),
+      instructionPhase
+    );
     return this;
   }
 }
