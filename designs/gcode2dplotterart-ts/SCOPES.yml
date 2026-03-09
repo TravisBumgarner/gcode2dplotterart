@@ -100,7 +100,7 @@ tasks:
       - Unit tests verify G-Code output matches Python library for basic shapes
     depends_on: [2]
     effort: 3
-    status: scoped
+    status: testing
 
   - id: 4
     milestone: 1
