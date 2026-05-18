@@ -224,7 +224,7 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
 
       <Stepper activeStep={onLastStep ? STEPS.length : stepIdx} alternativeLabel>
         {STEPS.map((s) => (
-          <Step key={s.field}>
+          <Step key={s.kind}>
             <StepLabel>{s.title}</StepLabel>
           </Step>
         ))}
