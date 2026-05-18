@@ -1,6 +1,7 @@
 import BoltIcon from '@mui/icons-material/Bolt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import DangerousIcon from '@mui/icons-material/Dangerous';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PrintIcon from '@mui/icons-material/Print';
@@ -15,6 +16,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Toolbar as MuiToolbar,
   Tooltip,
   Typography,
@@ -126,6 +128,18 @@ export const Toolbar = ({ onPrint }: Props) => {
             </Tooltip>
           )}
         </Box>
+        <Tooltip title="View on GitHub">
+          <IconButton
+            size="small"
+            component="a"
+            href="https://github.com/TravisBumgarner/gcode2dplotterart/tree/main/paint-app"
+            target="_blank"
+            rel="noopener noreferrer"
+            color="inherit"
+          >
+            <GitHubIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       </MuiToolbar>
       {connected && (
         <Tooltip title="Emergency stop — halts the plotter immediately (M112). Reconnect required afterward.">

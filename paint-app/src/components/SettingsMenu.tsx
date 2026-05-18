@@ -129,7 +129,7 @@ const ShowLogItem: MenuItemComponent = ({ ctx }) => (
     <ListItemIcon>
       <Checkbox edge="start" checked={ctx.showLog} disableRipple sx={{ p: 0 }} />
     </ListItemIcon>
-    <ListItemText primary="Show log" />
+    <ListItemText primary="Show logs" />
     <TerminalIcon fontSize="small" sx={{ ml: 1, color: 'text.disabled' }} />
   </MenuItem>
 );
