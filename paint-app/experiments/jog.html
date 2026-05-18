@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jog</title>
+<style>
+  :root { font-family: -apple-system, system-ui, sans-serif; }
+  body { margin: 24px; max-width: 640px; }
+  h1 { margin: 0 0 16px; font-size: 20px; }
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  button { padding: 10px 14px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; background: #f7f7f7; cursor: pointer; }
+  button:hover:not(:disabled) { background: #eee; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  input[type=number], input[type=text] { padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
+  .pad { display: grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px 60px; gap: 6px; }
+  .pad button { padding: 0; font-size: 18px; }
+  .pad .up    { grid-column: 2; grid-row: 1; }
+  .pad .left  { grid-column: 1; grid-row: 2; }
+  .pad .right { grid-column: 3; grid-row: 2; }
+  .pad .down  { grid-column: 2; grid-row: 3; }
+  .z { display: flex; flex-direction: column; gap: 6px; margin-left: 24px; }
+  .z button { width: 60px; height: 60px; font-size: 16px; }
+  .controls { display: flex; align-items: flex-start; }
+  label { font-size: 13px; color: #444; }
+  #log { width: 100%; height: 240px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background: #111; color: #ddd; white-space: pre; overflow: auto; }
+  .status { font-size: 13px; color: #666; }
+  .status.ok { color: #0a7; }
+  .status.err { color: #c33; }
+</style>
+</head>
+<body>
+<h1>jog</h1>
+
+<div class="row">
+  <button id="connect">Connect</button>
+  <button id="disconnect" disabled>Disconnect</button>
+  <span id="status" class="status">disconnected</span>
+</div>
+
+<div class="row">
+  <label>step (mm) <input id="step" type="number" value="10" step="0.1" min="0.1" style="width: 80px"></label>
+  <label>feed (mm/min) <input id="feed" type="number" value="3000" step="100" min="100" style="width: 100px"></label>
+</div>
+
+<div class="controls">
+  <div class="pad">
+    <button class="up"    data-axis="Y" data-sign="1">↑</button>
+    <button class="left"  data-axis="X" data-sign="-1">←</button>
+    <button class="right" data-axis="X" data-sign="1">→</button>
+    <button class="down"  data-axis="Y" data-sign="-1">↓</button>
+  </div>
+  <div class="z">
+    <button data-axis="Z" data-sign="1">Z+</button>
+    <button data-axis="Z" data-sign="-1">Z−</button>
+  </div>
+</div>
+
+<div class="row" style="margin-top: 16px">
+  <button id="home">Home (G28)</button>
+  <button id="pos">Position (M114)</button>
+</div>
+
+<div class="row">
+  <input id="raw" type="text" placeholder="raw G-code, e.g. G1 X10 F3000" style="flex: 1">
+  <button id="send">Send</button>
+</div>
+
+<div id="log"></div>
+
+<script>
+const BAUD = 115200;
+const $ = (id) => document.getElementById(id);
+const logEl = $('log');
+const statusEl = $('status');
+
+let port = null;
+let writer = null;
+let reader = null;
+let readBuffer = '';
+let readResolvers = [];
+
+function log(msg, cls = '') {
+  const line = document.createElement('div');
+  if (cls) line.style.color = cls === 'tx' ? '#7df' : cls === 'rx' ? '#ddd' : cls === 'err' ? '#f88' : '#aaa';
+  line.textContent = msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setStatus(text, cls = '') {
+  statusEl.textContent = text;
+  statusEl.className = 'status ' + cls;
+}
+
+function setConnected(connected) {
+  $('connect').disabled = connected;
+  $('disconnect').disabled = !connected;
+  document.querySelectorAll('.pad button, .z button, #home, #pos, #send').forEach(b => b.disabled = !connected);
+}
+
+async function connect() {
+  if (!('serial' in navigator)) {
+    log('Web Serial not supported. Use Chrome or Edge.', 'err');
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: BAUD });
+    setStatus('connected', 'ok');
+    setConnected(true);
+    log(`opened @ ${BAUD}`);
+
+    writer = port.writable.getWriter();
+    startReadLoop();
+
+    // Marlin boards reset on open — wait for boot, then probe.
+    await sleep(2000);
+    await send('M115');
+  } catch (e) {
+    log(`connect failed: ${e.message}`, 'err');
+    setStatus('error', 'err');
+  }
+}
+
+async function disconnect() {
+  try {
+    if (reader) { await reader.cancel(); reader = null; }
+    if (writer) { writer.releaseLock(); writer = null; }
+    if (port) { await port.close(); port = null; }
+  } catch (e) {
+    log(`disconnect: ${e.message}`, 'err');
+  }
+  setStatus('disconnected');
+  setConnected(false);
+  log('closed');
+}
+
+async function startReadLoop() {
+  const decoder = new TextDecoder();
+  reader = port.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      readBuffer += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = readBuffer.indexOf('\n')) >= 0) {
+        const line = readBuffer.slice(0, nl).replace(/\r$/, '');
+        readBuffer = readBuffer.slice(nl + 1);
+        if (line) {
+          log(line, 'rx');
+          // Notify any waiters; they decide whether this line ends their wait.
+          const resolvers = readResolvers.slice();
+          readResolvers.length = 0;
+          for (const r of resolvers) r(line);
+        }
+      }
+    }
+  } catch (e) {
+    log(`read error: ${e.message}`, 'err');
+  } finally {
+    try { reader.releaseLock(); } catch {}
+  }
+}
+
+function nextLine(timeoutMs) {
+  return new Promise((resolve) => {
+    let done = false;
+    const t = setTimeout(() => { if (!done) { done = true; resolve(null); } }, timeoutMs);
+    readResolvers.push((line) => { if (!done) { done = true; clearTimeout(t); resolve(line); } });
+  });
+}
+
+async function readUntilOk(timeoutMs = 5000) {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    const line = await nextLine(end - Date.now());
+    if (line === null) break;
+    if (line.toLowerCase().startsWith('ok')) return;
+  }
+}
+
+async function send(gcode) {
+  const line = gcode.trim();
+  if (!line || !writer) return;
+  log(`> ${line}`, 'tx');
+  await writer.write(new TextEncoder().encode(line + '\n'));
+  await readUntilOk();
+}
+
+async function jog(axis, sign) {
+  const step = parseFloat($('step').value);
+  const feed = parseInt($('feed').value, 10);
+  if (!isFinite(step) || !isFinite(feed)) return;
+  await send('G91');
+  await send(`G1 ${axis}${(sign * step).toFixed(3)} F${feed}`);
+  await send('G90');
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+$('connect').onclick = connect;
+$('disconnect').onclick = disconnect;
+$('home').onclick = () => send('G28');
+$('pos').onclick = () => send('M114');
+$('send').onclick = () => { const v = $('raw').value; if (v) { send(v); $('raw').value = ''; } };
+$('raw').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('send').click(); });
+document.querySelectorAll('.pad button, .z button').forEach(b => {
+  b.onclick = () => jog(b.dataset.axis, parseInt(b.dataset.sign, 10));
+});
+
+setConnected(false);
+</script>
+</body>
+</html>
