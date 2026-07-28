@@ -7,14 +7,8 @@ import {
   useMemo,
   useState,
 } from 'react';
+import './desktop'; // registers the `window.desktop` global type
 import { type ConnectPhase, PlotterConnection } from './serial';
-
-/** Exposed by electron/preload.cts; absent when running in a plain browser. */
-declare global {
-  interface Window {
-    desktop?: { onMainLog: (handler: (line: string) => void) => () => void };
-  }
-}
 
 const SHOW_LOG_LS_KEY = 'paint-app:showLog';
 

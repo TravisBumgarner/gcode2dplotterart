@@ -1,87 +1,41 @@
 import BoltIcon from '@mui/icons-material/Bolt';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import {
   Box,
   Button,
   Divider,
-  FormControl,
   IconButton,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  ListSubheader,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { ConnectedDataConfig } from '../connectedData';
+import { useConnectedData } from '../connectedDataSession';
 import { db, type Project } from '../db';
-import {
-  DEFAULT_PAGE_SIZE,
-  formatSize,
-  loadLastPageSize,
-  type PageSize,
-  plotterPageSize,
-  STANDARD_SIZES,
-  saveLastPageSize,
-} from '../pageSizes';
-import { usePlotters } from '../plotters';
+import { loadLastPageSize, type PageSize, saveLastPageSize } from '../pageSizes';
 import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
 import { AppStateSchema } from '../types';
+import { ConnectedDataWizard } from './ConnectedDataWizard';
+import { PageSizePicker } from './PageSizePicker';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-const CUSTOM_KEY = 'custom';
-
 export const ProjectGate = () => {
   const { setProject } = useProject();
-  const { plotters } = usePlotters();
+  const { start: startConnectedData } = useConnectedData();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [name, setName] = useState('');
 
-  // Page size selection. The key drives the dropdown; `custom` holds the
-  // hand-entered dimensions so switching to Custom and back is lossless.
-  const [sizeKey, setSizeKey] = useState<string>(CUSTOM_KEY);
-  const [custom, setCustom] = useState<PageSize>(DEFAULT_PAGE_SIZE);
-
-  const options = useMemo(() => {
-    const fromPlotters = plotters.map((p) => ({
-      key: `plotter:${p.id}`,
-      label: `${p.name} (bed)`,
-      size: plotterPageSize(p),
-    }));
-    const standard = STANDARD_SIZES.map((s) => ({
-      key: `std:${s.label}`,
-      label: s.label,
-      size: s.size,
-    }));
-    return { fromPlotters, standard };
-  }, [plotters]);
-
-  // Seed from the last-used size: preselect whichever option matches it so the
-  // common case (same paper every time) is already correct on arrival. Plotters
-  // arrive asynchronously, so this re-runs when they land — but never after the
-  // user has made a choice of their own.
-  const touched = useRef(false);
-  useEffect(() => {
-    if (touched.current) return;
-    const last = loadLastPageSize();
-    setCustom(last);
-    const all = [...options.fromPlotters, ...options.standard];
-    const match = all.find((o) => o.size.width === last.width && o.size.height === last.height);
-    setSizeKey(match?.key ?? CUSTOM_KEY);
-  }, [options]);
-
-  const size: PageSize = useMemo(() => {
-    const all = [...options.fromPlotters, ...options.standard];
-    return all.find((o) => o.key === sizeKey)?.size ?? custom;
-  }, [sizeKey, custom, options]);
+  const [size, setSize] = useState<PageSize>(() => loadLastPageSize());
+  const [connectedDataOpen, setConnectedDataOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     const all = await db.projects.orderBy('updatedAt').reverse().toArray();
@@ -121,14 +75,25 @@ export const ProjectGate = () => {
     setProject({ id: project.id, name: project.name }, parsed.data);
   };
 
-  const onStartInteractive = async () => {
-    // Interactive sessions are ephemeral. Wipe any leftover persisted record
-    // (from earlier app versions or aborted runs) and start in memory only.
+  /** Ephemeral: wipe any leftover persisted record and start in memory only. */
+  const startLiveSession = async (name: string, pageSize: PageSize) => {
     await db.projects.delete(INTERACTIVE_PROJECT_ID).catch(() => {});
-    setProject(
-      { id: INTERACTIVE_PROJECT_ID, name: 'Interactive session' },
-      createInitialState(loadLastPageSize()),
-    );
+    setProject({ id: INTERACTIVE_PROJECT_ID, name }, createInitialState(pageSize));
+  };
+
+  const onStartInteractive = () => startLiveSession('Interactive session', loadLastPageSize());
+
+  // A Connected Data run is an interactive session whose strokes come from a
+  // poll loop rather than the pointer, so it reuses the same live document and
+  // streaming path — only the source of the geometry differs.
+  const onStartConnectedData = async (config: ConnectedDataConfig) => {
+    setConnectedDataOpen(false);
+    let host = config.url;
+    try {
+      host = new URL(config.url).host;
+    } catch {}
+    await startLiveSession(`Connected Data · ${host}`, config.pageSize);
+    startConnectedData(config);
   };
 
   const visibleProjects = (projects ?? []).filter((p) => p.id !== INTERACTIVE_PROJECT_ID);
@@ -185,66 +150,11 @@ export const ProjectGate = () => {
                   onKeyDown={(e) => e.key === 'Enter' && onCreate()}
                   autoFocus
                 />
-                <FormControl size="small" sx={{ minWidth: 168 }}>
-                  <InputLabel>Page size</InputLabel>
-                  <Select
-                    label="Page size"
-                    value={sizeKey}
-                    onChange={(e) => {
-                      touched.current = true;
-                      setSizeKey(e.target.value);
-                    }}
-                  >
-                    {options.fromPlotters.length > 0 && (
-                      <ListSubheader>From a plotter</ListSubheader>
-                    )}
-                    {options.fromPlotters.map((o) => (
-                      <MenuItem key={o.key} value={o.key}>
-                        {o.label} — {formatSize(o.size)}
-                      </MenuItem>
-                    ))}
-                    <ListSubheader>Standard</ListSubheader>
-                    {options.standard.map((o) => (
-                      <MenuItem key={o.key} value={o.key}>
-                        {o.label} — {formatSize(o.size)}
-                      </MenuItem>
-                    ))}
-                    <ListSubheader>Other</ListSubheader>
-                    <MenuItem value={CUSTOM_KEY}>Custom…</MenuItem>
-                  </Select>
-                </FormControl>
+                <PageSizePicker value={size} onChange={setSize} minWidth={190} />
                 <Button variant="contained" onClick={onCreate} disabled={!name.trim()}>
                   Create
                 </Button>
               </Stack>
-
-              {sizeKey === CUSTOM_KEY && (
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <TextField
-                    size="small"
-                    type="number"
-                    label="Width (mm)"
-                    value={custom.width}
-                    onChange={(e) => {
-                      touched.current = true;
-                      setCustom((c) => ({ ...c, width: Number.parseFloat(e.target.value) || 0 }));
-                    }}
-                    sx={{ width: 140 }}
-                  />
-                  <Typography color="text.secondary">×</Typography>
-                  <TextField
-                    size="small"
-                    type="number"
-                    label="Height (mm)"
-                    value={custom.height}
-                    onChange={(e) => {
-                      touched.current = true;
-                      setCustom((c) => ({ ...c, height: Number.parseFloat(e.target.value) || 0 }));
-                    }}
-                    sx={{ width: 140 }}
-                  />
-                </Stack>
-              )}
 
               {projects === null ? (
                 <Typography variant="body2" color="text.secondary">
@@ -283,8 +193,40 @@ export const ProjectGate = () => {
               )}
             </Stack>
           </Box>
+
+          <Divider />
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Custom Utils
+            </Typography>
+            <Paper
+              variant="outlined"
+              sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}
+            >
+              <CloudDownloadIcon color="primary" />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Connected Data
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Poll a JSON endpoint and plot fields from it — numbers as a live series, arrays as
+                  a chart.
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={() => setConnectedDataOpen(true)}>
+                Configure
+              </Button>
+            </Paper>
+          </Box>
         </Stack>
       </Paper>
+
+      <ConnectedDataWizard
+        open={connectedDataOpen}
+        onClose={() => setConnectedDataOpen(false)}
+        onStart={onStartConnectedData}
+      />
     </Box>
   );
 };

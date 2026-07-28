@@ -1,5 +1,6 @@
 import BoltIcon from '@mui/icons-material/Bolt';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import PrintIcon from '@mui/icons-material/Print';
 import {
@@ -15,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { useConnectedData } from '../connectedDataSession';
 import { useConnection } from '../connection';
 import { usePlotters } from '../plotters';
 import { INTERACTIVE_PROJECT_ID, useProject } from '../project';
@@ -35,6 +37,7 @@ export const Toolbar = ({ onPrint }: Props) => {
   const { project, isDirty, isSaving, autosave } = useProject();
   const { connected } = useConnection();
   const { activePlotter } = usePlotters();
+  const connectedData = useConnectedData();
   const [debugOpen, setDebugOpen] = useState(false);
 
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
@@ -69,6 +72,38 @@ export const Toolbar = ({ onPrint }: Props) => {
               icon={<BoltIcon />}
               label={!activePlotter ? 'No plotter' : connected ? 'Live' : 'Disconnected'}
               color={!activePlotter ? 'default' : connected ? 'success' : 'error'}
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          </Tooltip>
+        )}
+        {connectedData.config && (
+          <Tooltip
+            title={
+              connectedData.status.lastError
+                ? `Last fetch failed: ${connectedData.status.lastError}`
+                : connectedData.status.windowFull
+                  ? 'The time window is full — live series have stopped extending.'
+                  : `Polling ${connectedData.config.url} every ${connectedData.config.intervalSeconds}s`
+            }
+          >
+            <Chip
+              icon={<CloudDownloadIcon />}
+              label={
+                connectedData.status.lastError
+                  ? 'Fetch failed'
+                  : connectedData.status.windowFull
+                    ? 'Window full'
+                    : `${connectedData.status.polls} polls`
+              }
+              color={
+                connectedData.status.lastError
+                  ? 'error'
+                  : connectedData.status.windowFull
+                    ? 'warning'
+                    : 'info'
+              }
+              variant="outlined"
               size="small"
               sx={{ ml: 1 }}
             />

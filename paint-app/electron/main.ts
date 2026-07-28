@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Session } from 'electron';
-import { app, BrowserWindow, dialog, net, protocol, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +61,57 @@ function mainLog(line: string) {
   for (const w of BrowserWindow.getAllWindows()) {
     w.webContents.send('main-log', line);
   }
+}
+
+/** Ceiling on a proxied response body; a data feed that big is a mistake. */
+const MAX_FETCH_BYTES = 8 * 1024 * 1024;
+const FETCH_TIMEOUT_MS = 20_000;
+
+/**
+ * Renderer-side `fetch` to a third-party API is subject to CORS, which most
+ * data feeds don't opt into — from the app's custom scheme every such request
+ * fails before it leaves. The main process is not bound by CORS, so Connected
+ * Data goes through here instead. Restricted to http/https so the bridge can't
+ * be turned into a file:// reader.
+ */
+function registerHttpBridge() {
+  ipcMain.handle('http-fetch', async (_event, rawUrl: unknown) => {
+    if (typeof rawUrl !== 'string') return { ok: false, status: 0, error: 'Invalid URL' };
+    let url: URL;
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      return { ok: false, status: 0, error: 'Not a valid URL' };
+    }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return { ok: false, status: 0, error: `Unsupported protocol: ${url.protocol}` };
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await net.fetch(url.toString(), {
+        signal: controller.signal,
+        headers: { Accept: 'application/json, text/html;q=0.9, */*;q=0.8' },
+      });
+      const buffer = await response.arrayBuffer();
+      if (buffer.byteLength > MAX_FETCH_BYTES) {
+        return { ok: false, status: response.status, error: 'Response too large (over 8 MB)' };
+      }
+      return {
+        ok: response.ok,
+        status: response.status,
+        contentType: response.headers.get('content-type') ?? '',
+        body: new TextDecoder().decode(buffer),
+      };
+    } catch (e) {
+      const message =
+        (e as Error).name === 'AbortError' ? 'Request timed out' : (e as Error).message;
+      return { ok: false, status: 0, error: message };
+    } finally {
+      clearTimeout(timer);
+    }
+  });
 }
 
 /**
@@ -303,6 +354,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     registerAppProtocol();
+    registerHttpBridge();
     mainWindow = createWindow();
     configureSerial(mainWindow.webContents.session, () => mainWindow);
 

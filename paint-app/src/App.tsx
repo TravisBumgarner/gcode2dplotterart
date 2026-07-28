@@ -6,6 +6,7 @@ import { LayersPanel } from './components/LayersPanel';
 import { PrintModal } from './components/PrintModal';
 import { ProjectGate } from './components/ProjectGate';
 import { Toolbar } from './components/Toolbar';
+import { ConnectedDataProvider, useConnectedDataSync } from './connectedDataSession';
 import { ConnectionProvider, useConnection } from './connection';
 import { useInteractiveSync } from './interactive';
 import { PlottersProvider, usePlotters } from './plotters';
@@ -22,7 +23,9 @@ export const App = () => {
           <PlottersProvider>
             <ProjectProvider>
               <UIProvider>
-                <Root />
+                <ConnectedDataProvider>
+                  <Root />
+                </ConnectedDataProvider>
               </UIProvider>
             </ProjectProvider>
           </PlottersProvider>
@@ -36,6 +39,9 @@ const Root = () => {
   const { project } = useProject();
   const { log, showLog } = useConnection();
   const [printing, setPrinting] = useState(false);
+  // Lives at Root, not in Shell: the poll loop has to keep running across
+  // anything that remounts the document view.
+  useConnectedDataSync();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

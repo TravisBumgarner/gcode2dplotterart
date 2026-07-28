@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('desktop', {
     ipcRenderer.on('main-log', listener);
     return () => ipcRenderer.removeListener('main-log', listener);
   },
+  /** CORS-free HTTP GET, for Connected Data. See `registerHttpBridge` in main. */
+  fetchUrl: (url: string) => ipcRenderer.invoke('http-fetch', url),
 });
