@@ -5,10 +5,73 @@ import type { Point } from './types';
  * step the Python side never had (it lived inline in each sketch under
  * Plotter-Explorations/bought-a-3d-printer).
  *
- * The pipeline is: decode → resize to fit → grayscale → bucket → render.
- * Everything here is pure and works on plain arrays; decoding and resizing
- * need a canvas and live in `photoDecode.ts`.
+ * The pipeline is: decode → resize to fit → adjust → reduce to N inks →
+ * render strokes. Everything here is pure and works on plain arrays; decoding
+ * and resizing need a canvas and live in `photoDecode.ts`.
+ *
+ * "Adjust" and "reduce" are about the image alone and know nothing about how
+ * it will be shaded; the styles below only ever see ink indices.
  */
+
+// ─── Adjustments ─────────────────────────────────────────────────────────
+
+export type LevelsParams = {
+  /** Input value that becomes pure black, 0..254. */
+  blackPoint: number;
+  /** Input value that becomes pure white, 1..255. */
+  whitePoint: number;
+  /** Midtone bias. 1 is neutral; below 1 darkens, above 1 lightens. */
+  gamma: number;
+};
+
+export type AdjustParams = LevelsParams & {
+  /** -100 (flat) .. 100 (harsh). 0 leaves the image alone. */
+  contrast: number;
+};
+
+export const DEFAULT_ADJUST: AdjustParams = {
+  blackPoint: 0,
+  whitePoint: 255,
+  gamma: 1,
+  contrast: 0,
+};
+
+const clamp255 = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
+
+/**
+ * Build a 256-entry lookup table for levels + contrast, so the per-pixel work
+ * is a single array read no matter how many pixels there are.
+ */
+export const buildAdjustLut = (params: AdjustParams): Uint8ClampedArray => {
+  const lut = new Uint8ClampedArray(256);
+  const black = Math.min(params.blackPoint, 254);
+  const white = Math.max(params.whitePoint, black + 1);
+  const gamma = Math.max(0.01, params.gamma);
+  // Standard contrast factor: maps -100..100 onto a slope through mid-grey.
+  const c = Math.max(-255, Math.min(255, (params.contrast / 100) * 255));
+  const factor = (259 * (c + 255)) / (255 * (259 - c));
+
+  for (let v = 0; v < 256; v++) {
+    let t = (v - black) / (white - black);
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    let out = 255 * t ** (1 / gamma);
+    out = factor * (out - 128) + 128;
+    lut[v] = clamp255(out);
+  }
+  return lut;
+};
+
+/** Apply a channel LUT to RGB, leaving alpha alone. */
+export const applyLut = (rgba: Uint8ClampedArray, lut: Uint8ClampedArray): Uint8ClampedArray => {
+  const out = new Uint8ClampedArray(rgba.length);
+  for (let i = 0; i < rgba.length; i += 4) {
+    out[i] = lut[rgba[i]];
+    out[i + 1] = lut[rgba[i + 1]];
+    out[i + 2] = lut[rgba[i + 2]];
+    out[i + 3] = rgba[i + 3];
+  }
+  return out;
+};
 
 // ─── Grayscale ───────────────────────────────────────────────────────────
 
@@ -134,6 +197,183 @@ export const bucketImage = (
 
 export const bucketAt = (image: BucketedImage, x: number, y: number): number =>
   image.data[y * image.width + x];
+
+// ─── Colour reduction ────────────────────────────────────────────────────
+
+/** Deterministic RNG so a re-render never reshuffles the palette. */
+const seededRandom = (seed: number) => () => {
+  seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+  return seed / 0x7fffffff;
+};
+
+/** Perceived brightness, used to order inks darkest-first. */
+const luminance = (r: number, g: number, b: number) => 0.21 * r + 0.72 * g + 0.07 * b;
+
+const toHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b].map((v) => Math.round(clamp255(v)).toString(16).padStart(2, '0')).join('')}`;
+
+/** Above this, centroids are fitted on a sample — the result is the same. */
+const KMEANS_SAMPLE = 20_000;
+const KMEANS_ITERATIONS = 12;
+
+/**
+ * K-means colour quantization — the step the Python README listed but never
+ * implemented. Returns one ink index per pixel plus the centroid colours,
+ * ordered darkest to lightest so the styles' "index 0 is the heaviest ink"
+ * assumption holds for colour images too.
+ */
+export const quantizeColors = (
+  rgba: Uint8ClampedArray,
+  colorCount: number,
+): { data: Uint8Array; palette: string[] } => {
+  const pixelCount = rgba.length / 4;
+  const k = Math.max(2, Math.min(colorCount, pixelCount));
+  const random = seededRandom(0x5eed);
+
+  const stride = Math.max(1, Math.floor(pixelCount / KMEANS_SAMPLE));
+  const sample: number[] = [];
+  for (let p = 0; p < pixelCount; p += stride) sample.push(p * 4);
+
+  // k-means++ seeding: spread the initial centroids out, which converges far
+  // more reliably than picking at random.
+  const centroids: number[][] = [];
+  const firstIndex = sample[Math.floor(random() * sample.length)];
+  centroids.push([rgba[firstIndex], rgba[firstIndex + 1], rgba[firstIndex + 2]]);
+  while (centroids.length < k) {
+    const distances = sample.map((i) => {
+      let best = Number.POSITIVE_INFINITY;
+      for (const c of centroids) {
+        const d = (rgba[i] - c[0]) ** 2 + (rgba[i + 1] - c[1]) ** 2 + (rgba[i + 2] - c[2]) ** 2;
+        if (d < best) best = d;
+      }
+      return best;
+    });
+    const total = distances.reduce((sum, d) => sum + d, 0);
+    let target = random() * total;
+    let chosen = sample[sample.length - 1];
+    for (let s = 0; s < sample.length; s++) {
+      target -= distances[s];
+      if (target <= 0) {
+        chosen = sample[s];
+        break;
+      }
+    }
+    centroids.push([rgba[chosen], rgba[chosen + 1], rgba[chosen + 2]]);
+  }
+
+  const nearest = (r: number, g: number, b: number) => {
+    let best = 0;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    for (let c = 0; c < centroids.length; c++) {
+      const d =
+        (r - centroids[c][0]) ** 2 + (g - centroids[c][1]) ** 2 + (b - centroids[c][2]) ** 2;
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = c;
+      }
+    }
+    return best;
+  };
+
+  for (let iteration = 0; iteration < KMEANS_ITERATIONS; iteration++) {
+    const sums = centroids.map(() => [0, 0, 0, 0]);
+    for (const i of sample) {
+      const c = nearest(rgba[i], rgba[i + 1], rgba[i + 2]);
+      sums[c][0] += rgba[i];
+      sums[c][1] += rgba[i + 1];
+      sums[c][2] += rgba[i + 2];
+      sums[c][3]++;
+    }
+    let moved = false;
+    for (let c = 0; c < centroids.length; c++) {
+      if (sums[c][3] === 0) continue; // Keep an empty cluster where it is.
+      const next = [sums[c][0] / sums[c][3], sums[c][1] / sums[c][3], sums[c][2] / sums[c][3]];
+      if (next.some((v, axis) => Math.abs(v - centroids[c][axis]) > 0.5)) moved = true;
+      centroids[c] = next;
+    }
+    if (!moved) break;
+  }
+
+  // Darkest first, so ink 0 is the heaviest everywhere in the app.
+  const order = centroids
+    .map((c, index) => ({ index, lum: luminance(c[0], c[1], c[2]) }))
+    .sort((a, b) => a.lum - b.lum);
+  const remap = new Uint8Array(centroids.length);
+  order.forEach((entry, position) => {
+    remap[entry.index] = position;
+  });
+
+  const data = new Uint8Array(pixelCount);
+  for (let p = 0; p < pixelCount; p++) {
+    const i = p * 4;
+    data[p] = remap[nearest(rgba[i], rgba[i + 1], rgba[i + 2])];
+  }
+
+  return {
+    data,
+    palette: order.map(({ index }) =>
+      toHex(centroids[index][0], centroids[index][1], centroids[index][2]),
+    ),
+  };
+};
+
+// ─── Prepare ─────────────────────────────────────────────────────────────
+
+export type PrepareParams = AdjustParams & {
+  /** Off keeps the source colours and reduces them with k-means instead. */
+  grayscale: boolean;
+  grayscaleMethod: GrayscaleMethod;
+  /** How many inks the image is reduced to. */
+  colorCount: number;
+  /** Grayscale only — colour images are split by k-means. */
+  bucketMethod: BucketMethod;
+};
+
+export const DEFAULT_PREPARE: PrepareParams = {
+  ...DEFAULT_ADJUST,
+  grayscale: true,
+  grayscaleMethod: 'luminosity',
+  colorCount: 4,
+  bucketMethod: 'even-pixels',
+};
+
+export type PreparedImage = BucketedImage & {
+  /**
+   * Colour per ink as the image itself suggests: a black-to-white ramp for
+   * grayscale, the k-means centroids for colour. The UI may override these.
+   */
+  suggestedPalette: string[];
+};
+
+/** Evenly spaced greys, darkest first. */
+const grayRamp = (count: number): string[] =>
+  Array.from({ length: count }, (_, i) => {
+    const v = Math.round((i / Math.max(1, count - 1)) * 255);
+    return toHex(v, v, v);
+  });
+
+/**
+ * Everything between a decoded image and a set of ink indices: levels,
+ * contrast, then reduction to `colorCount` inks.
+ */
+export const prepareImage = (
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  params: PrepareParams,
+): PreparedImage => {
+  const adjusted = applyLut(rgba, buildAdjustLut(params));
+  const count = Math.max(2, Math.floor(params.colorCount));
+
+  if (params.grayscale) {
+    const gray = toGrayscale(adjusted, params.grayscaleMethod);
+    const bucketed = bucketImage(gray, width, height, count, params.bucketMethod);
+    return { ...bucketed, suggestedPalette: grayRamp(count) };
+  }
+
+  const { data, palette } = quantizeColors(adjusted, count);
+  return { width, height, data, layerCount: count, suggestedPalette: palette };
+};
 
 // ─── Styles ──────────────────────────────────────────────────────────────
 
@@ -389,6 +629,11 @@ export const renderStyle = (
 
 // ─── Presets ─────────────────────────────────────────────────────────────
 
+/**
+ * A shading preset — style and its parameters only. Presets deliberately say
+ * nothing about tone, colour count, or pen colours: those belong to preparing
+ * the image and are the user's to set once, independent of how it's shaded.
+ */
 export type PhotoPreset = {
   id: string;
   name: string;
@@ -396,57 +641,35 @@ export type PhotoPreset = {
   /** Which sketch in Plotter-Explorations/bought-a-3d-printer this came from. */
   source: string;
   style: PhotoStyle;
-  grayscale: GrayscaleMethod;
-  bucket: BucketMethod;
-  layerCount: number;
   params: StyleParams;
-  palette: string[];
 };
-
-/** Palettes lifted from the original sketches. */
-const CMYK = ['#000000', '#00b7eb', '#ff00ff', '#ffff00'];
-const CMYK_GREY = ['#a9a9a9', '#00b7eb', '#ff00ff', '#ffff00'];
-const DOGS = ['#8e3392', '#e76500', '#e0c200'];
-const RED = ['#dd3031'];
 
 export const PHOTO_PRESETS: PhotoPreset[] = [
   {
-    id: 'diagonal-cmyk',
-    name: 'Diagonal lines (CMYK)',
+    id: 'diagonal-dense',
+    name: 'Diagonal lines (dense)',
     description:
-      'Diagonal sweeps broken into runs of equal tone. Four pens, each covering about the same amount of paper.',
+      'Diagonal sweeps broken into runs of equal tone, keeping every run. The heaviest coverage.',
     source: 'diag_lines_attempt_2/process_photo_even_pixel_buckets.py',
     style: 'diagonal',
-    grayscale: 'luminosity',
-    bucket: 'even-pixels',
-    layerCount: 4,
     params: { ...DEFAULT_STYLE_PARAMS, lineSpacing: 3, colinearGap: 1 },
-    palette: CMYK_GREY,
   },
   {
-    id: 'diagonal-original',
+    id: 'diagonal-sparse',
     name: 'Diagonal lines (sparse)',
     description: 'The original, thinner pass — wider gaps after each run leave more paper showing.',
     source: 'diag_lines_original/diag_lines.py',
     style: 'diagonal',
-    grayscale: 'luminosity',
-    bucket: 'even-histogram',
-    layerCount: 4,
     params: { ...DEFAULT_STYLE_PARAMS, lineSpacing: 3, colinearGap: 3 },
-    palette: CMYK,
   },
   {
-    id: 'horizontal-dogs',
+    id: 'horizontal-scan',
     name: 'Horizontal scan',
     description:
       'Every row scanned left to right, split wherever the tone changes. The simplest and fastest to plot.',
     source: 'dogs/main.py',
     style: 'horizontal',
-    grayscale: 'average',
-    bucket: 'even-histogram',
-    layerCount: 3,
     params: { ...DEFAULT_STYLE_PARAMS, lineSpacing: 1, colinearGap: 1 },
-    palette: DOGS,
   },
   {
     id: 'dots-stipple',
@@ -455,27 +678,27 @@ export const PHOTO_PRESETS: PhotoPreset[] = [
       'Each pixel becomes a small cell filled with a random scatter of dots — more dots where the image is darker.',
     source: 'dots/main.py',
     style: 'dots',
-    grayscale: 'average',
-    bucket: 'even-histogram',
-    layerCount: 5,
     params: { ...DEFAULT_STYLE_PARAMS, boxSide: 2 },
-    palette: ['#000000'],
   },
   {
-    id: 'circles-red',
+    id: 'circles-concentric',
     name: 'Concentric circles',
-    description:
-      'Blocks averaged into a grid of filled circles, sized by tone. One pen; slow but striking.',
+    description: 'Blocks averaged into a grid of rings, sized by tone. Slow to plot but striking.',
     source: 'circles/main.py',
     style: 'circles',
-    grayscale: 'average',
-    bucket: 'even-histogram',
-    layerCount: 5,
     params: { ...DEFAULT_STYLE_PARAMS, sampleLength: 10, circleDiameter: 2, lineWidth: 0.4 },
-    palette: RED,
   },
 ];
 
-/** Repeat the preset palette out to `count` pens when it is shorter. */
+/** Pen sets lifted from the original sketches, offered when picking inks. */
+export const PALETTE_PRESETS: { name: string; colors: string[] }[] = [
+  { name: 'Black', colors: ['#000000'] },
+  { name: 'CMYK', colors: ['#000000', '#00b7eb', '#ff00ff', '#ffff00'] },
+  { name: 'CMY + grey', colors: ['#a9a9a9', '#00b7eb', '#ff00ff', '#ffff00'] },
+  { name: 'Purple / orange / yellow', colors: ['#8e3392', '#e76500', '#e0c200'] },
+  { name: 'Red', colors: ['#dd3031'] },
+];
+
+/** Repeat a palette out to `count` pens when it is shorter. */
 export const paletteFor = (palette: string[], count: number): string[] =>
   Array.from({ length: count }, (_, i) => palette[i % palette.length] ?? '#000000');

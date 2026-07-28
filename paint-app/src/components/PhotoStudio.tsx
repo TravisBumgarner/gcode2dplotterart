@@ -8,12 +8,14 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Slider,
   Stack,
+  Switch,
   Tab,
   Tabs,
   TextField,
@@ -23,19 +25,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PageSize } from '../pageSizes';
 import {
   BUCKET_METHODS,
-  type BucketedImage,
   type BucketMethod,
-  bucketImage,
+  DEFAULT_ADJUST,
+  DEFAULT_PREPARE,
   GRAYSCALE_METHODS,
   type GrayscaleMethod,
   type LayerStrokes,
+  PALETTE_PRESETS,
   PHOTO_PRESETS,
   type PhotoStyle,
+  type PreparedImage,
+  type PrepareParams,
   paletteFor,
+  prepareImage,
   renderStyle,
   type StyleParams,
   targetResolution,
-  toGrayscale,
 } from '../photo';
 import { bucketPreviewUrl, decodeFile, fitWithin, resample } from '../photoDecode';
 import { PageSizePicker } from './PageSizePicker';
@@ -83,12 +88,14 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  const [presetId, setPresetId] = useState(PHOTO_PRESETS[0].id);
-  const [grayscale, setGrayscale] = useState<GrayscaleMethod>(PHOTO_PRESETS[0].grayscale);
-  const [bucket, setBucket] = useState<BucketMethod>(PHOTO_PRESETS[0].bucket);
-  const [layerCount, setLayerCount] = useState(PHOTO_PRESETS[0].layerCount);
-  const [palette, setPalette] = useState<string[]>(PHOTO_PRESETS[0].palette);
+  // Preparation: everything about the image itself.
+  const [prepare, setPrepare] = useState<PrepareParams>(DEFAULT_PREPARE);
+  // Per-ink colour overrides. Anything unset falls back to what the image
+  // suggests, so changing the ink count never strands a stale palette.
+  const [inkOverrides, setInkOverrides] = useState<Record<number, string>>({});
 
+  // Shading: everything about how it lands on paper.
+  const [presetId, setPresetId] = useState(PHOTO_PRESETS[0].id);
   const [style, setStyle] = useState<PhotoStyle>(PHOTO_PRESETS[0].style);
   const [params, setParams] = useState<StyleParams>(PHOTO_PRESETS[0].params);
   const [pageSize, setPageSize] = useState<PageSize>({ width: 210, height: 297 });
@@ -107,12 +114,13 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
     if (!preset) return;
     setPresetId(id);
     setStyle(preset.style);
-    setGrayscale(preset.grayscale);
-    setBucket(preset.bucket);
-    setLayerCount(preset.layerCount);
     setParams(preset.params);
-    setPalette(preset.palette);
   }, []);
+
+  const patchPrepare = useCallback(
+    (changes: Partial<PrepareParams>) => setPrepare((previous) => ({ ...previous, ...changes })),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -120,17 +128,19 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
     };
   }, [sourceUrl]);
 
-  const colors = useMemo(() => paletteFor(palette, layerCount), [palette, layerCount]);
-
-  /** The bucketed image at whatever resolution the chosen style needs. */
-  const processed: BucketedImage | null = useMemo(() => {
+  /** The reduced image at whatever resolution the chosen style needs. */
+  const processed: PreparedImage | null = useMemo(() => {
     if (!bitmap) return null;
     const target = targetResolution(style, areaWidth, areaHeight, params);
     const fitted = fitWithin(bitmap.width, bitmap.height, target.width, target.height);
     const image = resample(bitmap, fitted.width, fitted.height);
-    const gray = toGrayscale(image.rgba, grayscale);
-    return bucketImage(gray, image.width, image.height, layerCount, bucket);
-  }, [bitmap, style, areaWidth, areaHeight, params, grayscale, layerCount, bucket]);
+    return prepareImage(image.rgba, image.width, image.height, prepare);
+  }, [bitmap, style, areaWidth, areaHeight, params, prepare]);
+
+  const colors = useMemo(() => {
+    const base = processed?.suggestedPalette ?? paletteFor(['#000000'], prepare.colorCount);
+    return base.map((color, i) => inkOverrides[i] ?? color);
+  }, [processed, inkOverrides, prepare.colorCount]);
 
   const previewUrl = useMemo(
     () =>
@@ -330,6 +340,182 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
 
           <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
             {tab === 'prepare' ? (
+              <Stack spacing={2.5}>
+                <Section title="Levels" onReset={() => patchPrepare(DEFAULT_ADJUST)}>
+                  <LabelledSlider
+                    label="Black point"
+                    value={prepare.blackPoint}
+                    min={0}
+                    max={254}
+                    onChange={(v) =>
+                      patchPrepare({ blackPoint: Math.min(v, prepare.whitePoint - 1) })
+                    }
+                  />
+                  <LabelledSlider
+                    label="Gray point"
+                    value={prepare.gamma}
+                    min={0.1}
+                    max={3}
+                    step={0.05}
+                    format={(v) => v.toFixed(2)}
+                    onChange={(v) => patchPrepare({ gamma: v })}
+                  />
+                  <LabelledSlider
+                    label="White point"
+                    value={prepare.whitePoint}
+                    min={1}
+                    max={255}
+                    onChange={(v) =>
+                      patchPrepare({ whitePoint: Math.max(v, prepare.blackPoint + 1) })
+                    }
+                  />
+                  <LabelledSlider
+                    label="Contrast"
+                    value={prepare.contrast}
+                    min={-100}
+                    max={100}
+                    onChange={(v) => patchPrepare({ contrast: v })}
+                  />
+                  {prepare.grayscale && prepare.bucketMethod === 'even-pixels' && (
+                    <Alert severity="info" sx={{ py: 0 }}>
+                      Even pixel count splits by rank, so a tone curve on its own can't move a pixel
+                      between inks — the gray point will do nothing here. Only clipping (black/white
+                      points, or hard contrast) changes the split. Switch to Even histogram to make
+                      these fully effective.
+                    </Alert>
+                  )}
+                </Section>
+
+                <Divider />
+
+                <Section title="Color">
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={prepare.grayscale}
+                        onChange={(e) => patchPrepare({ grayscale: e.target.checked })}
+                      />
+                    }
+                    label={<Typography variant="body2">Convert to grayscale</Typography>}
+                  />
+
+                  {prepare.grayscale ? (
+                    <>
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>Method</InputLabel>
+                        <Select
+                          label="Method"
+                          value={prepare.grayscaleMethod}
+                          onChange={(e) =>
+                            patchPrepare({ grayscaleMethod: e.target.value as GrayscaleMethod })
+                          }
+                        >
+                          {GRAYSCALE_METHODS.map((m) => (
+                            <MenuItem key={m.value} value={m.value}>
+                              {m.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <Typography variant="caption" color="text.secondary">
+                        {GRAYSCALE_METHODS.find((m) => m.value === prepare.grayscaleMethod)?.hint}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      Colors are reduced with k-means clustering, which picks the inks that best
+                      represent the image.
+                    </Typography>
+                  )}
+                </Section>
+
+                <Divider />
+
+                <Section title={`Reduce to ${prepare.colorCount} inks`}>
+                  <Slider
+                    size="small"
+                    min={2}
+                    max={8}
+                    step={1}
+                    marks
+                    value={prepare.colorCount}
+                    onChange={(_e, v) => patchPrepare({ colorCount: v as number })}
+                  />
+                  {prepare.grayscale && (
+                    <>
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>Split tones by</InputLabel>
+                        <Select
+                          label="Split tones by"
+                          value={prepare.bucketMethod}
+                          onChange={(e) =>
+                            patchPrepare({ bucketMethod: e.target.value as BucketMethod })
+                          }
+                        >
+                          {BUCKET_METHODS.map((m) => (
+                            <MenuItem key={m.value} value={m.value}>
+                              {m.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <Typography variant="caption" color="text.secondary">
+                        {BUCKET_METHODS.find((m) => m.value === prepare.bucketMethod)?.hint}
+                      </Typography>
+                    </>
+                  )}
+                </Section>
+
+                <Divider />
+
+                <Section
+                  title="Ink colors"
+                  onReset={
+                    Object.keys(inkOverrides).length > 0 ? () => setInkOverrides({}) : undefined
+                  }
+                >
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+                    {colors.map((color, i) => (
+                      <Stack
+                        // biome-ignore lint/suspicious/noArrayIndexKey: position is the ink's identity — index 0 is always the darkest
+                        key={i}
+                        sx={{ alignItems: 'center' }}
+                      >
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) =>
+                            setInkOverrides((previous) => ({ ...previous, [i]: e.target.value }))
+                          }
+                          style={{ width: 34, height: 26, border: 'none', background: 'none' }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {i === 0 ? 'dark' : i === colors.length - 1 ? 'light' : i + 1}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                    {PALETTE_PRESETS.map((preset) => (
+                      <Chip
+                        key={preset.name}
+                        size="small"
+                        variant="outlined"
+                        label={preset.name}
+                        onClick={() =>
+                          setInkOverrides(
+                            Object.fromEntries(
+                              paletteFor(preset.colors, colors.length).map((c, i) => [i, c]),
+                            ),
+                          )
+                        }
+                      />
+                    ))}
+                  </Stack>
+                </Section>
+              </Stack>
+            ) : (
               <Stack spacing={2}>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Preset</InputLabel>
@@ -349,90 +535,6 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
                   {PHOTO_PRESETS.find((p) => p.id === presetId)?.description}
                 </Typography>
 
-                <Divider />
-
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Grayscale</InputLabel>
-                  <Select
-                    label="Grayscale"
-                    value={grayscale}
-                    onChange={(e) => setGrayscale(e.target.value as GrayscaleMethod)}
-                  >
-                    {GRAYSCALE_METHODS.map((m) => (
-                      <MenuItem key={m.value} value={m.value}>
-                        {m.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Typography variant="caption" color="text.secondary">
-                  {GRAYSCALE_METHODS.find((m) => m.value === grayscale)?.hint}
-                </Typography>
-
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Bucketing</InputLabel>
-                  <Select
-                    label="Bucketing"
-                    value={bucket}
-                    onChange={(e) => setBucket(e.target.value as BucketMethod)}
-                  >
-                    {BUCKET_METHODS.map((m) => (
-                      <MenuItem key={m.value} value={m.value}>
-                        {m.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Typography variant="caption" color="text.secondary">
-                  {BUCKET_METHODS.find((m) => m.value === bucket)?.hint}
-                </Typography>
-
-                <Box>
-                  <Typography variant="body2" gutterBottom>
-                    Layers (pens): {layerCount}
-                  </Typography>
-                  <Slider
-                    size="small"
-                    min={2}
-                    max={8}
-                    step={1}
-                    marks
-                    value={layerCount}
-                    onChange={(_e, v) => setLayerCount(v as number)}
-                  />
-                </Box>
-
-                <Box>
-                  <Typography variant="body2" gutterBottom>
-                    Pen colors
-                  </Typography>
-                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-                    {colors.map((color, i) => (
-                      <Stack
-                        // biome-ignore lint/suspicious/noArrayIndexKey: position is the pen's identity — index 0 is always the darkest tone
-                        key={i}
-                        sx={{ alignItems: 'center' }}
-                      >
-                        <input
-                          type="color"
-                          value={color}
-                          onChange={(e) => {
-                            const next = [...colors];
-                            next[i] = e.target.value;
-                            setPalette(next);
-                          }}
-                          style={{ width: 34, height: 26, border: 'none', background: 'none' }}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {i === 0 ? 'dark' : i === layerCount - 1 ? 'light' : i + 1}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Box>
-              </Stack>
-            ) : (
-              <Stack spacing={2}>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Style</InputLabel>
                   <Select
@@ -632,6 +734,72 @@ const StudioHeader = ({ onExit }: { onExit: () => void }) => (
       Photo processing
     </Typography>
   </Stack>
+);
+
+/** A titled group of controls, with an optional reset affordance. */
+const Section = ({
+  title,
+  onReset,
+  children,
+}: {
+  title: string;
+  onReset?: () => void;
+  children: React.ReactNode;
+}) => (
+  <Box>
+    <Stack direction="row" sx={{ alignItems: 'center', mb: 0.5 }}>
+      <Typography variant="overline" color="text.secondary" sx={{ flex: 1 }}>
+        {title}
+      </Typography>
+      {onReset && (
+        <Button size="small" onClick={onReset}>
+          Reset
+        </Button>
+      )}
+    </Stack>
+    <Stack spacing={1}>{children}</Stack>
+  </Box>
+);
+
+const LabelledSlider = ({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  format = (v: number) => String(Math.round(v)),
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  format?: (v: number) => string;
+  onChange: (v: number) => void;
+}) => (
+  <Box>
+    <Stack direction="row" sx={{ alignItems: 'baseline' }}>
+      <Typography variant="body2" sx={{ flex: 1 }}>
+        {label}
+      </Typography>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontVariantNumeric: 'tabular-nums' }}
+      >
+        {format(value)}
+      </Typography>
+    </Stack>
+    <Slider
+      size="small"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(_e, v) => onChange(v as number)}
+    />
+  </Box>
 );
 
 const NumField = ({
