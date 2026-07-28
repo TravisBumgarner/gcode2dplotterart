@@ -130,6 +130,34 @@ export type BucketedImage = {
   layerCount: number;
 };
 
+/**
+ * Tonal distribution of the source, for the levels display. Uses whichever
+ * grayscale method is in play so the shape matches what actually gets split.
+ */
+export const luminanceHistogram = (
+  rgba: Uint8ClampedArray,
+  method: GrayscaleMethod = 'luminosity',
+): Int32Array => histogram256(toGrayscale(rgba, method));
+
+/**
+ * Where the midtone handle sits between the black and white points, given a
+ * gamma. Inverse of `midpointToGamma`.
+ */
+export const gammaToMidpoint = (gamma: number, black: number, white: number): number =>
+  black + (white - black) * 0.5 ** Math.max(0.01, gamma);
+
+/**
+ * Gamma that maps `mid` onto middle grey — the Photoshop levels convention.
+ * Solving 0.5 = t^(1/gamma) for gamma gives ln(t) / ln(0.5).
+ */
+export const midpointToGamma = (mid: number, black: number, white: number): number => {
+  const span = white - black;
+  if (span <= 0) return 1;
+  const t = (mid - black) / span;
+  if (t <= 0.001 || t >= 0.999) return t <= 0.001 ? 3 : 0.1;
+  return Math.max(0.1, Math.min(3, Math.log(t) / Math.log(0.5)));
+};
+
 const histogram256 = (gray: Float32Array): Int32Array => {
   const hist = new Int32Array(256);
   for (const value of gray) {

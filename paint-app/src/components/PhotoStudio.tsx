@@ -29,7 +29,11 @@ import {
   DEFAULT_PREPARE,
   GRAYSCALE_METHODS,
   type GrayscaleMethod,
+  gammaToMidpoint,
   type LayerStrokes,
+  type LevelsParams,
+  luminanceHistogram,
+  midpointToGamma,
   PALETTE_PRESETS,
   PHOTO_PRESETS,
   type PhotoStyle,
@@ -129,14 +133,34 @@ export const PhotoStudio = ({ onCreate }: Props) => {
     };
   }, [sourceUrl]);
 
-  /** The reduced image at whatever resolution the chosen style needs. */
-  const processed: PreparedImage | null = useMemo(() => {
+  /**
+   * The source resampled to whatever resolution the chosen style needs. Kept
+   * separate from the reduction below so that turning a levels knob doesn't
+   * redo the resample — only the cheap per-pixel pass.
+   */
+  const sampled = useMemo(() => {
     if (!bitmap) return null;
     const target = targetResolution(style, areaWidth, areaHeight, params);
     const fitted = fitWithin(bitmap.width, bitmap.height, target.width, target.height);
-    const image = resampleWithDetail(bitmap, fitted.width, fitted.height, detail);
-    return prepareImage(image.rgba, image.width, image.height, prepare);
-  }, [bitmap, style, areaWidth, areaHeight, params, prepare, detail]);
+    return resampleWithDetail(bitmap, fitted.width, fitted.height, detail);
+  }, [bitmap, style, areaWidth, areaHeight, params, detail]);
+
+  const histogram = useMemo(
+    () =>
+      sampled
+        ? luminanceHistogram(
+            sampled.rgba,
+            prepare.grayscale ? prepare.grayscaleMethod : 'luminosity',
+          )
+        : null,
+    [sampled, prepare.grayscale, prepare.grayscaleMethod],
+  );
+
+  /** The image reduced to ink indices. */
+  const processed: PreparedImage | null = useMemo(
+    () => (sampled ? prepareImage(sampled.rgba, sampled.width, sampled.height, prepare) : null),
+    [sampled, prepare],
+  );
 
   const colors = useMemo(() => {
     const base = processed?.suggestedPalette ?? paletteFor(['#000000'], prepare.colorCount);
@@ -360,32 +384,12 @@ export const PhotoStudio = ({ onCreate }: Props) => {
               <Divider />
 
               <Section title="Levels" onReset={() => patchPrepare(DEFAULT_ADJUST)}>
-                <LabelledSlider
-                  label="Black point"
-                  value={prepare.blackPoint}
-                  min={0}
-                  max={254}
-                  onChange={(v) =>
-                    patchPrepare({ blackPoint: Math.min(v, prepare.whitePoint - 1) })
-                  }
-                />
-                <LabelledSlider
-                  label="Gray point"
-                  value={prepare.gamma}
-                  min={0.1}
-                  max={3}
-                  step={0.05}
-                  format={(v) => v.toFixed(2)}
-                  onChange={(v) => patchPrepare({ gamma: v })}
-                />
-                <LabelledSlider
-                  label="White point"
-                  value={prepare.whitePoint}
-                  min={1}
-                  max={255}
-                  onChange={(v) =>
-                    patchPrepare({ whitePoint: Math.max(v, prepare.blackPoint + 1) })
-                  }
+                <LevelsControl
+                  histogram={histogram}
+                  blackPoint={prepare.blackPoint}
+                  whitePoint={prepare.whitePoint}
+                  gamma={prepare.gamma}
+                  onChange={patchPrepare}
                 />
                 <LabelledSlider
                   label="Contrast"
@@ -728,6 +732,161 @@ export const PhotoStudio = ({ onCreate }: Props) => {
           />
         )}
       </Box>
+    </Box>
+  );
+};
+
+const HISTOGRAM_HEIGHT = 72;
+
+/**
+ * Levels as a histogram with the three handles beneath it, Photoshop-style.
+ * The handles share the histogram's 0..255 domain so a thumb sits directly
+ * under the tones it clips; the middle one is the gamma control, expressed as
+ * a position between the outer two because that is how it reads against the
+ * distribution.
+ */
+const LevelsControl = ({
+  histogram,
+  blackPoint,
+  whitePoint,
+  gamma,
+  onChange,
+}: {
+  histogram: Int32Array | null;
+  blackPoint: number;
+  whitePoint: number;
+  gamma: number;
+  onChange: (changes: Partial<LevelsParams>) => void;
+}) => {
+  const midpoint = gammaToMidpoint(gamma, blackPoint, whitePoint);
+
+  const bars = useMemo(() => {
+    if (!histogram) return null;
+    let peak = 0;
+    for (const v of histogram) if (v > peak) peak = v;
+    if (peak === 0) return null;
+    // Square root rather than linear: photographic histograms have a few huge
+    // spikes that would flatten everything else into an invisible line.
+    return Array.from(histogram, (v) => Math.sqrt(v / peak) * HISTOGRAM_HEIGHT);
+  }, [histogram]);
+
+  const handleChange = (value: number | number[], activeThumb: number) => {
+    if (!Array.isArray(value)) return;
+    const [black, mid, white] = value;
+    if (activeThumb === 1) {
+      onChange({ gamma: midpointToGamma(mid, blackPoint, whitePoint) });
+      return;
+    }
+    // Dragging an outer handle keeps gamma where it is; the midpoint handle
+    // just follows, since its position is derived from gamma.
+    const nextBlack = Math.min(black, white - 2);
+    const nextWhite = Math.max(white, nextBlack + 2);
+    onChange({ blackPoint: nextBlack, whitePoint: nextWhite });
+  };
+
+  return (
+    <Box>
+      <Box
+        sx={{
+          height: HISTOGRAM_HEIGHT,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          bgcolor: 'background.default',
+          overflow: 'hidden',
+        }}
+      >
+        {bars ? (
+          <Box
+            component="svg"
+            viewBox={`0 0 256 ${HISTOGRAM_HEIGHT}`}
+            preserveAspectRatio="none"
+            sx={{ width: '100%', height: '100%', display: 'block' }}
+          >
+            <title>Tonal distribution</title>
+            {/* Everything outside the black/white points is crushed flat. */}
+            <rect
+              x={0}
+              y={0}
+              width={blackPoint}
+              height={HISTOGRAM_HEIGHT}
+              fill="currentColor"
+              opacity={0.12}
+            />
+            <rect
+              x={whitePoint}
+              y={0}
+              width={256 - whitePoint}
+              height={HISTOGRAM_HEIGHT}
+              fill="currentColor"
+              opacity={0.12}
+            />
+            {bars.map((height, i) => (
+              <rect
+                // biome-ignore lint/suspicious/noArrayIndexKey: index is the tonal value, 0..255
+                key={i}
+                x={i}
+                y={HISTOGRAM_HEIGHT - height}
+                width={1}
+                height={height}
+                fill="currentColor"
+                opacity={i < blackPoint || i > whitePoint ? 0.3 : 0.75}
+              />
+            ))}
+            <line
+              x1={midpoint}
+              x2={midpoint}
+              y1={0}
+              y2={HISTOGRAM_HEIGHT}
+              stroke="currentColor"
+              strokeWidth={0.75}
+              strokeDasharray="3 3"
+              opacity={0.5}
+            />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              No histogram yet
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Slider
+        size="small"
+        min={0}
+        max={255}
+        disableSwap
+        value={[blackPoint, midpoint, whitePoint]}
+        onChange={(_e, value, activeThumb) => handleChange(value, activeThumb)}
+        sx={{
+          mt: 0,
+          py: 1,
+          // The track would read as a second axis competing with the
+          // histogram above; only the handles carry meaning here.
+          '& .MuiSlider-rail, & .MuiSlider-track': { opacity: 0 },
+        }}
+      />
+
+      <Stack direction="row" sx={{ justifyContent: 'space-between', mt: -0.5 }}>
+        <Typography variant="caption" color="text.secondary">
+          Black {Math.round(blackPoint)}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Gray {gamma.toFixed(2)}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          White {Math.round(whitePoint)}
+        </Typography>
+      </Stack>
     </Box>
   );
 };
