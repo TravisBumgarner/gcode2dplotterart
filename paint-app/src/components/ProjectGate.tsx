@@ -1,6 +1,7 @@
 import BoltIcon from '@mui/icons-material/Bolt';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import PhotoIcon from '@mui/icons-material/Photo';
 import {
   Box,
   Button,
@@ -22,9 +23,10 @@ import { db, type Project } from '../db';
 import { loadLastPageSize, type PageSize, saveLastPageSize } from '../pageSizes';
 import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
-import { AppStateSchema } from '../types';
+import { type AppState, AppStateSchema } from '../types';
 import { ConnectedDataWizard } from './ConnectedDataWizard';
 import { PageSizePicker } from './PageSizePicker';
+import { type PhotoResult, PhotoWizard } from './PhotoWizard';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -36,6 +38,7 @@ export const ProjectGate = () => {
 
   const [size, setSize] = useState<PageSize>(() => loadLastPageSize());
   const [connectedDataOpen, setConnectedDataOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     const all = await db.projects.orderBy('updatedAt').reverse().toArray();
@@ -94,6 +97,50 @@ export const ProjectGate = () => {
     } catch {}
     await startLiveSession(`Connected Data · ${host}`, config.pageSize);
     startConnectedData(config);
+  };
+
+  /**
+   * A photo plot is a multi-pen print job, not a live session: it becomes a
+   * saved project with one layer per tone so the print flow can pause for a
+   * pen swap between them.
+   */
+  const onCreatePhoto = async (result: PhotoResult) => {
+    setPhotoOpen(false);
+    const now = Date.now();
+    const pageId = uid();
+    const state: AppState = {
+      pages: [
+        { id: pageId, x: 0, y: 0, width: result.pageSize.width, height: result.pageSize.height },
+      ],
+      layers: result.layers.map((layer, index) => ({
+        id: uid(),
+        name: `Pen ${index + 1}${index === 0 ? ' (darkest)' : ''}`,
+        color: layer.color,
+        thickness: 0.5,
+        visible: true,
+        strokes: layer.strokes.map((points) => ({
+          id: uid(),
+          // Strokes arrive page-local; the margin is applied here so the
+          // renderer's world space stays the single source of truth.
+          points: points.map((p) => ({ x: p.x + result.marginMm, y: p.y + result.marginMm })),
+          color: layer.color,
+        })),
+      })),
+      activePageId: pageId,
+      activeLayerId: '',
+    };
+    state.activeLayerId = state.layers[0].id;
+
+    const project: Project = {
+      id: uid(),
+      name: result.name,
+      state,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.projects.put(project);
+    saveLastPageSize(result.pageSize);
+    setProject({ id: project.id, name: project.name }, state);
   };
 
   const visibleProjects = (projects ?? []).filter((p) => p.id !== INTERACTIVE_PROJECT_ID);
@@ -218,6 +265,25 @@ export const ProjectGate = () => {
                 Configure
               </Button>
             </Paper>
+
+            <Paper
+              variant="outlined"
+              sx={{ p: 2, mt: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}
+            >
+              <PhotoIcon color="primary" />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Photo processing
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Turn a photo into a multi-pen plot — grayscale, split into tonal layers, then
+                  shade with lines, dots, or circles.
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={() => setPhotoOpen(true)}>
+                Configure
+              </Button>
+            </Paper>
           </Box>
         </Stack>
       </Paper>
@@ -227,6 +293,7 @@ export const ProjectGate = () => {
         onClose={() => setConnectedDataOpen(false)}
         onStart={onStartConnectedData}
       />
+      <PhotoWizard open={photoOpen} onClose={() => setPhotoOpen(false)} onCreate={onCreatePhoto} />
     </Box>
   );
 };
