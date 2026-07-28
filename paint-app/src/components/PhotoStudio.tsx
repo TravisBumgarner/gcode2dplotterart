@@ -1,4 +1,3 @@
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhotoIcon from '@mui/icons-material/Photo';
 import {
   Alert,
@@ -54,7 +53,6 @@ export type PhotoResult = {
 };
 
 type Props = {
-  onExit: () => void;
   onCreate: (result: PhotoResult) => void;
 };
 
@@ -79,7 +77,7 @@ const STROKE_WARN_THRESHOLD = 60_000;
  * rather than sequential — tone and shading are adjusted against each other,
  * so moving between them has to be free.
  */
-export const PhotoStudio = ({ onExit, onCreate }: Props) => {
+export const PhotoStudio = ({ onCreate }: Props) => {
   const [tab, setTab] = useState<TabKey>('prepare');
 
   const [file, setFile] = useState<File | null>(null);
@@ -224,7 +222,6 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
   if (!bitmap) {
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <StudioHeader onExit={onExit} />
         <Box
           onDragOver={(e) => {
             e.preventDefault();
@@ -271,470 +268,446 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
   }
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <StudioHeader onExit={onExit} />
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        {/* ── Controls ── */}
-        <Box
+    <Box sx={{ height: '100%', display: 'flex' }}>
+      {/* ── Controls ── */}
+      <Box
+        sx={{
+          width: SIDEBAR_WIDTH,
+          flexShrink: 0,
+          borderRight: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+        }}
+      >
+        {/* The source image is the one thing every control below depends on,
+              so it is set apart rather than reading as the first setting. */}
+        <Stack
+          direction="row"
+          spacing={1.5}
           sx={{
-            width: SIDEBAR_WIDTH,
-            flexShrink: 0,
-            borderRight: '1px solid',
+            p: 2,
+            alignItems: 'center',
+            bgcolor: 'action.hover',
+            borderBottom: '1px solid',
             borderColor: 'divider',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
           }}
         >
-          {/* The source image is the one thing every control below depends on,
-              so it is set apart rather than reading as the first setting. */}
-          <Stack
-            direction="row"
-            spacing={1.5}
+          <Box
+            component="img"
+            src={sourceUrl ?? ''}
+            alt=""
             sx={{
-              p: 2,
-              alignItems: 'center',
-              bgcolor: 'action.hover',
-              borderBottom: '1px solid',
+              width: 48,
+              height: 48,
+              objectFit: 'cover',
+              borderRadius: 1,
+              border: '1px solid',
               borderColor: 'divider',
+              flexShrink: 0,
             }}
+          />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="body2" noWrap title={file?.name} sx={{ fontWeight: 600 }}>
+              {file?.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {bitmap.width}×{bitmap.height}px
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant="outlined"
+            sx={{ flexShrink: 0 }}
+            onClick={() => fileInputRef.current?.click()}
           >
-            <Box
-              component="img"
-              src={sourceUrl ?? ''}
-              alt=""
-              sx={{
-                width: 48,
-                height: 48,
-                objectFit: 'cover',
-                borderRadius: 1,
-                border: '1px solid',
-                borderColor: 'divider',
-                flexShrink: 0,
-              }}
-            />
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" noWrap title={file?.name} sx={{ fontWeight: 600 }}>
-                {file?.name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {bitmap.width}×{bitmap.height}px
-              </Typography>
-            </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              sx={{ flexShrink: 0 }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Change
-            </Button>
-          </Stack>
-          {hiddenInput}
+            Change
+          </Button>
+        </Stack>
+        {hiddenInput}
 
-          <Tabs value={tab} onChange={(_e, v) => setTab(v as TabKey)} variant="fullWidth">
-            <Tab value="prepare" label="Prepare Image" />
-            <Tab value="style" label="Style" />
-          </Tabs>
-          <Divider />
+        <Tabs value={tab} onChange={(_e, v) => setTab(v as TabKey)} variant="fullWidth">
+          <Tab value="prepare" label="Prepare Image" />
+          <Tab value="style" label="Style" />
+        </Tabs>
+        <Divider />
 
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-            {tab === 'prepare' ? (
-              <Stack spacing={2.5}>
-                <Section title="Levels" onReset={() => patchPrepare(DEFAULT_ADJUST)}>
-                  <LabelledSlider
-                    label="Black point"
-                    value={prepare.blackPoint}
-                    min={0}
-                    max={254}
-                    onChange={(v) =>
-                      patchPrepare({ blackPoint: Math.min(v, prepare.whitePoint - 1) })
-                    }
-                  />
-                  <LabelledSlider
-                    label="Gray point"
-                    value={prepare.gamma}
-                    min={0.1}
-                    max={3}
-                    step={0.05}
-                    format={(v) => v.toFixed(2)}
-                    onChange={(v) => patchPrepare({ gamma: v })}
-                  />
-                  <LabelledSlider
-                    label="White point"
-                    value={prepare.whitePoint}
-                    min={1}
-                    max={255}
-                    onChange={(v) =>
-                      patchPrepare({ whitePoint: Math.max(v, prepare.blackPoint + 1) })
-                    }
-                  />
-                  <LabelledSlider
-                    label="Contrast"
-                    value={prepare.contrast}
-                    min={-100}
-                    max={100}
-                    onChange={(v) => patchPrepare({ contrast: v })}
-                  />
-                  {prepare.grayscale && prepare.bucketMethod === 'even-pixels' && (
-                    <Alert severity="info" sx={{ py: 0 }}>
-                      Even pixel count splits by rank, so a tone curve on its own can't move a pixel
-                      between inks — the gray point will do nothing here. Only clipping (black/white
-                      points, or hard contrast) changes the split. Switch to Even histogram to make
-                      these fully effective.
-                    </Alert>
-                  )}
-                </Section>
-
-                <Divider />
-
-                <Section title="Color">
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        size="small"
-                        checked={prepare.grayscale}
-                        onChange={(e) => patchPrepare({ grayscale: e.target.checked })}
-                      />
-                    }
-                    label={<Typography variant="body2">Convert to grayscale</Typography>}
-                  />
-
-                  {prepare.grayscale ? (
-                    <>
-                      <FormControl size="small" fullWidth>
-                        <InputLabel>Method</InputLabel>
-                        <Select
-                          label="Method"
-                          value={prepare.grayscaleMethod}
-                          onChange={(e) =>
-                            patchPrepare({ grayscaleMethod: e.target.value as GrayscaleMethod })
-                          }
-                        >
-                          {GRAYSCALE_METHODS.map((m) => (
-                            <MenuItem key={m.value} value={m.value}>
-                              {m.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <Typography variant="caption" color="text.secondary">
-                        {GRAYSCALE_METHODS.find((m) => m.value === prepare.grayscaleMethod)?.hint}
-                      </Typography>
-                    </>
-                  ) : (
-                    <Typography variant="caption" color="text.secondary">
-                      Colors are reduced with k-means clustering, which picks the inks that best
-                      represent the image.
-                    </Typography>
-                  )}
-                </Section>
-
-                <Divider />
-
-                <Section title={`Reduce to ${prepare.colorCount} inks`}>
-                  <Slider
-                    size="small"
-                    min={2}
-                    max={8}
-                    step={1}
-                    marks
-                    value={prepare.colorCount}
-                    onChange={(_e, v) => patchPrepare({ colorCount: v as number })}
-                  />
-                  {prepare.grayscale && (
-                    <>
-                      <FormControl size="small" fullWidth>
-                        <InputLabel>Split tones by</InputLabel>
-                        <Select
-                          label="Split tones by"
-                          value={prepare.bucketMethod}
-                          onChange={(e) =>
-                            patchPrepare({ bucketMethod: e.target.value as BucketMethod })
-                          }
-                        >
-                          {BUCKET_METHODS.map((m) => (
-                            <MenuItem key={m.value} value={m.value}>
-                              {m.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <Typography variant="caption" color="text.secondary">
-                        {BUCKET_METHODS.find((m) => m.value === prepare.bucketMethod)?.hint}
-                      </Typography>
-                    </>
-                  )}
-                </Section>
-
-                <Divider />
-
-                <Section
-                  title="Ink colors"
-                  onReset={
-                    Object.keys(inkOverrides).length > 0 ? () => setInkOverrides({}) : undefined
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+          {tab === 'prepare' ? (
+            <Stack spacing={2.5}>
+              <Section title="Levels" onReset={() => patchPrepare(DEFAULT_ADJUST)}>
+                <LabelledSlider
+                  label="Black point"
+                  value={prepare.blackPoint}
+                  min={0}
+                  max={254}
+                  onChange={(v) =>
+                    patchPrepare({ blackPoint: Math.min(v, prepare.whitePoint - 1) })
                   }
-                >
-                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-                    {colors.map((color, i) => (
-                      <Stack
-                        // biome-ignore lint/suspicious/noArrayIndexKey: position is the ink's identity — index 0 is always the darkest
-                        key={i}
-                        sx={{ alignItems: 'center' }}
-                      >
-                        <input
-                          type="color"
-                          value={color}
-                          onChange={(e) =>
-                            setInkOverrides((previous) => ({ ...previous, [i]: e.target.value }))
-                          }
-                          style={{ width: 34, height: 26, border: 'none', background: 'none' }}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {i === 0 ? 'dark' : i === colors.length - 1 ? 'light' : i + 1}
-                        </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-                    {PALETTE_PRESETS.map((preset) => (
-                      <Chip
-                        key={preset.name}
-                        size="small"
-                        variant="outlined"
-                        label={preset.name}
-                        onClick={() =>
-                          setInkOverrides(
-                            Object.fromEntries(
-                              paletteFor(preset.colors, colors.length).map((c, i) => [i, c]),
-                            ),
-                          )
-                        }
-                      />
-                    ))}
-                  </Stack>
-                </Section>
-              </Stack>
-            ) : (
-              <Stack spacing={2}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Preset</InputLabel>
-                  <Select
-                    label="Preset"
-                    value={presetId}
-                    onChange={(e) => applyPreset(e.target.value)}
-                  >
-                    {PHOTO_PRESETS.map((p) => (
-                      <MenuItem key={p.id} value={p.id}>
-                        {p.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Typography variant="caption" color="text.secondary">
-                  {PHOTO_PRESETS.find((p) => p.id === presetId)?.description}
-                </Typography>
+                />
+                <LabelledSlider
+                  label="Gray point"
+                  value={prepare.gamma}
+                  min={0.1}
+                  max={3}
+                  step={0.05}
+                  format={(v) => v.toFixed(2)}
+                  onChange={(v) => patchPrepare({ gamma: v })}
+                />
+                <LabelledSlider
+                  label="White point"
+                  value={prepare.whitePoint}
+                  min={1}
+                  max={255}
+                  onChange={(v) =>
+                    patchPrepare({ whitePoint: Math.max(v, prepare.blackPoint + 1) })
+                  }
+                />
+                <LabelledSlider
+                  label="Contrast"
+                  value={prepare.contrast}
+                  min={-100}
+                  max={100}
+                  onChange={(v) => patchPrepare({ contrast: v })}
+                />
+                {prepare.grayscale && prepare.bucketMethod === 'even-pixels' && (
+                  <Alert severity="info" sx={{ py: 0 }}>
+                    Even pixel count splits by rank, so a tone curve on its own can't move a pixel
+                    between inks — the gray point will do nothing here. Only clipping (black/white
+                    points, or hard contrast) changes the split. Switch to Even histogram to make
+                    these fully effective.
+                  </Alert>
+                )}
+              </Section>
 
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Style</InputLabel>
-                  <Select
-                    label="Style"
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value as PhotoStyle)}
-                  >
-                    {(Object.keys(STYLE_LABELS) as PhotoStyle[]).map((s) => (
-                      <MenuItem key={s} value={s}>
-                        {STYLE_LABELS[s]}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+              <Divider />
 
-                <Divider />
-
-                <PageSizePicker value={pageSize} onChange={setPageSize} minWidth={0} />
-                <NumField
-                  label="Margin (mm)"
-                  value={marginMm}
-                  onChange={(v) => setMarginMm(Math.max(0, v))}
+              <Section title="Color">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={prepare.grayscale}
+                      onChange={(e) => patchPrepare({ grayscale: e.target.checked })}
+                    />
+                  }
+                  label={<Typography variant="body2">Convert to grayscale</Typography>}
                 />
 
-                <Divider />
-
-                {(style === 'horizontal' || style === 'diagonal') && (
+                {prepare.grayscale ? (
                   <>
-                    <NumField
-                      label="Line spacing (px)"
-                      value={params.lineSpacing}
-                      onChange={(v) => setParams({ ...params, lineSpacing: v })}
-                    />
-                    <NumField
-                      label="Gap after run"
-                      value={params.colinearGap}
-                      onChange={(v) => setParams({ ...params, colinearGap: v })}
-                    />
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Method</InputLabel>
+                      <Select
+                        label="Method"
+                        value={prepare.grayscaleMethod}
+                        onChange={(e) =>
+                          patchPrepare({ grayscaleMethod: e.target.value as GrayscaleMethod })
+                        }
+                      >
+                        {GRAYSCALE_METHODS.map((m) => (
+                          <MenuItem key={m.value} value={m.value}>
+                            {m.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography variant="caption" color="text.secondary">
+                      {GRAYSCALE_METHODS.find((m) => m.value === prepare.grayscaleMethod)?.hint}
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    Colors are reduced with k-means clustering, which picks the inks that best
+                    represent the image.
+                  </Typography>
+                )}
+              </Section>
+
+              <Divider />
+
+              <Section title={`Reduce to ${prepare.colorCount} inks`}>
+                <Slider
+                  size="small"
+                  min={2}
+                  max={8}
+                  step={1}
+                  marks
+                  value={prepare.colorCount}
+                  onChange={(_e, v) => patchPrepare({ colorCount: v as number })}
+                />
+                {prepare.grayscale && (
+                  <>
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Split tones by</InputLabel>
+                      <Select
+                        label="Split tones by"
+                        value={prepare.bucketMethod}
+                        onChange={(e) =>
+                          patchPrepare({ bucketMethod: e.target.value as BucketMethod })
+                        }
+                      >
+                        {BUCKET_METHODS.map((m) => (
+                          <MenuItem key={m.value} value={m.value}>
+                            {m.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography variant="caption" color="text.secondary">
+                      {BUCKET_METHODS.find((m) => m.value === prepare.bucketMethod)?.hint}
+                    </Typography>
                   </>
                 )}
-                {style === 'dots' && (
-                  <NumField
-                    label="Cell size (mm)"
-                    value={params.boxSide}
-                    onChange={(v) => setParams({ ...params, boxSide: v })}
-                  />
-                )}
-                {style === 'circles' && (
-                  <>
-                    <NumField
-                      label="Sample (px)"
-                      value={params.sampleLength}
-                      onChange={(v) => setParams({ ...params, sampleLength: v })}
-                    />
-                    <NumField
-                      label="Diameter (mm)"
-                      value={params.circleDiameter}
-                      step={0.1}
-                      onChange={(v) => setParams({ ...params, circleDiameter: v })}
-                    />
-                    <NumField
-                      label="Ring gap (mm)"
-                      value={params.lineWidth}
-                      step={0.05}
-                      onChange={(v) => setParams({ ...params, lineWidth: v })}
-                    />
-                  </>
-                )}
-              </Stack>
-            )}
-          </Box>
+              </Section>
 
-          {/* ── Result summary + commit ── */}
-          <Divider />
-          <Box sx={{ p: 2 }}>
-            {rendered && !rendering && (
-              <Box sx={{ mb: 1.5 }}>
-                <Typography variant="body2">
-                  <strong>{strokeCount.toLocaleString()}</strong> strokes across {rendered.length}{' '}
-                  layers
-                </Typography>
-                <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                  {rendered.map((layer, i) => (
-                    <Chip
-                      // biome-ignore lint/suspicious/noArrayIndexKey: one chip per pen, in fixed tonal order
+              <Divider />
+
+              <Section
+                title="Ink colors"
+                onReset={
+                  Object.keys(inkOverrides).length > 0 ? () => setInkOverrides({}) : undefined
+                }
+              >
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+                  {colors.map((color, i) => (
+                    <Stack
+                      // biome-ignore lint/suspicious/noArrayIndexKey: position is the ink's identity — index 0 is always the darkest
                       key={i}
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <input
+                        type="color"
+                        value={color}
+                        onChange={(e) =>
+                          setInkOverrides((previous) => ({ ...previous, [i]: e.target.value }))
+                        }
+                        style={{ width: 34, height: 26, border: 'none', background: 'none' }}
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {i === 0 ? 'dark' : i === colors.length - 1 ? 'light' : i + 1}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                  {PALETTE_PRESETS.map((preset) => (
+                    <Chip
+                      key={preset.name}
                       size="small"
                       variant="outlined"
-                      label={layer.length.toLocaleString()}
-                      sx={{ borderColor: colors[i], color: colors[i] }}
+                      label={preset.name}
+                      onClick={() =>
+                        setInkOverrides(
+                          Object.fromEntries(
+                            paletteFor(preset.colors, colors.length).map((c, i) => [i, c]),
+                          ),
+                        )
+                      }
                     />
                   ))}
                 </Stack>
-                {strokeCount > STROKE_WARN_THRESHOLD && (
-                  <Alert severity="warning" sx={{ mt: 1 }}>
-                    That's a lot of strokes — the canvas will be sluggish and the plot will take
-                    hours. Raise the line spacing or the gap after each run.
-                  </Alert>
-                )}
-              </Box>
-            )}
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={finish}
-              disabled={!rendered || rendering || strokeCount === 0}
-            >
-              Create project
-            </Button>
-            {!rendered && (
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: 'block', mt: 1, textAlign: 'center' }}
-              >
-                Open the Style tab to generate strokes.
-              </Typography>
-            )}
-          </Box>
-        </Box>
-
-        {/* ── Preview ── */}
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 3,
-            overflow: 'auto',
-            bgcolor: 'action.hover',
-          }}
-        >
-          {tab === 'prepare' ? (
-            previewUrl && (
-              <Stack spacing={1} sx={{ alignItems: 'center', maxHeight: '100%' }}>
-                <Box
-                  component="img"
-                  src={previewUrl}
-                  alt="Bucketed preview"
-                  sx={{
-                    maxWidth: '100%',
-                    maxHeight: 'calc(100vh - 220px)',
-                    imageRendering: 'pixelated',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    boxShadow: 3,
-                  }}
-                />
-                {processed && (
-                  <Typography variant="caption" color="text.secondary">
-                    Sampled at {processed.width}×{processed.height} for the {STYLE_LABELS[style]}{' '}
-                    style
-                  </Typography>
-                )}
-              </Stack>
-            )
-          ) : rendering ? (
-            <Stack spacing={1} sx={{ alignItems: 'center' }}>
-              <CircularProgress />
-              <Typography variant="body2" color="text.secondary">
-                Generating strokes…
-              </Typography>
+              </Section>
             </Stack>
           ) : (
-            <StrokePreview
-              layers={rendered}
-              colors={colors}
-              pageSize={pageSize}
-              marginMm={marginMm}
-            />
+            <Stack spacing={2}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Preset</InputLabel>
+                <Select
+                  label="Preset"
+                  value={presetId}
+                  onChange={(e) => applyPreset(e.target.value)}
+                >
+                  {PHOTO_PRESETS.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {p.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Typography variant="caption" color="text.secondary">
+                {PHOTO_PRESETS.find((p) => p.id === presetId)?.description}
+              </Typography>
+
+              <FormControl size="small" fullWidth>
+                <InputLabel>Style</InputLabel>
+                <Select
+                  label="Style"
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value as PhotoStyle)}
+                >
+                  {(Object.keys(STYLE_LABELS) as PhotoStyle[]).map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {STYLE_LABELS[s]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Divider />
+
+              <PageSizePicker value={pageSize} onChange={setPageSize} minWidth={0} />
+              <NumField
+                label="Margin (mm)"
+                value={marginMm}
+                onChange={(v) => setMarginMm(Math.max(0, v))}
+              />
+
+              <Divider />
+
+              {(style === 'horizontal' || style === 'diagonal') && (
+                <>
+                  <NumField
+                    label="Line spacing (px)"
+                    value={params.lineSpacing}
+                    onChange={(v) => setParams({ ...params, lineSpacing: v })}
+                  />
+                  <NumField
+                    label="Gap after run"
+                    value={params.colinearGap}
+                    onChange={(v) => setParams({ ...params, colinearGap: v })}
+                  />
+                </>
+              )}
+              {style === 'dots' && (
+                <NumField
+                  label="Cell size (mm)"
+                  value={params.boxSide}
+                  onChange={(v) => setParams({ ...params, boxSide: v })}
+                />
+              )}
+              {style === 'circles' && (
+                <>
+                  <NumField
+                    label="Sample (px)"
+                    value={params.sampleLength}
+                    onChange={(v) => setParams({ ...params, sampleLength: v })}
+                  />
+                  <NumField
+                    label="Diameter (mm)"
+                    value={params.circleDiameter}
+                    step={0.1}
+                    onChange={(v) => setParams({ ...params, circleDiameter: v })}
+                  />
+                  <NumField
+                    label="Ring gap (mm)"
+                    value={params.lineWidth}
+                    step={0.05}
+                    onChange={(v) => setParams({ ...params, lineWidth: v })}
+                  />
+                </>
+              )}
+            </Stack>
           )}
         </Box>
+
+        {/* ── Result summary + commit ── */}
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          {rendered && !rendering && (
+            <Box sx={{ mb: 1.5 }}>
+              <Typography variant="body2">
+                <strong>{strokeCount.toLocaleString()}</strong> strokes across {rendered.length}{' '}
+                layers
+              </Typography>
+              <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                {rendered.map((layer, i) => (
+                  <Chip
+                    // biome-ignore lint/suspicious/noArrayIndexKey: one chip per pen, in fixed tonal order
+                    key={i}
+                    size="small"
+                    variant="outlined"
+                    label={layer.length.toLocaleString()}
+                    sx={{ borderColor: colors[i], color: colors[i] }}
+                  />
+                ))}
+              </Stack>
+              {strokeCount > STROKE_WARN_THRESHOLD && (
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  That's a lot of strokes — the canvas will be sluggish and the plot will take
+                  hours. Raise the line spacing or the gap after each run.
+                </Alert>
+              )}
+            </Box>
+          )}
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={finish}
+            disabled={!rendered || rendering || strokeCount === 0}
+          >
+            Create project
+          </Button>
+          {!rendered && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mt: 1, textAlign: 'center' }}
+            >
+              Open the Style tab to generate strokes.
+            </Typography>
+          )}
+        </Box>
+      </Box>
+
+      {/* ── Preview ── */}
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3,
+          overflow: 'auto',
+          bgcolor: 'action.hover',
+        }}
+      >
+        {tab === 'prepare' ? (
+          previewUrl && (
+            <Stack spacing={1} sx={{ alignItems: 'center', maxHeight: '100%' }}>
+              <Box
+                component="img"
+                src={previewUrl}
+                alt="Bucketed preview"
+                sx={{
+                  maxWidth: '100%',
+                  maxHeight: 'calc(100vh - 220px)',
+                  imageRendering: 'pixelated',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  boxShadow: 3,
+                }}
+              />
+              {processed && (
+                <Typography variant="caption" color="text.secondary">
+                  Sampled at {processed.width}×{processed.height} for the {STYLE_LABELS[style]}{' '}
+                  style
+                </Typography>
+              )}
+            </Stack>
+          )
+        ) : rendering ? (
+          <Stack spacing={1} sx={{ alignItems: 'center' }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary">
+              Generating strokes…
+            </Typography>
+          </Stack>
+        ) : (
+          <StrokePreview
+            layers={rendered}
+            colors={colors}
+            pageSize={pageSize}
+            marginMm={marginMm}
+          />
+        )}
       </Box>
     </Box>
   );
 };
-
-const StudioHeader = ({ onExit }: { onExit: () => void }) => (
-  <Stack
-    direction="row"
-    spacing={1}
-    sx={{
-      px: 2,
-      py: 1,
-      alignItems: 'center',
-      borderBottom: '1px solid',
-      borderColor: 'divider',
-    }}
-  >
-    <Button size="small" startIcon={<ArrowBackIcon />} onClick={onExit}>
-      Back
-    </Button>
-    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-      Photo processing
-    </Typography>
-  </Stack>
-);
 
 /** A titled group of controls, with an optional reset affordance. */
 const Section = ({

@@ -23,14 +23,17 @@ import { db, type Project } from '../db';
 import { loadLastPageSize, type PageSize, saveLastPageSize } from '../pageSizes';
 import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
-import { type AppState, AppStateSchema } from '../types';
+import { AppStateSchema } from '../types';
 import { ConnectedDataWizard } from './ConnectedDataWizard';
 import { PageSizePicker } from './PageSizePicker';
-import { type PhotoResult, PhotoStudio } from './PhotoStudio';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-export const ProjectGate = () => {
+type Props = {
+  onOpenPhoto: () => void;
+};
+
+export const ProjectGate = ({ onOpenPhoto }: Props) => {
   const { setProject } = useProject();
   const { start: startConnectedData } = useConnectedData();
   const [projects, setProjects] = useState<Project[] | null>(null);
@@ -38,9 +41,6 @@ export const ProjectGate = () => {
 
   const [size, setSize] = useState<PageSize>(() => loadLastPageSize());
   const [connectedDataOpen, setConnectedDataOpen] = useState(false);
-  // The photo util takes over the whole view rather than opening a dialog —
-  // it is a workspace, not a form.
-  const [photoOpen, setPhotoOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     const all = await db.projects.orderBy('updatedAt').reverse().toArray();
@@ -101,50 +101,6 @@ export const ProjectGate = () => {
     startConnectedData(config);
   };
 
-  /**
-   * A photo plot is a multi-pen print job, not a live session: it becomes a
-   * saved project with one layer per tone so the print flow can pause for a
-   * pen swap between them.
-   */
-  const onCreatePhoto = async (result: PhotoResult) => {
-    setPhotoOpen(false);
-    const now = Date.now();
-    const pageId = uid();
-    const state: AppState = {
-      pages: [
-        { id: pageId, x: 0, y: 0, width: result.pageSize.width, height: result.pageSize.height },
-      ],
-      layers: result.layers.map((layer, index) => ({
-        id: uid(),
-        name: `Pen ${index + 1}${index === 0 ? ' (darkest)' : ''}`,
-        color: layer.color,
-        thickness: 0.5,
-        visible: true,
-        strokes: layer.strokes.map((points) => ({
-          id: uid(),
-          // Strokes arrive page-local; the margin is applied here so the
-          // renderer's world space stays the single source of truth.
-          points: points.map((p) => ({ x: p.x + result.marginMm, y: p.y + result.marginMm })),
-          color: layer.color,
-        })),
-      })),
-      activePageId: pageId,
-      activeLayerId: '',
-    };
-    state.activeLayerId = state.layers[0].id;
-
-    const project: Project = {
-      id: uid(),
-      name: result.name,
-      state,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await db.projects.put(project);
-    saveLastPageSize(result.pageSize);
-    setProject({ id: project.id, name: project.name }, state);
-  };
-
   const visibleProjects = (projects ?? []).filter((p) => p.id !== INTERACTIVE_PROJECT_ID);
 
   const onDelete = async (id: string) => {
@@ -152,10 +108,6 @@ export const ProjectGate = () => {
     await db.projects.delete(id);
     refresh();
   };
-
-  if (photoOpen) {
-    return <PhotoStudio onExit={() => setPhotoOpen(false)} onCreate={onCreatePhoto} />;
-  }
 
   return (
     <Box sx={{ height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -286,7 +238,7 @@ export const ProjectGate = () => {
                   shade with lines, dots, or circles.
                 </Typography>
               </Box>
-              <Button variant="contained" onClick={() => setPhotoOpen(true)}>
+              <Button variant="contained" onClick={onOpenPhoto}>
                 Open
               </Button>
             </Paper>

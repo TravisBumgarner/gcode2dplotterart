@@ -396,7 +396,7 @@ export const SettingsMenu = () => {
   return (
     <>
       <Tooltip title={statusHint ?? 'Settings'}>
-        <IconButton color="inherit" onClick={(e) => setAnchor(e.currentTarget)} edge="start">
+        <IconButton color="inherit" onClick={(e) => setAnchor(e.currentTarget)}>
           <SettingsIcon />
         </IconButton>
       </Tooltip>

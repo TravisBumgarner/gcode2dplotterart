@@ -1,3 +1,4 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BoltIcon from '@mui/icons-material/Bolt';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
@@ -26,6 +27,9 @@ import { SettingsMenu } from './SettingsMenu';
 
 type Props = {
   onPrint: () => void;
+  /** Set when a full-page util owns the view; it takes over the bar's title. */
+  utilTitle: string | null;
+  onExitUtil: () => void;
 };
 
 /**
@@ -33,7 +37,7 @@ type Props = {
  * plotter selection and the connection live at app scope: you can connect,
  * switch machines, or emergency-stop from anywhere, including the home screen.
  */
-export const Toolbar = ({ onPrint }: Props) => {
+export const Toolbar = ({ onPrint, utilTitle, onExitUtil }: Props) => {
   const { project, isDirty, isSaving, autosave } = useProject();
   const { connected } = useConnection();
   const { activePlotter } = usePlotters();
@@ -46,11 +50,21 @@ export const Toolbar = ({ onPrint }: Props) => {
   return (
     <AppBar position="static" color="default" elevation={1}>
       <MuiToolbar variant="dense" sx={{ gap: 1 }}>
-        <SettingsMenu />
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
-          {project?.name ?? 'paint-app'}
-        </Typography>
-        {project && !isInteractive && (
+        {utilTitle ? (
+          <>
+            <Button size="small" startIcon={<ArrowBackIcon />} onClick={onExitUtil}>
+              Back
+            </Button>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {utilTitle}
+            </Typography>
+          </>
+        ) : (
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {project?.name ?? 'paint-app'}
+          </Typography>
+        )}
+        {!utilTitle && project && !isInteractive && (
           <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {isSaving && <CircularProgress size={12} />}
             <Typography variant="caption" color="text.secondary">
@@ -140,6 +154,9 @@ export const Toolbar = ({ onPrint }: Props) => {
 
         <PlotterControls />
 
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+        <SettingsMenu />
         <Tooltip title="View on GitHub">
           <IconButton
             size="small"
