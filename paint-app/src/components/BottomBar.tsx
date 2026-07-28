@@ -220,10 +220,10 @@ export const BottomBar = () => {
                   borderRadius: '50%',
                   cursor: 'pointer',
                   background: c,
-                  border:
+                  border: (t) =>
                     c.toLowerCase() === activeColor.toLowerCase()
-                      ? '2px solid #1976d2'
-                      : '1px solid rgba(0,0,0,0.3)',
+                      ? `2px solid ${t.palette.primary.main}`
+                      : `1px solid ${t.palette.divider}`,
                 }}
               />
             ))}

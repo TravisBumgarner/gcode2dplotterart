@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
@@ -31,6 +32,7 @@ import { db, type Project } from '../db';
 import { usePlotters } from '../plotters';
 import { INTERACTIVE_PROJECT_ID, useProject } from '../project';
 import { useStore } from '../store';
+import { type ThemeMode, useThemeMode } from '../theme';
 import { AppStateSchema, PlotterSchema } from '../types';
 import { GRID_SIZE_MAX, GRID_SIZE_MIN, useUI } from '../ui';
 import { PlottersModal } from './PlottersModal';
@@ -52,6 +54,8 @@ type MenuCtx = {
   setGridSize: (n: number) => void;
   showLog: boolean;
   setShowLog: (v: boolean) => void;
+  themeMode: ThemeMode;
+  toggleThemeMode: () => void;
   // project file ops
   autosave: boolean;
   setAutosave: (v: boolean) => void;
@@ -121,6 +125,16 @@ const ShowGridItem: MenuItemComponent = ({ ctx }) => (
         </span>
       </Tooltip>
     </span>
+  </MenuItem>
+);
+
+const DarkModeItem: MenuItemComponent = ({ ctx }) => (
+  <MenuItem onClick={ctx.toggleThemeMode}>
+    <ListItemIcon>
+      <Checkbox edge="start" checked={ctx.themeMode === 'dark'} disableRipple sx={{ p: 0 }} />
+    </ListItemIcon>
+    <ListItemText primary="Dark mode" />
+    <DarkModeIcon fontSize="small" sx={{ ml: 1, color: 'text.disabled' }} />
   </MenuItem>
 );
 
@@ -210,15 +224,15 @@ const CloseItem: MenuItemComponent = ({ ctx }) => (
 type MenuKind = 'home' | 'project' | 'interactive';
 
 const MENUS: Record<MenuKind, MenuItemComponent[][]> = {
-  home: [[ShowLogItem], [ImportItem]],
+  home: [[DarkModeItem, ShowLogItem], [ImportItem]],
   project: [
-    [AutosaveItem, ShowGridItem, ShowLogItem, SaveNowItem],
+    [AutosaveItem, ShowGridItem, DarkModeItem, ShowLogItem, SaveNowItem],
     [PlottersItem],
     [ExportItem, ImportItem],
     [RenameItem, DeleteItem],
     [CloseItem],
   ],
-  interactive: [[ShowGridItem, ShowLogItem], [PlottersItem], [CloseItem]],
+  interactive: [[ShowGridItem, DarkModeItem, ShowLogItem], [PlottersItem], [CloseItem]],
 };
 
 const itemKey = (Comp: MenuItemComponent) => Comp.displayName ?? Comp.name;
@@ -230,6 +244,7 @@ export const SettingsMenu = () => {
   const { ingestPlotter, getPlotter } = usePlotters();
   const { showLog, setShowLog } = useConnection();
   const { showGrid, setShowGrid, gridSize, setGridSize } = useUI();
+  const { mode: themeMode, toggleMode: toggleThemeMode } = useThemeMode();
   const {
     project,
     autosave,
@@ -357,6 +372,8 @@ export const SettingsMenu = () => {
     setGridSize,
     showLog,
     setShowLog,
+    themeMode,
+    toggleThemeMode,
     autosave,
     setAutosave,
     isDirty,

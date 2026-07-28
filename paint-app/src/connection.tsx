@@ -1,5 +1,20 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { type ConnectPhase, PlotterConnection } from './serial';
+
+/** Exposed by electron/preload.cts; absent when running in a plain browser. */
+declare global {
+  interface Window {
+    desktop?: { onMainLog: (handler: (line: string) => void) => () => void };
+  }
+}
 
 const SHOW_LOG_LS_KEY = 'paint-app:showLog';
 
@@ -65,6 +80,16 @@ export const ConnectionProvider = ({ children }: { children: ReactNode }) => {
       ),
     [],
   );
+
+  // Port enumeration and picking happen in Electron's main process, so those
+  // lines never reach this log on their own — the desktop bridge feeds them in.
+  useEffect(() => {
+    if (!window.desktop) return;
+    return window.desktop.onMainLog((line) => {
+      const ts = (performance.now() / 1000).toFixed(3).padStart(8, ' ');
+      setLog((prev) => [...prev.slice(-200), `${ts}  · ${line}`]);
+    });
+  }, []);
 
   const connect = useCallback(async () => {
     setConnectPhase('connecting');

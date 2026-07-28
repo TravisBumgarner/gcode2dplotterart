@@ -1,34 +1,66 @@
 # paint-app
 
-A browser-based paint app that draws on virtual pages with stacked, color-coded
-layers and emits G-code to a USB-connected pen plotter (a Creality Ender-3 V3
-SE running stock Marlin in this repo).
+A paint app that draws on virtual pages with stacked, color-coded layers and
+emits G-code to a USB-connected pen plotter (a Creality Ender-3 V3 SE running
+stock Marlin in this repo). It ships two ways from one codebase: an Electron
+desktop app and a static site for Chrome / Edge.
 
 ## Stack
 
-- Vite + React + TypeScript
+- Electron (desktop shell) + Vite + React + TypeScript
 - Material UI (theme + dialogs + menus)
 - Dexie (IndexedDB) for project persistence
 - Zod for runtime schemas
 - Framer Motion for layer drag-and-drop reordering
 - Biome for lint + format
-- [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for plotter I/O — Chrome / Edge only
+- [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for plotter I/O — built into the desktop app; Chrome / Edge only in the browser
+- electron-builder for desktop packaging
 
 ## Develop
 
 ```sh
 npm install
-npm run dev
+npm run dev:electron   # desktop app (Vite dev server + Electron, HMR)
+npm run dev            # browser only, http://localhost:5173
 ```
 
-The dev server runs on `http://localhost:5173`. Web Serial requires a secure
-context, which `localhost` qualifies as.
+`dev:electron` starts Vite and launches Electron against it in one process, so
+quitting the app also stops the server. Web Serial requires a secure context;
+`localhost` qualifies, as does the desktop app's custom scheme (below).
 
 ```sh
-npm run build     # production build
-npm run check     # biome lint + format with --write
-npm run lint      # biome check (no writes)
+npm run build           # renderer only (static site)
+npm run build:electron  # renderer + main process
+npm run package         # installers into release/ (dmg + zip, nsis, AppImage)
+npm run package:dir     # unpacked app into release/, skips installer creation
+npm run check           # biome lint + format with --write
+npm run lint            # biome check (no writes)
 ```
+
+Packaging builds for the host platform only; pass `electron-builder`'s
+`--mac` / `--win` / `--linux` flags to target others. macOS builds are signed
+with whatever local identity is available and are **not** notarized.
+
+## Desktop shell
+
+`electron/main.ts` is the whole shell — there is no preload and no IPC, because
+the renderer is the same code the browser build runs.
+
+- **Custom scheme, not `file://`.** The packaged app serves `dist/` over
+  `paint-app://app/`, registered as a standard + secure scheme. `file://` pages
+  are an opaque origin, which makes `localStorage` and IndexedDB (where every
+  project and plotter lives) unreliable and leaves Web Serial without its
+  required secure context. The scheme also keeps the storage origin stable
+  across app updates.
+- **Serial port picker.** Chromium's port chooser doesn't exist in Electron, so
+  main handles `select-serial-port`: ports reporting a USB `vendorId` are
+  preferred (this drops noise like macOS's Bluetooth-Incoming-Port), a lone
+  match is auto-selected, and anything more opens a native picker.
+- **Unsaved-changes prompt.** Electron cancels `beforeunload` silently instead
+  of showing Chromium's leave-site dialog, so main answers `will-prevent-unload`
+  with a real confirm dialog.
+- **Single instance.** A second launch focuses the existing window rather than
+  fighting it over the serial port and the IndexedDB lock.
 
 ## Plotters
 
@@ -83,8 +115,9 @@ strokes drawn while connected get plotted.
   the current project is `saved`, `saving…`, `saving soon`, or `unsaved`.
 - **Export / import JSON.** `Settings → Export JSON` downloads
   `<project>.json`. `Import JSON` validates with Zod and creates a new project.
-- **Beforeunload guard.** Closing the tab while changes are unsaved triggers
-  the browser's "leave this page?" prompt.
+- **Beforeunload guard.** Closing while changes are unsaved prompts first — the
+  browser's "leave this page?" dialog on the web, a native confirm in the
+  desktop app.
 
 ## Features
 
@@ -127,6 +160,10 @@ prototypes that predate this app.
 ## Layout
 
 ```
+electron/
+  main.ts                    # Electron main process (protocol, serial, dialogs)
+scripts/
+  dev-electron.mjs           # Vite dev server + Electron, one process
 src/
   App.tsx                    # shell + connection wiring
   store.tsx                  # Context + useReducer app state

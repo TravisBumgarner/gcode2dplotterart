@@ -131,7 +131,8 @@ export const PrintModal = ({ onClose }: Props) => {
                     height: 14,
                     borderRadius: '50%',
                     background: p.color,
-                    border: '1px solid #ccc',
+                    border: '1px solid',
+                    borderColor: 'divider',
                   }}
                 />
                 <Typography variant="body2">{p.layerName}</Typography>
@@ -155,7 +156,8 @@ export const PrintModal = ({ onClose }: Props) => {
                 height: 14,
                 borderRadius: '50%',
                 background: phase.color,
-                border: '1px solid #ccc',
+                border: '1px solid',
+                borderColor: 'divider',
               }}
             />
           </Box>
@@ -173,7 +175,8 @@ export const PrintModal = ({ onClose }: Props) => {
                   height: 14,
                   borderRadius: '50%',
                   background: phase.nextColor,
-                  border: '1px solid #ccc',
+                  border: '1px solid',
+                  borderColor: 'divider',
                 }}
               />
             </Box>

@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { INTERACTIVE_PROJECT_ID, useProject } from '../project';
 import { buildEllipse, buildLine, buildPolygon, buildRect, buildStar } from '../shapes';
@@ -19,6 +20,7 @@ type DrawingState =
   | { kind: 'shape'; tool: Exclude<Tool, 'pen'>; start: Point; current: Point };
 
 export const Canvas = () => {
+  const theme = useTheme();
   const { state, addPage, addStroke, setActivePage, removePage } = useStore();
   const { project } = useProject();
   const {
@@ -256,7 +258,9 @@ export const Canvas = () => {
       style={{
         flex: 1,
         overflow: isInteractive ? 'hidden' : 'auto',
-        background: '#f0f0f0',
+        // Pages themselves stay white — they stand in for physical paper —
+        // so only the surrounding backdrop follows the theme.
+        background: theme.palette.mode === 'dark' ? '#181818' : '#f0f0f0',
         position: 'relative',
       }}
     >

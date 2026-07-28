@@ -3,13 +3,38 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
+    "dev:electron": "npm run build:main && node scripts/dev-electron.mjs",
     "build": "tsc -b && vite build",
+    "build:main": "tsc -p electron/tsconfig.json",
+    "build:electron": "npm run build && npm run build:main",
+    "package": "npm run build:electron && electron-builder",
+    "package:dir": "npm run build:electron && electron-builder --dir",
     "preview": "vite preview",
-    "lint": "biome check src",
-    "format": "biome format --write src",
-    "check": "biome check --write src"
+    "lint": "biome check src electron scripts",
+    "format": "biome format --write src electron scripts",
+    "check": "biome check --write src electron scripts"
+  },
+  "build": {
+    "appId": "com.travisbumgarner.paint-app",
+    "productName": "paint-app",
+    "directories": {
+      "output": "release"
+    },
+    "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.graphics-design"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Graphics"
+    }
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -27,6 +52,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "typescript": "^6.0.3",
     "vite": "^8.0.11"
   }

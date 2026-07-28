@@ -89,7 +89,20 @@ export class PlotterConnection {
     if (this.port) {
       throw new Error('Already connected. Disconnect before connecting again.');
     }
-    const port = await navigator.serial.requestPort();
+    let port: SerialPort;
+    try {
+      port = await navigator.serial.requestPort();
+    } catch (e) {
+      // Fires both when no device could be offered and when the picker was
+      // dismissed; the raw DOMException ("No port selected by the user") reads
+      // like a bug rather than "plug the plotter in".
+      if ((e as Error).name === 'NotFoundError') {
+        throw new Error(
+          'No plotter selected. Make sure it is plugged in over USB and powered on, then try again.',
+        );
+      }
+      throw e;
+    }
     this.onPhase('connecting');
     // The browser keeps a port open across our own teardown bugs, other tabs,
     // or a prior connect() that threw after open() — re-opening such a port

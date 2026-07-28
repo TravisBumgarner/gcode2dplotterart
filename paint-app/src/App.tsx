@@ -1,4 +1,4 @@
-import { CssBaseline, createTheme, ThemeProvider } from '@mui/material';
+import { useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BottomBar } from './components/BottomBar';
 import { Canvas } from './components/Canvas';
@@ -11,17 +11,12 @@ import { useInteractiveSync } from './interactive';
 import { PlottersProvider } from './plotters';
 import { INTERACTIVE_PROJECT_ID, ProjectProvider, useProject } from './project';
 import { StoreProvider } from './store';
+import { AppThemeProvider } from './theme';
 import { UIProvider } from './ui';
-
-const theme = createTheme({
-  palette: { mode: 'light' },
-  shape: { borderRadius: 6 },
-});
 
 export const App = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AppThemeProvider>
       <ConnectionProvider>
         <StoreProvider>
           <PlottersProvider>
@@ -33,7 +28,7 @@ export const App = () => {
           </PlottersProvider>
         </StoreProvider>
       </ConnectionProvider>
-    </ThemeProvider>
+    </AppThemeProvider>
   );
 };
 
@@ -71,6 +66,7 @@ const LOG_HEIGHT_LS_KEY = 'paint-app:logHeight';
 const MIN_LOG_HEIGHT = 60;
 
 const LogPanel = ({ lines }: { lines: string[] }) => {
+  const theme = useTheme();
   const [height, setHeight] = useState(() => {
     const raw = Number(localStorage.getItem(LOG_HEIGHT_LS_KEY));
     return raw >= MIN_LOG_HEIGHT ? raw : 120;
@@ -110,7 +106,7 @@ const LogPanel = ({ lines }: { lines: string[] }) => {
     <div
       style={{
         height,
-        borderTop: '1px solid #e0e0e0',
+        borderTop: `1px solid ${theme.palette.divider}`,
         background: '#111',
         color: '#ddd',
         fontFamily: 'ui-monospace, Menlo, monospace',
