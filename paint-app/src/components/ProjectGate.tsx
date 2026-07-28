@@ -26,7 +26,7 @@ import { createInitialState } from '../store';
 import { type AppState, AppStateSchema } from '../types';
 import { ConnectedDataWizard } from './ConnectedDataWizard';
 import { PageSizePicker } from './PageSizePicker';
-import { type PhotoResult, PhotoWizard } from './PhotoWizard';
+import { type PhotoResult, PhotoStudio } from './PhotoStudio';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -38,6 +38,8 @@ export const ProjectGate = () => {
 
   const [size, setSize] = useState<PageSize>(() => loadLastPageSize());
   const [connectedDataOpen, setConnectedDataOpen] = useState(false);
+  // The photo util takes over the whole view rather than opening a dialog —
+  // it is a workspace, not a form.
   const [photoOpen, setPhotoOpen] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -150,6 +152,10 @@ export const ProjectGate = () => {
     await db.projects.delete(id);
     refresh();
   };
+
+  if (photoOpen) {
+    return <PhotoStudio onExit={() => setPhotoOpen(false)} onCreate={onCreatePhoto} />;
+  }
 
   return (
     <Box sx={{ height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -281,7 +287,7 @@ export const ProjectGate = () => {
                 </Typography>
               </Box>
               <Button variant="contained" onClick={() => setPhotoOpen(true)}>
-                Configure
+                Open
               </Button>
             </Paper>
           </Box>
@@ -293,7 +299,6 @@ export const ProjectGate = () => {
         onClose={() => setConnectedDataOpen(false)}
         onStart={onStartConnectedData}
       />
-      <PhotoWizard open={photoOpen} onClose={() => setPhotoOpen(false)} onCreate={onCreatePhoto} />
     </Box>
   );
 };
