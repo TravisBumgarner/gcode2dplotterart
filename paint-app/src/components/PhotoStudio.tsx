@@ -276,22 +276,47 @@ export const PhotoStudio = ({ onExit, onCreate }: Props) => {
             minHeight: 0,
           }}
         >
-          <Stack direction="row" spacing={1.5} sx={{ p: 2, alignItems: 'center' }}>
+          {/* The source image is the one thing every control below depends on,
+              so it is set apart rather than reading as the first setting. */}
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              p: 2,
+              alignItems: 'center',
+              bgcolor: 'action.hover',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
             <Box
               component="img"
               src={sourceUrl ?? ''}
               alt=""
-              sx={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 1 }}
+              sx={{
+                width: 48,
+                height: 48,
+                objectFit: 'cover',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider',
+                flexShrink: 0,
+              }}
             />
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" noWrap title={file?.name}>
+              <Typography variant="body2" noWrap title={file?.name} sx={{ fontWeight: 600 }}>
                 {file?.name}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {bitmap.width}×{bitmap.height}px
               </Typography>
             </Box>
-            <Button size="small" onClick={() => fileInputRef.current?.click()}>
+            <Button
+              size="small"
+              variant="outlined"
+              sx={{ flexShrink: 0 }}
+              onClick={() => fileInputRef.current?.click()}
+            >
               Change
             </Button>
           </Stack>
