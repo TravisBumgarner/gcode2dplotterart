@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material';
+import { Alert, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BottomBar } from './components/BottomBar';
 import { Canvas } from './components/Canvas';
@@ -8,7 +8,7 @@ import { ProjectGate } from './components/ProjectGate';
 import { Toolbar } from './components/Toolbar';
 import { ConnectionProvider, useConnection } from './connection';
 import { useInteractiveSync } from './interactive';
-import { PlottersProvider } from './plotters';
+import { PlottersProvider, usePlotters } from './plotters';
 import { INTERACTIVE_PROJECT_ID, ProjectProvider, useProject } from './project';
 import { StoreProvider } from './store';
 import { AppThemeProvider } from './theme';
@@ -35,29 +35,39 @@ export const App = () => {
 const Root = () => {
   const { project } = useProject();
   const { log, showLog } = useConnection();
+  const [printing, setPrinting] = useState(false);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* One bar for the whole app: plotter selection and the connection are
+          global, so they must outlive the document being open or closed. */}
+      <Toolbar onPrint={() => setPrinting(true)} />
       <div style={{ flex: 1, minHeight: 0 }}>{project ? <Shell /> : <ProjectGate />}</div>
       {showLog && <LogPanel lines={log} />}
+      {printing && project && <PrintModal onClose={() => setPrinting(false)} />}
     </div>
   );
 };
 
 const Shell = () => {
-  const [printing, setPrinting] = useState(false);
   const { project } = useProject();
+  const { activePlotter } = usePlotters();
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
   useInteractiveSync();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar onPrint={() => setPrinting(true)} />
+      {!activePlotter && (
+        <Alert severity="info" square>
+          No plotter configured — drawing works, but nothing can be sent. Choose{' '}
+          <strong>Add plotter</strong> in the top bar when you're ready to plot.
+        </Alert>
+      )}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {!isInteractive && <LayersPanel />}
         <Canvas />
       </div>
       <BottomBar />
-      {printing && <PrintModal onClose={() => setPrinting(false)} />}
     </div>
   );
 };

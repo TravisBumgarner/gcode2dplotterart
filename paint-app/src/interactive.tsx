@@ -14,21 +14,25 @@ import { useStore } from './store';
  * The first stroke after a fresh connection sends the prologue (G21/G90/G28).
  * Strokes are sent through a serialized promise queue so concurrent draws
  * don't interleave G-code on the bus.
+ *
+ * Geometry outside the target plotter's bed is clipped away silently — there's
+ * no point prompting per stroke the way the print flow does, and driving the
+ * machine past its limits is worse than dropping the overflow.
  */
 export const useInteractiveSync = () => {
   const { state } = useStore();
   const { project } = useProject();
   const { connection, connected } = useConnection();
-  const { getPlotter } = usePlotters();
+  const { activePlotter } = usePlotters();
 
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
   const sentRef = useRef<Set<string>>(new Set());
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const sessionKeyRef = useRef<string | null>(null);
 
-  // (Re-)prime the "already sent" set whenever we enter the mode or the
-  // connection comes back. This is what stops the existing project history
-  // from being plotted on load.
+  // (Re-)prime the "already sent" set whenever we enter the mode, the
+  // connection comes back, or the target plotter changes. This is what stops
+  // the existing document from being replotted from the top.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only re-prime on session-boundary changes
   useEffect(() => {
     if (!isInteractive || !connected) {
@@ -42,12 +46,12 @@ export const useInteractiveSync = () => {
     }
     sentRef.current = ids;
     sessionKeyRef.current = null;
-  }, [isInteractive, connected, project?.id]);
+  }, [isInteractive, connected, project?.id, activePlotter?.id]);
 
   // Stream new strokes whenever the store changes.
   useEffect(() => {
     if (!isInteractive || !connected || !project) return;
-    const plotter = getPlotter(state.plotterId);
+    const plotter = activePlotter;
     if (!plotter) return;
     const activePage = state.pages.find((p) => p.id === state.activePageId);
     if (!activePage) return;
@@ -60,7 +64,7 @@ export const useInteractiveSync = () => {
       for (const stroke of layer.strokes) {
         if (sentRef.current.has(stroke.id)) continue;
         sentRef.current.add(stroke.id);
-        const lines = buildStrokeLines(stroke.points, activePage, plotter);
+        const lines = buildStrokeLines(stroke.points, activePage, plotter, true);
         if (lines.length > 0) newPrograms.push(lines);
       }
     }
@@ -80,5 +84,5 @@ export const useInteractiveSync = () => {
         console.error('interactive stream failed', e);
       }
     });
-  }, [state, isInteractive, connected, project, connection, getPlotter]);
+  }, [state, isInteractive, connected, project, connection, activePlotter]);
 };

@@ -1,16 +1,20 @@
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Typography,
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useConnection } from '../connection';
-import { buildLayerPrograms, EPILOGUE, PROLOGUE } from '../gcode';
+import { buildLayerPrograms, EPILOGUE, PROLOGUE, pageFitsBed } from '../gcode';
 import { usePlotters } from '../plotters';
 import { useStore } from '../store';
 
@@ -27,12 +31,20 @@ type Phase =
 
 export const PrintModal = ({ onClose }: Props) => {
   const { state } = useStore();
-  const { getPlotter } = usePlotters();
+  const { activePlotter: plotter } = usePlotters();
   const { connection } = useConnection();
-  const { pages, layers, activePageId, plotterId } = state;
+  const { pages, layers, activePageId } = state;
   const activePage = pages.find((p) => p.id === activePageId);
-  const plotter = getPlotter(plotterId) ?? null;
-  const programs = activePage && plotter ? buildLayerPrograms(layers, activePage, plotter) : [];
+
+  // A document is sized independently of any machine, so the page can be
+  // bigger than the plotter it's being sent to. Printing is blocked until the
+  // user decides what should happen to the overflow.
+  const [clipToBed, setClipToBed] = useState(false);
+  const overflows = Boolean(activePage && plotter && !pageFitsBed(activePage, plotter));
+  const blockedByOverflow = overflows && !clipToBed;
+
+  const programs =
+    activePage && plotter ? buildLayerPrograms(layers, activePage, plotter, clipToBed) : [];
 
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
   const cancelled = useRef(false);
@@ -66,9 +78,10 @@ export const PrintModal = ({ onClose }: Props) => {
 
   const start = async () => {
     if (!plotter) {
-      setPhase({ kind: 'error', message: 'No plotter selected for this project.' });
+      setPhase({ kind: 'error', message: 'No plotter selected. Choose one from the top bar.' });
       return;
     }
+    if (blockedByOverflow) return;
     if (!activePage || programs.length === 0) {
       setPhase({ kind: 'error', message: 'Nothing to print on the active page.' });
       return;
@@ -119,9 +132,33 @@ export const PrintModal = ({ onClose }: Props) => {
             <Typography variant="body2" sx={{ mb: 1 }}>
               Plotter: <strong>{plotter?.name ?? '— none —'}</strong>
             </Typography>
+            {overflows && activePage && plotter && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <AlertTitle>Page is larger than the bed</AlertTitle>
+                This page is {activePage.width}×{activePage.height}mm but {plotter.name} can only
+                reach {plotter.bedWidth}×{plotter.bedHeight}mm
+                {activePage.width > plotter.bedWidth && activePage.height > plotter.bedHeight
+                  ? ' — it overflows in both directions.'
+                  : activePage.width > plotter.bedWidth
+                    ? ' — it overflows horizontally.'
+                    : ' — it overflows vertically.'}
+                <FormControlLabel
+                  sx={{ mt: 1, display: 'block' }}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={clipToBed}
+                      onChange={(e) => setClipToBed(e.target.checked)}
+                    />
+                  }
+                  label="Clip to the bed and print what fits"
+                />
+              </Alert>
+            )}
             <Typography variant="body2" sx={{ mb: 2 }}>
               About to print <strong>{programs.length}</strong> visible layer
-              {programs.length === 1 ? '' : 's'} on the active page.
+              {programs.length === 1 ? '' : 's'} on the active page
+              {clipToBed && overflows ? ', clipped to the bed' : ''}.
             </Typography>
             {programs.map((p) => (
               <Box key={p.layerId} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
@@ -192,7 +229,7 @@ export const PrintModal = ({ onClose }: Props) => {
             <Button
               variant="contained"
               onClick={start}
-              disabled={programs.length === 0 || !plotter}
+              disabled={programs.length === 0 || !plotter || blockedByOverflow}
             >
               Start
             </Button>

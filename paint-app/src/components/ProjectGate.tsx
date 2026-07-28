@@ -1,15 +1,8 @@
 import BoltIcon from '@mui/icons-material/Bolt';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import {
-  AppBar,
   Box,
   Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Divider,
   FormControl,
   IconButton,
@@ -18,71 +11,77 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  ListSubheader,
   MenuItem,
-  Toolbar as MuiToolbar,
   Paper,
   Select,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
-import { useConnection } from '../connection';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { db, type Project } from '../db';
-import { type PlotterDraft, usePlotters } from '../plotters';
+import {
+  DEFAULT_PAGE_SIZE,
+  formatSize,
+  loadLastPageSize,
+  type PageSize,
+  plotterPageSize,
+  STANDARD_SIZES,
+  saveLastPageSize,
+} from '../pageSizes';
+import { usePlotters } from '../plotters';
 import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
-import { type AppState, AppStateSchema, LegacyAppStateSchema } from '../types';
-import { PlottersModal } from './PlottersModal';
-import { SettingsMenu } from './SettingsMenu';
+import { AppStateSchema } from '../types';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-/**
- * Bring a stored AppState onto the current schema. Returns `[migratedState, plotterToCreate?]`
- * where plotterToCreate is non-null if we had to fabricate a plotter from a
- * legacy project's inline `settings` block.
- */
-const migrateState = (raw: unknown): { state: AppState; plotterDraft?: PlotterDraft } | null => {
-  const direct = AppStateSchema.safeParse(raw);
-  if (direct.success) return { state: direct.data };
-  const legacy = LegacyAppStateSchema.safeParse(raw);
-  if (legacy.success) {
-    const tempPlotterId = uid();
-    return {
-      state: {
-        pages: legacy.data.pages,
-        layers: legacy.data.layers,
-        activePageId: legacy.data.activePageId,
-        activeLayerId: legacy.data.activeLayerId,
-        plotterId: tempPlotterId,
-      },
-      plotterDraft: {
-        name: 'Migrated plotter',
-        ...legacy.data.settings,
-      },
-    };
-  }
-  return null;
-};
+const CUSTOM_KEY = 'custom';
 
 export const ProjectGate = () => {
   const { setProject } = useProject();
-  const { plotters, ready: plottersReady, createPlotter } = usePlotters();
-  const {
-    connected,
-    connecting,
-    connectPhase,
-    connect,
-    disconnect,
-    connectError,
-    dismissConnectError,
-  } = useConnection();
+  const { plotters } = usePlotters();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [name, setName] = useState('');
-  const [pickedPlotterId, setPickedPlotterId] = useState<string>('');
-  const [plottersOpen, setPlottersOpen] = useState(false);
+
+  // Page size selection. The key drives the dropdown; `custom` holds the
+  // hand-entered dimensions so switching to Custom and back is lossless.
+  const [sizeKey, setSizeKey] = useState<string>(CUSTOM_KEY);
+  const [custom, setCustom] = useState<PageSize>(DEFAULT_PAGE_SIZE);
+
+  const options = useMemo(() => {
+    const fromPlotters = plotters.map((p) => ({
+      key: `plotter:${p.id}`,
+      label: `${p.name} (bed)`,
+      size: plotterPageSize(p),
+    }));
+    const standard = STANDARD_SIZES.map((s) => ({
+      key: `std:${s.label}`,
+      label: s.label,
+      size: s.size,
+    }));
+    return { fromPlotters, standard };
+  }, [plotters]);
+
+  // Seed from the last-used size: preselect whichever option matches it so the
+  // common case (same paper every time) is already correct on arrival. Plotters
+  // arrive asynchronously, so this re-runs when they land — but never after the
+  // user has made a choice of their own.
+  const touched = useRef(false);
+  useEffect(() => {
+    if (touched.current) return;
+    const last = loadLastPageSize();
+    setCustom(last);
+    const all = [...options.fromPlotters, ...options.standard];
+    const match = all.find((o) => o.size.width === last.width && o.size.height === last.height);
+    setSizeKey(match?.key ?? CUSTOM_KEY);
+  }, [options]);
+
+  const size: PageSize = useMemo(() => {
+    const all = [...options.fromPlotters, ...options.standard];
+    return all.find((o) => o.key === sizeKey)?.size ?? custom;
+  }, [sizeKey, custom, options]);
 
   const refresh = useCallback(async () => {
     const all = await db.projects.orderBy('updatedAt').reverse().toArray();
@@ -93,23 +92,15 @@ export const ProjectGate = () => {
     refresh();
   }, [refresh]);
 
-  // Default the new-project plotter selector to the most recent plotter.
-  useEffect(() => {
-    if (!pickedPlotterId && plotters.length > 0) {
-      setPickedPlotterId(plotters[plotters.length - 1].id);
-    }
-  }, [plotters, pickedPlotterId]);
-
   const onCreate = async () => {
     const trimmed = name.trim();
-    if (!trimmed || !pickedPlotterId) return;
-    const plotter = plotters.find((p) => p.id === pickedPlotterId);
-    if (!plotter) return;
+    if (!trimmed || size.width <= 0 || size.height <= 0) return;
+    saveLastPageSize(size);
     const now = Date.now();
     const project: Project = {
       id: uid(),
       name: trimmed,
-      state: createInitialState(plotter),
+      state: createInitialState(size),
       createdAt: now,
       updatedAt: now,
     };
@@ -120,31 +111,23 @@ export const ProjectGate = () => {
   const onOpen = async (id: string) => {
     const project = await db.projects.get(id);
     if (!project) return;
-    const migrated = migrateState(project.state);
-    if (!migrated) {
+    // Older documents carried plotter references (v1 `settings`, v2
+    // `plotterId`); the schema drops them and keeps the page geometry.
+    const parsed = AppStateSchema.safeParse(project.state);
+    if (!parsed.success) {
       alert('This project has an unrecognised state shape and cannot be opened.');
       return;
     }
-    let { state } = migrated;
-    if (migrated.plotterDraft) {
-      const newPlotter = await createPlotter(migrated.plotterDraft);
-      state = { ...state, plotterId: newPlotter.id };
-    }
-    if (state !== project.state) {
-      await db.projects.update(id, { state });
-    }
-    setProject({ id: project.id, name: project.name }, state);
+    setProject({ id: project.id, name: project.name }, parsed.data);
   };
 
   const onStartInteractive = async () => {
-    const plotter = plotters[plotters.length - 1];
-    if (!plotter) return;
     // Interactive sessions are ephemeral. Wipe any leftover persisted record
     // (from earlier app versions or aborted runs) and start in memory only.
     await db.projects.delete(INTERACTIVE_PROJECT_ID).catch(() => {});
     setProject(
       { id: INTERACTIVE_PROJECT_ID, name: 'Interactive session' },
-      createInitialState(plotter),
+      createInitialState(loadLastPageSize()),
     );
   };
 
@@ -157,207 +140,151 @@ export const ProjectGate = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <MuiToolbar variant="dense" sx={{ gap: 1 }}>
-          <SettingsMenu />
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
-            paint-app
-          </Typography>
-        </MuiToolbar>
-      </AppBar>
-      <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
-        <Paper variant="outlined" sx={{ width: '100%', maxWidth: 600, p: 3 }}>
-          <Stack spacing={3}>
-            <Box>
-              {!plottersReady ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} /> <span>Loading plotters…</span>
-                </Box>
-              ) : (
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    {plotters.length === 0 ? (
-                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                        No plotters configured — define one before starting.
-                      </Typography>
-                    ) : (
-                      <FormControl size="small" sx={{ flex: 1 }}>
-                        <InputLabel>Plotter</InputLabel>
-                        <Select
-                          label="Plotter"
-                          value={pickedPlotterId}
-                          onChange={(e) => setPickedPlotterId(e.target.value)}
-                        >
-                          {plotters.map((p) => (
-                            <MenuItem key={p.id} value={p.id}>
-                              {p.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+    <Box sx={{ height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Paper variant="outlined" sx={{ width: '100%', maxWidth: 600, p: 3, height: 'fit-content' }}>
+        <Stack spacing={3}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              borderColor: 'primary.main',
+            }}
+          >
+            <BoltIcon color="primary" />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Interactive session
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                One live document — every stroke is sent to the plotter as soon as you draw it.
+                Choose and connect a plotter from the top bar once you're in.
+              </Typography>
+            </Box>
+            <Button variant="contained" onClick={onStartInteractive}>
+              Start
+            </Button>
+          </Paper>
+
+          <Divider />
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Projects
+            </Typography>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="New project name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && onCreate()}
+                  autoFocus
+                />
+                <FormControl size="small" sx={{ minWidth: 168 }}>
+                  <InputLabel>Page size</InputLabel>
+                  <Select
+                    label="Page size"
+                    value={sizeKey}
+                    onChange={(e) => {
+                      touched.current = true;
+                      setSizeKey(e.target.value);
+                    }}
+                  >
+                    {options.fromPlotters.length > 0 && (
+                      <ListSubheader>From a plotter</ListSubheader>
                     )}
-                    <Button
-                      size="small"
-                      variant={plotters.length === 0 ? 'contained' : 'text'}
-                      onClick={() => setPlottersOpen(true)}
-                    >
-                      {plotters.length === 0 ? 'Create plotter' : 'Manage…'}
-                    </Button>
-                    {connected ? (
-                      <Button size="small" color="error" onClick={disconnect}>
-                        Disconnect
-                      </Button>
-                    ) : (
-                      <Button
-                        size="small"
-                        variant={plotters.length === 0 ? 'outlined' : 'contained'}
-                        onClick={connect}
-                        disabled={connecting}
-                        startIcon={
-                          connecting ? <CircularProgress size={14} color="inherit" /> : null
-                        }
-                      >
-                        {connectPhase === 'homing'
-                          ? 'Homing…'
-                          : connectPhase === 'connecting'
-                            ? 'Connecting…'
-                            : 'Connect plotter'}
-                      </Button>
-                    )}
-                  </Stack>
-                  {connected && (
-                    <Typography variant="caption" color="success.main">
-                      Connected — homed and ready.
-                    </Typography>
-                  )}
+                    {options.fromPlotters.map((o) => (
+                      <MenuItem key={o.key} value={o.key}>
+                        {o.label} — {formatSize(o.size)}
+                      </MenuItem>
+                    ))}
+                    <ListSubheader>Standard</ListSubheader>
+                    {options.standard.map((o) => (
+                      <MenuItem key={o.key} value={o.key}>
+                        {o.label} — {formatSize(o.size)}
+                      </MenuItem>
+                    ))}
+                    <ListSubheader>Other</ListSubheader>
+                    <MenuItem value={CUSTOM_KEY}>Custom…</MenuItem>
+                  </Select>
+                </FormControl>
+                <Button variant="contained" onClick={onCreate} disabled={!name.trim()}>
+                  Create
+                </Button>
+              </Stack>
+
+              {sizeKey === CUSTOM_KEY && (
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <TextField
+                    size="small"
+                    type="number"
+                    label="Width (mm)"
+                    value={custom.width}
+                    onChange={(e) => {
+                      touched.current = true;
+                      setCustom((c) => ({ ...c, width: Number.parseFloat(e.target.value) || 0 }));
+                    }}
+                    sx={{ width: 140 }}
+                  />
+                  <Typography color="text.secondary">×</Typography>
+                  <TextField
+                    size="small"
+                    type="number"
+                    label="Height (mm)"
+                    value={custom.height}
+                    onChange={(e) => {
+                      touched.current = true;
+                      setCustom((c) => ({ ...c, height: Number.parseFloat(e.target.value) || 0 }));
+                    }}
+                    sx={{ width: 140 }}
+                  />
                 </Stack>
               )}
-            </Box>
 
-            <Divider />
-
-            <Tooltip
-              title={plotters.length === 0 ? 'Create a plotter first' : ''}
-              disableHoverListener={plotters.length > 0}
-              arrow
-            >
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  borderColor: 'primary.main',
-                }}
-              >
-                <BoltIcon color="primary" />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Interactive session
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    One live document — every stroke is sent to the plotter as soon as you draw it.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  onClick={onStartInteractive}
-                  disabled={plotters.length === 0 || !connected}
-                >
-                  Start
-                </Button>
-              </Paper>
-            </Tooltip>
-
-            <Divider />
-
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Projects
-              </Typography>
-              {!plottersReady ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} /> <span>Loading plotters…</span>
-                </Box>
-              ) : plotters.length === 0 ? (
+              {projects === null ? (
                 <Typography variant="body2" color="text.secondary">
-                  Create a plotter above first.
+                  Loading…
+                </Typography>
+              ) : visibleProjects.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No saved projects yet.
                 </Typography>
               ) : (
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="New project name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && onCreate()}
-                      autoFocus
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={onCreate}
-                      disabled={!name.trim() || !pickedPlotterId || !connected}
-                    >
-                      Create
-                    </Button>
-                  </Stack>
-                  {projects === null ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Loading…
-                    </Typography>
-                  ) : visibleProjects.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
-                      No saved projects yet.
-                    </Typography>
-                  ) : (
-                    <List dense disablePadding>
-                      {visibleProjects.map((p) => (
-                        <ListItem
-                          key={p.id}
-                          disablePadding
-                          secondaryAction={
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              aria-label="delete"
-                              onClick={() => onDelete(p.id)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          }
+                <List dense disablePadding>
+                  {visibleProjects.map((p) => (
+                    <ListItem
+                      key={p.id}
+                      disablePadding
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          aria-label="delete"
+                          onClick={() => onDelete(p.id)}
                         >
-                          <ListItemButton onClick={() => onOpen(p.id)} disabled={!connected}>
-                            <ListItemText
-                              primary={p.name}
-                              secondary={`Updated ${new Date(p.updatedAt).toLocaleString()}`}
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    </List>
-                  )}
-                </Stack>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemButton onClick={() => onOpen(p.id)}>
+                        <ListItemText
+                          primary={p.name}
+                          secondary={`Updated ${new Date(p.updatedAt).toLocaleString()}`}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
               )}
-            </Box>
-          </Stack>
-        </Paper>
-      </Box>
-
-      <PlottersModal open={plottersOpen} onClose={() => setPlottersOpen(false)} />
-
-      <Dialog open={connectError !== null} onClose={dismissConnectError}>
-        <DialogTitle sx={{ color: 'error.main' }}>Connection failed</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{connectError}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={dismissConnectError}>Close</Button>
-        </DialogActions>
-      </Dialog>
+            </Stack>
+          </Box>
+        </Stack>
+      </Paper>
     </Box>
   );
 };

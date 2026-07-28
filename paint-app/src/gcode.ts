@@ -33,13 +33,47 @@ export type LayerProgram = {
   lines: string[];
 };
 
+// Page dimensions are user-entered mm; a page exactly the size of the bed
+// shouldn't read as overflowing because of float noise.
+const FIT_EPSILON = 1e-6;
+
+/**
+ * Whether the page fits inside the plotter's bed. Documents are sized
+ * independently of any machine, so a page can legitimately be larger than the
+ * plotter it's being sent to.
+ */
+export const pageFitsBed = (page: Page, plotter: Plotter): boolean =>
+  page.width <= plotter.bedWidth + FIT_EPSILON && page.height <= plotter.bedHeight + FIT_EPSILON;
+
+/**
+ * The rect geometry is clipped against, in world coordinates. Always the page;
+ * additionally capped to the bed when the page overflows and the caller opted
+ * into clipping. The bed is anchored at the page's top-left because that
+ * corner maps to the machine origin (see `toMachine`).
+ */
+const clipRectFor = (page: Page, plotter: Plotter, clipToBed: boolean): Rect => {
+  const full: Rect = { x: page.x, y: page.y, width: page.width, height: page.height };
+  if (!clipToBed || pageFitsBed(page, plotter)) return full;
+  return {
+    x: page.x,
+    y: page.y,
+    width: Math.min(page.width, plotter.bedWidth),
+    height: Math.min(page.height, plotter.bedHeight),
+  };
+};
+
 /**
  * Build G-code for a single freshly-drawn stroke, clipped to the page rect
  * and translated into machine coordinates. Used by interactive mode where we
  * stream individual strokes as the user finishes them.
  */
-export const buildStrokeLines = (points: Point[], page: Page, plotter: Plotter): string[] => {
-  const rect: Rect = { x: page.x, y: page.y, width: page.width, height: page.height };
+export const buildStrokeLines = (
+  points: Point[],
+  page: Page,
+  plotter: Plotter,
+  clipToBed = false,
+): string[] => {
+  const rect = clipRectFor(page, plotter, clipToBed);
   const subs = clipPolyline(points, rect);
   const lines: string[] = [];
   for (const sub of subs) {
@@ -53,8 +87,9 @@ export const buildLayerPrograms = (
   layers: Layer[],
   page: Page,
   plotter: Plotter,
+  clipToBed = false,
 ): LayerProgram[] => {
-  const rect: Rect = { x: page.x, y: page.y, width: page.width, height: page.height };
+  const rect = clipRectFor(page, plotter, clipToBed);
   return layers
     .filter((l) => l.visible)
     .map((layer) => {

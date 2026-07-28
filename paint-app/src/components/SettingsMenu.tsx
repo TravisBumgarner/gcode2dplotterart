@@ -241,7 +241,7 @@ const itemKey = (Comp: MenuItemComponent) => Comp.displayName ?? Comp.name;
 
 export const SettingsMenu = () => {
   const { state } = useStore();
-  const { ingestPlotter, getPlotter } = usePlotters();
+  const { ingestPlotter } = usePlotters();
   const { showLog, setShowLog } = useConnection();
   const { showGrid, setShowGrid, gridSize, setGridSize } = useUI();
   const { mode: themeMode, toggleMode: toggleThemeMode } = useThemeMode();
@@ -270,12 +270,12 @@ export const SettingsMenu = () => {
 
   const onExport = () => {
     if (!project) return;
-    const plotter = getPlotter(state.plotterId);
+    // v3 documents carry no plotter: which machine they print on is a
+    // session choice, not a property of the drawing.
     const payload = {
-      version: 2,
+      version: 3,
       name: project.name,
       state,
-      plotter: plotter ?? null,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -293,8 +293,8 @@ export const SettingsMenu = () => {
       const parsed = JSON.parse(text);
       const importedState = AppStateSchema.parse(parsed?.state);
 
-      // If the export bundled a plotter snapshot, ingest it so the imported
-      // project's plotterId resolves locally.
+      // v2 exports bundled a plotter snapshot. The document no longer
+      // references it, but adopting the machine definition is still useful.
       const rawPlotter = parsed?.plotter;
       if (rawPlotter) {
         const plotterParsed = PlotterSchema.safeParse(rawPlotter);

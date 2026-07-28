@@ -59,32 +59,20 @@ export const PlotterSchema = z.object({
 });
 export type Plotter = z.infer<typeof PlotterSchema>;
 
+/**
+ * A document is plotter-independent: it owns its page geometry and nothing
+ * else. The plotter is a print target chosen at output time (see
+ * `plotters.tsx`), the way a printer is picked when printing a document.
+ *
+ * Two older shapes parse into this one for free, because zod strips unknown
+ * keys: v1 embedded plotter params inline as `settings`, and v2 referenced a
+ * plotter by `plotterId`. Both carry the page dimensions we actually need, so
+ * both are read as-is and simply lose the stale field on the next save.
+ */
 export const AppStateSchema = z.object({
   pages: z.array(PageSchema).min(1),
   layers: z.array(LayerSchema).min(1),
   activePageId: z.string(),
   activeLayerId: z.string(),
-  plotterId: z.string(),
 });
 export type AppState = z.infer<typeof AppStateSchema>;
-
-/**
- * Pre-plotter v1 state shape — kept around so we can migrate older projects
- * (which embedded plotter params inline as `settings`) into the new
- * plotter-by-id model.
- */
-export const LegacyAppStateSchema = z.object({
-  pages: z.array(PageSchema).min(1),
-  layers: z.array(LayerSchema).min(1),
-  activePageId: z.string(),
-  activeLayerId: z.string(),
-  settings: z.object({
-    bedWidth: z.number().positive(),
-    bedHeight: z.number().positive(),
-    travelFeed: z.number().positive(),
-    drawFeed: z.number().positive(),
-    penUpZ: z.number(),
-    penDownZ: z.number(),
-  }),
-});
-export type LegacyAppState = z.infer<typeof LegacyAppStateSchema>;

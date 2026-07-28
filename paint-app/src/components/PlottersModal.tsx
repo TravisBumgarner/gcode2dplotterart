@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   ButtonBase,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,8 +22,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { db } from '../db';
+import { useState } from 'react';
 import { type PlotterDraft, usePlotters } from '../plotters';
 import { PlotterCalibration } from './PlotterCalibration';
 
@@ -41,29 +41,11 @@ type Mode = 'manual' | 'calibrate' | null;
 type Props = { open: boolean; onClose: () => void };
 
 export const PlottersModal = ({ open, onClose }: Props) => {
-  const { plotters, createPlotter, updatePlotter, deletePlotter } = usePlotters();
+  const { plotters, activePlotter, setActivePlotter, createPlotter, updatePlotter, deletePlotter } =
+    usePlotters();
   const [draft, setDraft] = useState<PlotterDraft>(EMPTY_DRAFT);
   const [mode, setMode] = useState<Mode>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [usageById, setUsageById] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    (async () => {
-      const all = await db.projects.toArray();
-      const counts: Record<string, number> = {};
-      for (const p of all) {
-        const id = p.state.plotterId;
-        if (!id) continue;
-        counts[id] = (counts[id] ?? 0) + 1;
-      }
-      if (!cancelled) setUsageById(counts);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
 
   const onSubmit = async () => {
     if (!draft.name.trim()) return;
@@ -88,13 +70,6 @@ export const PlottersModal = ({ open, onClose }: Props) => {
   };
 
   const onDelete = async (id: string) => {
-    const inUse = usageById[id] ?? 0;
-    if (inUse > 0) {
-      alert(
-        `This plotter is used by ${inUse} project${inUse === 1 ? '' : 's'} and can't be deleted.`,
-      );
-      return;
-    }
     if (!confirm('Delete this plotter? This cannot be undone.')) return;
     await deletePlotter(id);
   };
@@ -110,10 +85,9 @@ export const PlottersModal = ({ open, onClose }: Props) => {
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>Plotters</DialogTitle>
       <DialogContent dividers>
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Projects reference a plotter by id. Editing one changes every project that uses it the
-          next time it builds G-code — create a separate plotter instead if you only want the change
-          for a new project.
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Plotters are output targets, like printers — drawings don't belong to one. Pick which
+          plotter to send to from the top bar at any time.
         </Alert>
 
         <Typography variant="subtitle2" gutterBottom>
@@ -126,13 +100,20 @@ export const PlottersModal = ({ open, onClose }: Props) => {
         ) : (
           <List dense disablePadding>
             {plotters.map((p) => {
-              const usage = usageById[p.id] ?? 0;
+              const isActive = activePlotter?.id === p.id;
               return (
                 <ListItem
                   key={p.id}
                   disableGutters
                   secondaryAction={
-                    <Stack direction="row" spacing={0.5}>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                      {isActive ? (
+                        <Chip label="Active" size="small" color="primary" variant="outlined" />
+                      ) : (
+                        <Button size="small" onClick={() => setActivePlotter(p.id)}>
+                          Use
+                        </Button>
+                      )}
                       <IconButton edge="end" size="small" onClick={() => onEdit(p.id)} title="Edit">
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -140,10 +121,7 @@ export const PlottersModal = ({ open, onClose }: Props) => {
                         edge="end"
                         size="small"
                         onClick={() => onDelete(p.id)}
-                        disabled={usage > 0}
-                        title={
-                          usage > 0 ? `Used by ${usage} project${usage === 1 ? '' : 's'}` : 'Delete'
-                        }
+                        title="Delete"
                       >
                         <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
@@ -156,7 +134,6 @@ export const PlottersModal = ({ open, onClose }: Props) => {
                       <>
                         Bed {p.bedWidth}×{p.bedHeight}mm · travel {p.travelFeed} · draw {p.drawFeed}{' '}
                         · Z up {p.penUpZ} / down {p.penDownZ}
-                        {usage > 0 && ` · used by ${usage} project${usage === 1 ? '' : 's'}`}
                       </>
                     }
                   />
