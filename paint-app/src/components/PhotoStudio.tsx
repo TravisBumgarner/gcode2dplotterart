@@ -41,7 +41,7 @@ import {
   type StyleParams,
   targetResolution,
 } from '../photo';
-import { bucketPreviewUrl, decodeFile, fitWithin, resample } from '../photoDecode';
+import { bucketPreviewUrl, decodeFile, fitWithin, resampleWithDetail } from '../photoDecode';
 import { PageSizePicker } from './PageSizePicker';
 
 export type PhotoResult = {
@@ -88,6 +88,9 @@ export const PhotoStudio = ({ onCreate }: Props) => {
 
   // Preparation: everything about the image itself.
   const [prepare, setPrepare] = useState<PrepareParams>(DEFAULT_PREPARE);
+  // How finely the source is sampled, as a fraction of what the style would
+  // use on its own. Below 1 the image is coarsened and re-expanded.
+  const [detail, setDetail] = useState(1);
   // Per-ink colour overrides. Anything unset falls back to what the image
   // suggests, so changing the ink count never strands a stale palette.
   const [inkOverrides, setInkOverrides] = useState<Record<number, string>>({});
@@ -131,9 +134,9 @@ export const PhotoStudio = ({ onCreate }: Props) => {
     if (!bitmap) return null;
     const target = targetResolution(style, areaWidth, areaHeight, params);
     const fitted = fitWithin(bitmap.width, bitmap.height, target.width, target.height);
-    const image = resample(bitmap, fitted.width, fitted.height);
+    const image = resampleWithDetail(bitmap, fitted.width, fitted.height, detail);
     return prepareImage(image.rgba, image.width, image.height, prepare);
-  }, [bitmap, style, areaWidth, areaHeight, params, prepare]);
+  }, [bitmap, style, areaWidth, areaHeight, params, prepare, detail]);
 
   const colors = useMemo(() => {
     const base = processed?.suggestedPalette ?? paletteFor(['#000000'], prepare.colorCount);
@@ -336,6 +339,26 @@ export const PhotoStudio = ({ onCreate }: Props) => {
         <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
           {tab === 'prepare' ? (
             <Stack spacing={2.5}>
+              <Section title="Resize" onReset={detail !== 1 ? () => setDetail(1) : undefined}>
+                <LabelledSlider
+                  label="Detail"
+                  value={detail}
+                  min={0.05}
+                  max={1}
+                  step={0.05}
+                  format={(v) => `${Math.round(v * 100)}%`}
+                  onChange={setDetail}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {detail >= 1
+                    ? 'Sampling at full resolution for the chosen style.'
+                    : `Sampled at ${Math.round(detail * 100)}% and re-expanded, so tonal regions merge into larger blocks — fewer, longer strokes and a bolder plot.`}
+                  {processed && ` Currently ${processed.width}×${processed.height}.`}
+                </Typography>
+              </Section>
+
+              <Divider />
+
               <Section title="Levels" onReset={() => patchPrepare(DEFAULT_ADJUST)}>
                 <LabelledSlider
                   label="Black point"
@@ -461,6 +484,41 @@ export const PhotoStudio = ({ onCreate }: Props) => {
                   </>
                 )}
               </Section>
+            </Stack>
+          ) : (
+            <Stack spacing={2}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Preset</InputLabel>
+                <Select
+                  label="Preset"
+                  value={presetId}
+                  onChange={(e) => applyPreset(e.target.value)}
+                >
+                  {PHOTO_PRESETS.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {p.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Typography variant="caption" color="text.secondary">
+                {PHOTO_PRESETS.find((p) => p.id === presetId)?.description}
+              </Typography>
+
+              <FormControl size="small" fullWidth>
+                <InputLabel>Style</InputLabel>
+                <Select
+                  label="Style"
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value as PhotoStyle)}
+                >
+                  {(Object.keys(STYLE_LABELS) as PhotoStyle[]).map((s) => (
+                    <MenuItem key={s} value={s}>
+                      {STYLE_LABELS[s]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <Divider />
 
@@ -509,41 +567,6 @@ export const PhotoStudio = ({ onCreate }: Props) => {
                   ))}
                 </Stack>
               </Section>
-            </Stack>
-          ) : (
-            <Stack spacing={2}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Preset</InputLabel>
-                <Select
-                  label="Preset"
-                  value={presetId}
-                  onChange={(e) => applyPreset(e.target.value)}
-                >
-                  {PHOTO_PRESETS.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>
-                      {p.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Typography variant="caption" color="text.secondary">
-                {PHOTO_PRESETS.find((p) => p.id === presetId)?.description}
-              </Typography>
-
-              <FormControl size="small" fullWidth>
-                <InputLabel>Style</InputLabel>
-                <Select
-                  label="Style"
-                  value={style}
-                  onChange={(e) => setStyle(e.target.value as PhotoStyle)}
-                >
-                  {(Object.keys(STYLE_LABELS) as PhotoStyle[]).map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {STYLE_LABELS[s]}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
 
               <Divider />
 

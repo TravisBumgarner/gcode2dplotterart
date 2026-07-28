@@ -49,6 +49,45 @@ export const resample = (source: ImageBitmap, width: number, height: number): De
   return { rgba: ctx.getImageData(0, 0, width, height).data, width, height };
 };
 
+/**
+ * Resample at a reduced detail level. The style still receives an image at
+ * exactly the resolution it expects (its geometry assumes one source pixel per
+ * millimetre), but the content is sampled coarsely and re-expanded without
+ * smoothing. The result is chunkier tonal regions: fewer, longer strokes and a
+ * bolder plot, which is what the Python pipeline's aggressive `resize_image`
+ * was really buying.
+ */
+export const resampleWithDetail = (
+  source: ImageBitmap,
+  width: number,
+  height: number,
+  detail: number,
+): DecodedImage => {
+  if (detail >= 1) return resample(source, width, height);
+
+  const coarseWidth = Math.max(1, Math.round(width * detail));
+  const coarseHeight = Math.max(1, Math.round(height * detail));
+
+  const coarse = document.createElement('canvas');
+  coarse.width = coarseWidth;
+  coarse.height = coarseHeight;
+  const coarseCtx = coarse.getContext('2d');
+  if (!coarseCtx) throw new Error('Could not get a 2D canvas context');
+  coarseCtx.drawImage(source, 0, 0, coarseWidth, coarseHeight);
+
+  const full = document.createElement('canvas');
+  full.width = width;
+  full.height = height;
+  const ctx = full.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('Could not get a 2D canvas context');
+  // Nearest-neighbour on the way back up, so the blocks stay hard-edged
+  // instead of being blurred back into a gradient.
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(coarse, 0, 0, width, height);
+
+  return { rgba: ctx.getImageData(0, 0, width, height).data, width, height };
+};
+
 /** Data URL of a bucketed image, for the wizard's preview. */
 export const bucketPreviewUrl = (
   data: Uint8Array,
