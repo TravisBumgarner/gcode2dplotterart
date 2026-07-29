@@ -44,7 +44,7 @@ import {
   snapshotPoints,
   valueToY,
 } from '../connectedData';
-import { fetchText } from '../desktop';
+import { fetchText } from '../fetchText';
 import { loadLastPageSize, type PageSize } from '../pageSizes';
 import { PageSizePicker } from './PageSizePicker';
 
@@ -61,7 +61,6 @@ const INTERVAL_PRESETS = [
 type Probe = {
   json: unknown;
   fields: DiscoveredField[];
-  viaDesktop: boolean;
 };
 
 type Props = {
@@ -125,13 +124,13 @@ export const ConnectedDataWizard = ({ open, onClose, onStart }: Props) => {
     setProbe(null);
     setSelections({});
     try {
-      const { body, viaDesktop } = await fetchText(trimmed);
+      const { body } = await fetchText(trimmed);
       const json = JSON.parse(body);
       const fields = discoverFields(json);
       if (fields.length === 0) {
         setProbeError('Fetched successfully, but no plottable fields were found in the response.');
       } else {
-        setProbe({ json, fields, viaDesktop });
+        setProbe({ json, fields });
       }
     } catch (e) {
       const message = (e as Error).message;
@@ -266,8 +265,6 @@ export const ConnectedDataWizard = ({ open, onClose, onStart }: Props) => {
                 Found <strong>{probe.fields.length}</strong> field
                 {probe.fields.length === 1 ? '' : 's'}, of which{' '}
                 <strong>{probe.fields.filter(isPlottable).length}</strong> can be plotted.
-                {!probe.viaDesktop &&
-                  ' Fetched directly from the browser — the desktop app can reach endpoints that block CORS.'}
               </Alert>
             )}
           </Stack>

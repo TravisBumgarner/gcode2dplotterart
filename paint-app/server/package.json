@@ -1,0 +1,37 @@
+{
+  "name": "plotter-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Serial backend for paint-app: owns the USB link to the plotter so the UI can be served from a Raspberry Pi.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check src scripts",
+    "format": "biome format --write src scripts",
+    "check": "biome check --write src scripts",
+    "release": "node scripts/release.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "serialport": "^13.0.0",
+    "ws": "^8.18.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  }
+}

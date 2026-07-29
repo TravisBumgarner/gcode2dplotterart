@@ -1,7 +1,5 @@
-import DangerousIcon from '@mui/icons-material/Dangerous';
-import PauseIcon from '@mui/icons-material/Pause';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PrintIcon from '@mui/icons-material/Print';
+import UsbIcon from '@mui/icons-material/Usb';
 import {
   Box,
   Button,
@@ -16,46 +14,60 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Popover,
   Tooltip,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useConnection } from '../connection';
 import { usePlotters } from '../plotters';
 import { PlottersModal } from './PlottersModal';
+import { SerialPortRow } from './SerialPortRow';
 
 /**
  * Which plotter output goes to, and the live state of the link to it. Global
  * rather than per-document — the same session can draw one thing and send it
  * to whichever machine is plugged in, so these controls live in the top bar
  * and stay mounted whether or not a document is open.
+ *
+ * That includes picking the serial port. It used to be a step on the setup
+ * screen, back when a document owned its plotter and you passed through the
+ * gate on the way in; now that the plotter is a print target rather than a
+ * document property there is no such moment, so the port lives here, one click
+ * from anywhere, next to the machine it belongs to.
  */
 export const PlotterControls = () => {
   const { plotters, activePlotter, setActivePlotter } = usePlotters();
   const {
+    serverReachable,
     connected,
     connecting,
     connectPhase,
-    connect,
-    disconnect,
+    portPath,
     connectError,
     dismissConnectError,
-    paused,
-    pause,
-    resume,
-    emergencyStop,
     emergencyStopped,
     acknowledgeEmergencyStop,
   } = useConnection();
 
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [portAnchor, setPortAnchor] = useState<HTMLElement | null>(null);
   const [plottersOpen, setPlottersOpen] = useState(false);
 
-  const connectLabel =
-    connectPhase === 'homing'
-      ? 'Homing…'
-      : connectPhase === 'connecting'
-        ? 'Connecting…'
-        : 'Connect';
+  // The picker has done its job the moment the link comes up; leaving it open
+  // over the canvas is just something else to dismiss.
+  useEffect(() => {
+    if (connected) setPortAnchor(null);
+  }, [connected]);
+
+  const connectLabel = !serverReachable
+    ? 'Server offline'
+    : connected
+      ? (portPath ?? 'Connected')
+      : connectPhase === 'homing'
+        ? 'Homing…'
+        : connecting
+          ? 'Connecting…'
+          : 'Connect';
 
   return (
     <>
@@ -103,61 +115,34 @@ export const PlotterControls = () => {
         </MenuItem>
       </Menu>
 
-      {connected ? (
-        <Button size="small" color="error" onClick={disconnect}>
-          Disconnect
-        </Button>
-      ) : (
+      <Tooltip
+        title={
+          connected
+            ? `The server is holding ${portPath}. Open to disconnect or switch ports.`
+            : 'Pick which of the server’s serial ports the plotter is on, and connect.'
+        }
+      >
         <Button
           size="small"
-          variant="contained"
-          onClick={connect}
-          disabled={connecting}
-          startIcon={connecting ? <CircularProgress size={14} color="inherit" /> : null}
+          variant={connected ? 'text' : 'contained'}
+          color={connected ? 'success' : serverReachable ? 'primary' : 'error'}
+          startIcon={connecting ? <CircularProgress size={14} color="inherit" /> : <UsbIcon />}
+          onClick={(e) => setPortAnchor(e.currentTarget)}
         >
           {connectLabel}
         </Button>
-      )}
-
-      {connected && (
-        <Tooltip
-          title={
-            paused
-              ? 'Resume — continue sending G-code'
-              : 'Pause — stop sending after the current move; the plotter holds position'
-          }
-        >
-          <Button
-            size="small"
-            color={paused ? 'success' : 'warning'}
-            variant="contained"
-            startIcon={paused ? <PlayArrowIcon /> : <PauseIcon />}
-            onClick={paused ? resume : pause}
-          >
-            {paused ? 'Resume' : 'Pause'}
-          </Button>
-        </Tooltip>
-      )}
-
-      {connected && (
-        <>
-          {/* Kept at the far end of the bar, away from Disconnect — a
-              misclick here costs a power cycle. */}
-          <Box sx={{ width: 8 }} />
-          <Tooltip title="Emergency stop — halts the plotter immediately (M112). Requires a power cycle afterward.">
-            <Button
-              size="small"
-              color="error"
-              variant="contained"
-              startIcon={<DangerousIcon />}
-              onClick={emergencyStop}
-              sx={{ fontWeight: 700 }}
-            >
-              STOP
-            </Button>
-          </Tooltip>
-        </>
-      )}
+      </Tooltip>
+      <Popover
+        open={Boolean(portAnchor)}
+        anchorEl={portAnchor}
+        onClose={() => setPortAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Box sx={{ p: 2, width: 400, maxWidth: '90vw' }}>
+          <SerialPortRow />
+        </Box>
+      </Popover>
 
       <PlottersModal open={plottersOpen} onClose={() => setPlottersOpen(false)} />
 

@@ -17,7 +17,7 @@ import {
   snapshotPoints,
   valueToY,
 } from './connectedData';
-import { fetchText } from './desktop';
+import { fetchText } from './fetchText';
 import { useProject } from './project';
 import { useStore } from './store';
 import type { Point } from './types';

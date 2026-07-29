@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    // Only the build pins rootDir. The typecheck config deliberately does not:
+    // `client.test.ts` reaches into the renderer's source to exercise the API
+    // client against this server, and that file lives above `src/`.
+    "rootDir": "src"
+  },
+  "exclude": ["src/**/*.test.ts", "src/test/**"]
+}

@@ -4,41 +4,81 @@ import {
   Box,
   Button,
   Checkbox,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  LinearProgress,
   Typography,
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useConnection } from '../connection';
 import { buildLayerPrograms, EPILOGUE, PROLOGUE, pageFitsBed } from '../gcode';
 import { usePlotters } from '../plotters';
+import { useProject } from '../project';
 import { useStore } from '../store';
 
 type Props = {
   onClose: () => void;
 };
 
-type Phase =
-  | { kind: 'idle' }
-  | { kind: 'running'; layerIdx: number; layerName: string; color: string }
-  | { kind: 'paused'; nextLayerIdx: number; nextLayerName: string; nextColor: string }
-  | { kind: 'done' }
-  | { kind: 'error'; message: string };
+const Swatch = ({ color }: { color: string }) => (
+  <Box
+    sx={{
+      width: 14,
+      height: 14,
+      borderRadius: '50%',
+      background: color,
+      border: '1px solid',
+      borderColor: 'divider',
+      flexShrink: 0,
+    }}
+  />
+);
 
+/** The pen swap can happen while you are in another room. Make a noise. */
+const playChime = () => {
+  try {
+    const ctx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch {}
+};
+
+/**
+ * Starting a print used to mean this component sat in a loop feeding lines to
+ * the serial port and parking on a `Promise` at each pen swap — close the tab
+ * and the page was orphaned half-drawn. Now the whole job is uploaded once, the
+ * server runs it next to the cable, and this is a view of that job's state. Any
+ * device in the session sees the same thing, including the swap prompt.
+ *
+ * The one decision still made here is what to do when the page does not fit the
+ * plotter. A document is sized independently of any machine, and the plotter is
+ * a print target picked in the top bar, so the mismatch is only knowable at
+ * this moment — and it has to be settled before the job is built and uploaded,
+ * because the server receives finished G-code and will not second-guess it.
+ */
 export const PrintModal = ({ onClose }: Props) => {
   const { state } = useStore();
   const { activePlotter: plotter } = usePlotters();
-  const { connection } = useConnection();
+  const { project } = useProject();
+  const { client, job, isController, controllerName, connected, paused } = useConnection();
   const { pages, layers, activePageId } = state;
   const activePage = pages.find((p) => p.id === activePageId);
 
-  // A document is sized independently of any machine, so the page can be
-  // bigger than the plotter it's being sent to. Printing is blocked until the
-  // user decides what should happen to the overflow.
+  // Printing is blocked until the user decides what happens to the overflow.
   const [clipToBed, setClipToBed] = useState(false);
   const overflows = Boolean(activePage && plotter && !pageFitsBed(activePage, plotter));
   const blockedByOverflow = overflows && !clipToBed;
@@ -46,89 +86,93 @@ export const PrintModal = ({ onClose }: Props) => {
   const programs =
     activePage && plotter ? buildLayerPrograms(layers, activePage, plotter, clipToBed) : [];
 
-  const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
-  const cancelled = useRef(false);
-  const resumeRef = useRef<(() => void) | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // The job we started, as opposed to one another client left lying around.
+  const ours = jobId && job?.job.id === jobId ? job : null;
+  const otherJobRunning =
+    !ours && job !== null && (job.state === 'running' || job.state === 'awaiting_pen_swap');
+
+  const lastState = useRef<string | null>(null);
   useEffect(() => {
-    return () => {
-      cancelled.current = true;
-      resumeRef.current?.();
-    };
-  }, []);
-
-  const playChime = () => {
-    try {
-      const ctx = new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      )();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.6);
-    } catch {}
-  };
-
-  const start = async () => {
-    if (!plotter) {
-      setPhase({ kind: 'error', message: 'No plotter selected. Choose one from the top bar.' });
-      return;
+    if (ours?.state === 'awaiting_pen_swap' && lastState.current !== 'awaiting_pen_swap') {
+      playChime();
     }
-    if (blockedByOverflow) return;
-    if (!activePage || programs.length === 0) {
-      setPhase({ kind: 'error', message: 'Nothing to print on the active page.' });
-      return;
-    }
-    cancelled.current = false;
+    lastState.current = ours?.state ?? null;
+  }, [ours?.state]);
+
+  const guard = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    setError(null);
     try {
-      await connection.sendMany(PROLOGUE(plotter));
-      for (let i = 0; i < programs.length; i++) {
-        if (cancelled.current) return;
-        const program = programs[i];
-        setPhase({
-          kind: 'running',
-          layerIdx: i,
-          layerName: program.layerName,
-          color: program.color,
-        });
-        await connection.sendMany(program.lines);
-        if (cancelled.current) return;
-        if (i < programs.length - 1) {
-          const next = programs[i + 1];
-          playChime();
-          setPhase({
-            kind: 'paused',
-            nextLayerIdx: i + 1,
-            nextLayerName: next.layerName,
-            nextColor: next.color,
-          });
-          await new Promise<void>((resolve) => {
-            resumeRef.current = resolve;
-          });
-          resumeRef.current = null;
-          if (cancelled.current) return;
-        }
-      }
-      await connection.sendMany(EPILOGUE(plotter));
-      setPhase({ kind: 'done' });
+      await fn();
     } catch (e) {
-      setPhase({ kind: 'error', message: (e as Error).message });
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
     }
   };
+
+  const start = () =>
+    guard(async () => {
+      if (!plotter) throw new Error('No plotter selected. Choose one from the top bar.');
+      if (blockedByOverflow) {
+        throw new Error(
+          'The page is larger than the bed. Clip it to the bed, or pick a plotter it fits on.',
+        );
+      }
+      if (!activePage || programs.length === 0) {
+        throw new Error('Nothing to print on the active page.');
+      }
+      const summary = await client.uploadJob({
+        name: project?.name ?? 'Untitled page',
+        plotterName: plotter.name,
+        prologue: PROLOGUE(plotter),
+        layers: programs.map((p) => ({ name: p.layerName, color: p.color, lines: p.lines })),
+        epilogue: EPILOGUE(plotter),
+      });
+      setJobId(summary.id);
+      await client.startJob(summary.id);
+    });
+
+  const progress = ours?.progress ?? null;
+  const percent =
+    progress && progress.totalLines > 0
+      ? Math.round((progress.sentLines / progress.totalLines) * 100)
+      : 0;
+
+  const idle = !ours;
+  const finished =
+    ours?.state === 'done' || ours?.state === 'failed' || ours?.state === 'cancelled';
+  const active = ours?.state === 'running' || ours?.state === 'paused';
+  const swapping = ours?.state === 'awaiting_pen_swap';
 
   return (
-    <Dialog open onClose={phase.kind === 'idle' ? onClose : undefined} fullWidth maxWidth="xs">
+    <Dialog open onClose={idle || finished ? onClose : undefined} fullWidth maxWidth="xs">
       <DialogTitle>Print</DialogTitle>
       <DialogContent dividers>
-        {phase.kind === 'idle' && (
+        {!isController && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {controllerName ? `${controllerName} has control.` : 'Another client has control.'} You
+            can watch this print but not start or change one.
+          </Alert>
+        )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {idle && (
           <>
+            {otherJobRunning && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                The plotter is already running “{job?.job.name}”. Starting another will be refused
+                until it finishes or is cancelled.
+              </Alert>
+            )}
             <Typography variant="body2" sx={{ mb: 1 }}>
               Plotter: <strong>{plotter?.name ?? '— none —'}</strong>
             </Typography>
@@ -158,20 +202,12 @@ export const PrintModal = ({ onClose }: Props) => {
             <Typography variant="body2" sx={{ mb: 2 }}>
               About to print <strong>{programs.length}</strong> visible layer
               {programs.length === 1 ? '' : 's'} on the active page
-              {clipToBed && overflows ? ', clipped to the bed' : ''}.
+              {clipToBed && overflows ? ', clipped to the bed' : ''}. The whole job is uploaded to
+              the plotter server, which runs it — you can close this tab once it starts.
             </Typography>
             {programs.map((p) => (
               <Box key={p.layerId} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-                <Box
-                  sx={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: '50%',
-                    background: p.color,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                />
+                <Swatch color={p.color} />
                 <Typography variant="body2">{p.layerName}</Typography>
                 <Box sx={{ flex: 1 }} />
                 <Typography variant="caption" color="text.secondary">
@@ -181,80 +217,89 @@ export const PrintModal = ({ onClose }: Props) => {
             ))}
           </>
         )}
-        {phase.kind === 'running' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CircularProgress size={16} />
-            <Typography>
-              Printing <strong>{phase.layerName}</strong>
-            </Typography>
-            <Box
-              sx={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                background: phase.color,
-                border: '1px solid',
-                borderColor: 'divider',
-              }}
-            />
-          </Box>
-        )}
-        {phase.kind === 'paused' && (
+
+        {ours && !finished && progress && (
           <>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Swatch color={progress.color} />
+              <Typography>
+                {swapping ? 'Waiting at' : 'Printing'} <strong>{progress.layerName}</strong>
+              </Typography>
+              <Box sx={{ flex: 1 }} />
+              <Typography variant="caption" color="text.secondary">
+                layer {progress.layerIndex + 1}/{progress.layerCount}
+              </Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={percent} sx={{ mb: 1 }} />
+            <Typography variant="caption" color="text.secondary">
+              {progress.sentLines} / {progress.totalLines} lines ({percent}%)
+              {paused && ours.state === 'paused' && ' · paused'}
+            </Typography>
+          </>
+        )}
+
+        {swapping && ours?.nextLayer && (
+          <Box sx={{ mt: 2 }}>
             <Typography variant="h6">Swap pen</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
               <Typography>
-                Insert pen for <strong>{phase.nextLayerName}</strong>
+                Insert pen for <strong>{ours.nextLayer.name}</strong>
               </Typography>
-              <Box
-                sx={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  background: phase.nextColor,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              />
+              <Swatch color={ours.nextLayer.color} />
             </Box>
-          </>
+            <Typography variant="caption" color="text.secondary">
+              The plotter is holding position with the pen up. It will wait as long as it takes.
+            </Typography>
+          </Box>
         )}
-        {phase.kind === 'done' && <Typography>Done.</Typography>}
-        {phase.kind === 'error' && <Typography color="error">Error: {phase.message}</Typography>}
+
+        {ours?.state === 'done' && <Typography>Done.</Typography>}
+        {ours?.state === 'cancelled' && <Typography>Cancelled.</Typography>}
+        {ours?.state === 'failed' && (
+          <Typography color="error">Failed: {ours.error ?? 'unknown error'}</Typography>
+        )}
       </DialogContent>
       <DialogActions>
-        {phase.kind === 'idle' && (
+        {idle && (
           <>
             <Button onClick={onClose}>Cancel</Button>
             <Button
               variant="contained"
               onClick={start}
-              disabled={programs.length === 0 || !plotter || blockedByOverflow}
+              disabled={
+                programs.length === 0 ||
+                !plotter ||
+                blockedByOverflow ||
+                !connected ||
+                !isController ||
+                busy
+              }
             >
               Start
             </Button>
           </>
         )}
-        {phase.kind === 'paused' && (
+        {(active || swapping) && (
           <>
             <Button
               color="error"
-              onClick={() => {
-                cancelled.current = true;
-                resumeRef.current?.();
-                onClose();
-              }}
+              disabled={!isController || busy}
+              onClick={() => guard(() => client.cancelJob())}
             >
               Abort
             </Button>
-            <Button variant="contained" onClick={() => resumeRef.current?.()}>
-              Resume
-            </Button>
+            {swapping && (
+              <Button
+                variant="contained"
+                disabled={!isController || busy}
+                onClick={() => guard(() => client.continueJob())}
+              >
+                Continue
+              </Button>
+            )}
           </>
         )}
-        {(phase.kind === 'done' || phase.kind === 'error') && (
-          <Button onClick={onClose}>Close</Button>
-        )}
+        {finished && <Button onClick={onClose}>Close</Button>}
       </DialogActions>
     </Dialog>
   );

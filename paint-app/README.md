@@ -1,82 +1,71 @@
 # paint-app
 
 A paint app that draws on virtual pages with stacked, color-coded layers and
-emits G-code to a USB-connected pen plotter (a Creality Ender-3 V3 SE running
-stock Marlin in this repo). It ships two ways from one codebase: an Electron
-desktop app and a static site for Chrome / Edge.
+emits G-code to a pen plotter (a Creality Ender-3 V3 SE running stock Marlin in
+this repo).
+
+The plotter is a network appliance, not a USB peripheral: [`server/`](server/README.md)
+runs on a Raspberry Pi wired to the machine, owns the serial port, and serves
+this UI. Open it from a laptop, start a page, walk away, and swap pens from a
+phone. One container, one port, no desktop app.
 
 ## Stack
 
-- Electron (desktop shell) + Vite + React + TypeScript
-- Material UI (theme + dialogs + menus)
+- Vite + React + TypeScript, served in production by the plotter server
+- Material UI (theme + dialogs + menus), light and dark
 - Dexie (IndexedDB) for project persistence
 - Zod for runtime schemas
 - Framer Motion for layer drag-and-drop reordering
 - Biome for lint + format
-- [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for plotter I/O — built into the desktop app; Chrome / Edge only in the browser
-- electron-builder for desktop packaging
+- A REST + WebSocket client (`src/plotterClient.ts`) against the plotter server
+  — any modern browser, no Web Serial, no desktop shell
 
 ## Develop
 
 ```sh
 npm install
-npm run dev:electron   # desktop app (Vite dev server + Electron, HMR)
-npm run dev            # browser only, http://localhost:5173
+npm run dev                             # http://localhost:5173
+PLOTTER_SERVER=http://plotter.local:8080 npm run dev   # against the Pi
 ```
 
-`dev:electron` starts Vite and launches Electron against it in one process, so
-quitting the app also stops the server. Web Serial requires a secure context;
-`localhost` qualifies, as does the desktop app's custom scheme (below).
+`vite dev` proxies `/api` and `/ws` to `http://localhost:8080` — run
+`npm --prefix server run dev` alongside it, or point `PLOTTER_SERVER` at a real
+Pi. In production none of this applies: the server serves the built page, so
+the API is same-origin.
 
 ```sh
-npm run build           # renderer only (static site)
-npm run build:electron  # renderer + main process
-npm run package         # installers into release/ (dmg + zip, nsis, AppImage)
-npm run package:dir     # unpacked app into release/, skips installer creation
-npm run check           # biome lint + format with --write
-npm run lint            # biome check (no writes)
+npm run build         # production build -> dist/
+npm run check         # biome lint + format with --write
+npm run lint          # biome check (no writes)
+npm run docker:build  # the arm64 appliance image, renderer and server together
 ```
 
-Packaging builds for the host platform only; pass `electron-builder`'s
-`--mac` / `--win` / `--linux` flags to target others. macOS builds are signed
-with whatever local identity is available and are **not** notarized.
-
-## Desktop shell
-
-`electron/main.ts` is the whole shell — there is no preload and no IPC, because
-the renderer is the same code the browser build runs.
-
-- **Custom scheme, not `file://`.** The packaged app serves `dist/` over
-  `paint-app://app/`, registered as a standard + secure scheme. `file://` pages
-  are an opaque origin, which makes `localStorage` and IndexedDB (where every
-  project and plotter lives) unreliable and leaves Web Serial without its
-  required secure context. The scheme also keeps the storage origin stable
-  across app updates.
-- **Serial port picker.** Chromium's port chooser doesn't exist in Electron, so
-  main handles `select-serial-port`: ports reporting a USB `vendorId` are
-  preferred (this drops noise like macOS's Bluetooth-Incoming-Port), a lone
-  match is auto-selected, and anything more opens a native picker.
-- **Unsaved-changes prompt.** Electron cancels `beforeunload` silently instead
-  of showing Chromium's leave-site dialog, so main answers `will-prevent-unload`
-  with a real confirm dialog.
-- **Single instance.** A second launch focuses the existing window rather than
-  fighting it over the serial port and the IndexedDB lock.
+There is nothing to package. `npm run build` produces `dist/`, and the server
+serves it — `npm run docker:build` bakes both into the arm64 appliance image.
+An earlier version of this app shipped an Electron shell to get a stable
+storage origin and a serial port picker; the server provides both, over the
+network, to any browser, so the shell is gone.
 
 ## Plotters
 
 Plotters are first-class entities, separate from projects. Each plotter has a
 name, bed size, feed rates, and pen Z heights. Plotters are **immutable once
-created** — to change a parameter you must create a new plotter and switch the
-project over to it. This keeps documents reproducible: a project that
-references plotter `X` will always print exactly the way it did when you saved
-it.
+created** — to change a parameter you make a new plotter and print to that one
+instead.
 
-- A project picks its plotter at creation time and is bound to it for life.
-  This mirrors the immutability of plotters themselves — the (project, plotter)
-  pair is a fixed contract once you click Create.
-- Plotters are managed from the Settings menu (top-left ⚙ → "Plotters…") or
-  via the "Manage…" button in the home-screen New project form.
-- Deleting a plotter is blocked while any project references it.
+A plotter is a **print target, not a document property**: a document owns its
+page geometry and nothing else, exactly the way a document doesn't know which
+printer you'll send it to.
+
+- The active plotter is chosen in the top bar and applies to whatever you do
+  next, in any document. Switching machines mid-session is a menu click.
+- The serial port lives next to it, in the same top bar — the "Connect" button
+  opens the list of ports the *server* can see.
+- Because the page and the bed are chosen independently, a page can be larger
+  than the machine it's aimed at. `Print` refuses to start in that case until
+  you tick "clip to the bed and print what fits".
+- Plotters are managed from the top bar's plotter menu → "Manage…", or from the
+  Settings menu (⚙ → "Plotters…").
 - Two ways to define a new plotter:
   - **Manual** — type each field (bed size, feeds, pen Z heights).
   - **Calibrate** — connect the plotter and walk through six steps (left,
@@ -100,10 +89,9 @@ normal document, with two differences:
   (`G21 / G90 / G28`), and subsequent strokes are queued sequentially over
   the serial bus.
 
-A red "Interactive · live" chip appears in the AppBar while a session is
-active and connected. If the plotter is disconnected, the chip turns gray
-("offline") and strokes you draw are NOT replayed when you reconnect — only
-strokes drawn while connected get plotted.
+A "Live" chip appears in the top bar while a session is active and connected.
+If the plotter is disconnected the chip turns red, and strokes you draw are NOT
+replayed when you reconnect — only strokes drawn while connected get plotted.
 
 ## Saving and loading
 
@@ -115,9 +103,8 @@ strokes drawn while connected get plotted.
   the current project is `saved`, `saving…`, `saving soon`, or `unsaved`.
 - **Export / import JSON.** `Settings → Export JSON` downloads
   `<project>.json`. `Import JSON` validates with Zod and creates a new project.
-- **Beforeunload guard.** Closing while changes are unsaved prompts first — the
-  browser's "leave this page?" dialog on the web, a native confirm in the
-  desktop app.
+- **Beforeunload guard.** Closing while changes are unsaved prompts first with
+  the browser's "leave this page?" dialog.
 
 ## Features
 
@@ -146,10 +133,36 @@ strokes drawn while connected get plotted.
   star (3–32 points). Polygon/star spawn a small `sides` / `pts` input under
   the palette when active; they're built as polylines so they emit clean
   G-code paths just like freehand strokes.
-- **Plotter output.** Toolbar → Connect, pick the `wchusbserial*` port, then
-  Print. The active page is sent: each visible layer becomes a block of G-code
-  (clipped to the page rectangle and translated to machine origin), with a
-  pause + audio chime + on-screen prompt between layers so you can swap pens.
+- **Plotter output.** Top bar → pick the plotter, then Connect (which lists the
+  serial ports the *server* can see), then Print. The active page is turned
+  into one job — a prologue,
+  a block of G-code per visible layer (clipped to the page rectangle and
+  translated to machine origin), an epilogue — uploaded in one request, and run
+  by the server. Between layers the job parks in `awaiting_pen_swap`; every
+  connected device shows the prompt and any of them can continue it. Closing
+  the tab does not orphan the print.
+- **One controller.** Several browsers can watch the same plotter; exactly one
+  may move it. The top bar always says which you are. Taking control is
+  allowed mid-print, so the dialog says so before you do it.
+- **Emergency stop.** Fixed bottom-right whenever the plotter is connected,
+  from any device, whether or not you hold control. It does not travel over the
+  command socket — see the emergency stop section of
+  [`server/README.md`](server/README.md), including what it does *not*
+  guarantee.
+
+## Persistence is per-browser
+
+Projects and plotters live in this browser's IndexedDB, not on the server. The
+page comes from the Pi but your work does not: open the app on your phone and
+you get an empty project list. Export/import JSON is the way to move a project
+between devices. This is a deliberate hole, not an oversight — moving
+persistence to the server is a separate decision.
+
+## Network backend (`server/`)
+
+[`server/`](server/README.md) owns the serial port, runs the send loop next to
+the USB cable, holds the job state machine, and serves this UI. See its README
+for the protocol, the emergency-stop guarantees, and the Pi deployment notes.
 
 ## Hardware notes
 
@@ -160,21 +173,25 @@ prototypes that predate this app.
 ## Layout
 
 ```
-electron/
-  main.ts                    # Electron main process (protocol, serial, dialogs)
-scripts/
-  dev-electron.mjs           # Vite dev server + Electron, one process
 src/
   App.tsx                    # shell + connection wiring
   store.tsx                  # Context + useReducer app state
   types.ts                   # Zod schemas / TS types
-  serial.ts                  # Web Serial wrapper (PlotterConnection)
+  plotterClient.ts           # REST + WebSocket client for server/
+  connection.tsx             # React context over it: status, session, job, log
+  plotters.tsx               # the plotter list and the active print target
   gcode.ts                   # stroke -> G-code generator
   svg-import.ts              # SVG -> sampled strokes
   clip.ts                    # Liang-Barsky polyline-vs-rect clipping
   components/
-    Toolbar.tsx
+    Toolbar.tsx              # control lock, pause, emergency stop
+    PlotterControls.tsx      # active plotter + the connection, in the top bar
+    SerialPortRow.tsx        # the server-side port picker it opens
     LayersPanel.tsx
     Canvas.tsx
-    PrintModal.tsx
+    PrintModal.tsx           # uploads the job, renders the server's state
+Dockerfile                   # one image: this build + server/, arm64
 ```
+
+`plotterClient.ts` is exercised end to end in `server/src/client.test.ts`,
+against the same scripted Marlin the server is tested with.

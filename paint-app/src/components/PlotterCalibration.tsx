@@ -83,7 +83,7 @@ const STEP_OPTIONS = [0.1, 1, 10];
 type Props = { onCreated: () => void };
 
 export const PlotterCalibration = ({ onCreated }: Props) => {
-  const { connection, connected, connect } = useConnection();
+  const { client, connected } = useConnection();
   const { createPlotter } = usePlotters();
 
   const [stepIdx, setStepIdx] = useState(0);
@@ -113,7 +113,7 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
     if (!connected) return;
     setBusy(true);
     try {
-      const p = await connection.getPosition();
+      const p = await client.getPosition();
       if (p) setPosition(p);
     } finally {
       setBusy(false);
@@ -124,10 +124,10 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
     if (!connected) return;
     setBusy(true);
     try {
-      await connection.send('G91');
-      await connection.send(`G1 ${axis}${delta} F${travelFeed}`);
-      await connection.send('G90');
-      const p = await connection.getPosition();
+      await client.send('G91');
+      await client.send(`G1 ${axis}${delta} F${travelFeed}`);
+      await client.send('G90');
+      const p = await client.getPosition();
       if (p) setPosition(p);
     } finally {
       setBusy(false);
@@ -138,8 +138,8 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
     if (!connected) return;
     setBusy(true);
     try {
-      await connection.send('G28');
-      const p = await connection.getPosition();
+      await client.send('G28');
+      const p = await client.getPosition();
       if (p) setPosition(p);
     } finally {
       setBusy(false);
@@ -150,7 +150,7 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
     if (!connected) return;
     setBusy(true);
     try {
-      const p = (await connection.getPosition()) ?? position;
+      const p = (await client.getPosition()) ?? position;
       if (!p) return;
       setPosition(p);
       setCaptured((prev) => {
@@ -210,16 +210,7 @@ export const PlotterCalibration = ({ onCreated }: Props) => {
   return (
     <Stack spacing={2}>
       {!connected && (
-        <Alert
-          severity="warning"
-          action={
-            <Button size="small" onClick={connect}>
-              Connect
-            </Button>
-          }
-        >
-          Connect to the plotter to calibrate.
-        </Alert>
+        <Alert severity="warning">Connect to the plotter from the home screen to calibrate.</Alert>
       )}
 
       <Stepper activeStep={onLastStep ? STEPS.length : stepIdx} alternativeLabel>

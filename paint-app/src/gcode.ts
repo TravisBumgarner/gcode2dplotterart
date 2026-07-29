@@ -112,7 +112,7 @@ export const PROLOGUE = (plotter: Plotter): string[] => [
   `; plotter: ${plotter.name}`,
   'G21 ; mm',
   'G90 ; absolute',
-  // No G28 here: the device is homed once on connect (serial.ts) and
+  // No G28 here: the server homes once on connect and machine
   // position persists, so re-homing per print would just waste ~15s.
   `G0 Z${fmt(plotter.penUpZ)} F${plotter.travelFeed}`,
 ];

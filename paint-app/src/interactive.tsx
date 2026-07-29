@@ -18,11 +18,14 @@ import { useStore } from './store';
  * Geometry outside the target plotter's bed is clipped away silently — there's
  * no point prompting per stroke the way the print flow does, and driving the
  * machine past its limits is worse than dropping the overflow.
+ *
+ * Each stroke crosses the network as one batch, not a line at a time; the
+ * server's send loop still waits for Marlin's `ok` per line, over USB.
  */
 export const useInteractiveSync = () => {
   const { state } = useStore();
   const { project } = useProject();
-  const { connection, connected } = useConnection();
+  const { client, connected, isController } = useConnection();
   const { activePlotter } = usePlotters();
 
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
@@ -35,7 +38,7 @@ export const useInteractiveSync = () => {
   // the existing document from being replotted from the top.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only re-prime on session-boundary changes
   useEffect(() => {
-    if (!isInteractive || !connected) {
+    if (!isInteractive || !connected || !isController) {
       sentRef.current = new Set();
       sessionKeyRef.current = null;
       return;
@@ -46,11 +49,12 @@ export const useInteractiveSync = () => {
     }
     sentRef.current = ids;
     sessionKeyRef.current = null;
-  }, [isInteractive, connected, project?.id, activePlotter?.id]);
+  }, [isInteractive, connected, isController, project?.id, activePlotter?.id]);
 
-  // Stream new strokes whenever the store changes.
+  // Stream new strokes whenever the store changes. Read-only observers watch
+  // the canvas without their strokes reaching the machine.
   useEffect(() => {
-    if (!isInteractive || !connected || !project) return;
+    if (!isInteractive || !connected || !isController || !project) return;
     const plotter = activePlotter;
     if (!plotter) return;
     const activePage = state.pages.find((p) => p.id === state.activePageId);
@@ -74,15 +78,18 @@ export const useInteractiveSync = () => {
     queueRef.current = queueRef.current.then(async () => {
       try {
         if (sessionKeyRef.current !== expectedSession) {
-          await connection.sendMany(PROLOGUE(plotter));
+          await client.sendMany(PROLOGUE(plotter));
           sessionKeyRef.current = expectedSession;
         }
         for (const lines of newPrograms) {
-          await connection.sendMany(lines);
+          await client.sendMany(lines);
         }
       } catch (e) {
+        // A refused stroke (control lost, job started) must not leave the
+        // session key set, or the prologue is skipped on the next attempt.
+        sessionKeyRef.current = null;
         console.error('interactive stream failed', e);
       }
     });
-  }, [state, isInteractive, connected, project, connection, activePlotter]);
+  }, [state, isInteractive, connected, isController, project, client, activePlotter]);
 };
