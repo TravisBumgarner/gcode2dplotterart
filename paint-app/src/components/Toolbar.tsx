@@ -1,5 +1,7 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BoltIcon from '@mui/icons-material/Bolt';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
 import DangerousIcon from '@mui/icons-material/Dangerous';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -19,19 +21,26 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
   IconButton,
   Toolbar as MuiToolbar,
   Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { useConnectedData } from '../connectedDataSession';
 import { useConnection } from '../connection';
+import { usePlotters } from '../plotters';
 import { INTERACTIVE_PROJECT_ID, useProject } from '../project';
 import { DebugModal } from './DebugModal';
+import { PlotterControls } from './PlotterControls';
 import { SettingsMenu } from './SettingsMenu';
 
 type Props = {
   onPrint: () => void;
+  /** Set when a full-page util owns the view; it takes over the bar's title. */
+  utilTitle: string | null;
+  onExitUtil: () => void;
 };
 
 /**
@@ -93,42 +102,53 @@ const ControlChip = ({
   );
 };
 
-export const Toolbar = ({ onPrint }: Props) => {
-  const { project, isDirty, isSaving, autosave, closeProject } = useProject();
+/**
+ * The application's single top bar. Mounted above the document/home swap so
+ * plotter selection and the connection live at app scope: you can connect,
+ * switch machines, or emergency-stop from anywhere, including the home screen.
+ */
+export const Toolbar = ({ onPrint, utilTitle, onExitUtil }: Props) => {
+  const { project, isDirty, isSaving, autosave } = useProject();
   const {
     connected,
     paused,
     pause,
     resume,
     emergencyStop,
-    emergencyStopped,
-    acknowledgeEmergencyStop,
     isController,
     controllerName,
     takeControl,
     session,
     serverReachable,
   } = useConnection();
+  const { activePlotter } = usePlotters();
+  const connectedData = useConnectedData();
   const [takeoverOpen, setTakeoverOpen] = useState(false);
   const observers = (session?.clients.length ?? 1) - 1;
 
-  const acknowledgeStop = () => {
-    acknowledgeEmergencyStop();
-    closeProject();
-  };
   const [debugOpen, setDebugOpen] = useState(false);
-  const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
 
+  const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
   const status = isSaving ? 'saving…' : isDirty ? (autosave ? 'saving soon' : 'unsaved') : 'saved';
 
   return (
     <AppBar position="static" color="default" elevation={1}>
       <MuiToolbar variant="dense" sx={{ gap: 1 }}>
-        <SettingsMenu />
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
-          {project?.name ?? 'paint-app'}
-        </Typography>
-        {project && !isInteractive && (
+        {utilTitle ? (
+          <>
+            <Button size="small" startIcon={<ArrowBackIcon />} onClick={onExitUtil}>
+              Back
+            </Button>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {utilTitle}
+            </Typography>
+          </>
+        ) : (
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {project?.name ?? 'paint-app'}
+          </Typography>
+        )}
+        {!utilTitle && project && !isInteractive && (
           <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {isSaving && <CircularProgress size={12} />}
             <Typography variant="caption" color="text.secondary">
@@ -144,12 +164,31 @@ export const Toolbar = ({ onPrint }: Props) => {
           observers={observers}
           onTakeControl={() => setTakeoverOpen(true)}
         />
+        {isInteractive && (
+          <Tooltip
+            title={
+              !activePlotter
+                ? 'Choose a plotter to send strokes to.'
+                : connected
+                  ? 'Each new stroke is sent to the plotter immediately.'
+                  : 'Connect the plotter — strokes drawn while disconnected are not replayed.'
+            }
+          >
+            <Chip
+              icon={<BoltIcon />}
+              label={!activePlotter ? 'No plotter' : connected ? 'Live' : 'Disconnected'}
+              color={!activePlotter ? 'default' : connected ? 'success' : 'error'}
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          </Tooltip>
+        )}
         {connected && (
           <Tooltip
             title={
               paused
-                ? 'Resume — continue sending G-code'
-                : 'Pause — stop sending after the current move; the plotter holds position'
+                ? 'Resume the job.'
+                : 'Pause after the current line — the machine holds position.'
             }
           >
             <span>
@@ -166,13 +205,48 @@ export const Toolbar = ({ onPrint }: Props) => {
             </span>
           </Tooltip>
         )}
-        {!isInteractive && (
+        {connectedData.config && (
+          <Tooltip
+            title={
+              connectedData.status.lastError
+                ? `Last fetch failed: ${connectedData.status.lastError}`
+                : connectedData.status.windowFull
+                  ? 'The time window is full — live series have stopped extending.'
+                  : `Polling ${connectedData.config.url} every ${connectedData.config.intervalSeconds}s`
+            }
+          >
+            <Chip
+              icon={<CloudDownloadIcon />}
+              label={
+                connectedData.status.lastError
+                  ? 'Fetch failed'
+                  : connectedData.status.windowFull
+                    ? 'Window full'
+                    : `${connectedData.status.polls} polls`
+              }
+              color={
+                connectedData.status.lastError
+                  ? 'error'
+                  : connectedData.status.windowFull
+                    ? 'warning'
+                    : 'info'
+              }
+              variant="outlined"
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          </Tooltip>
+        )}
+
+        <Box sx={{ flex: 1 }} />
+
+        {project && !isInteractive && (
           <Button
             size="small"
             startIcon={<PrintIcon />}
             variant="contained"
             onClick={onPrint}
-            disabled={!connected}
+            disabled={!connected || !activePlotter}
           >
             Print
           </Button>
@@ -198,24 +272,14 @@ export const Toolbar = ({ onPrint }: Props) => {
             </span>
           </Tooltip>
         )}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {isInteractive && (
-            <Tooltip
-              title={
-                connected
-                  ? 'Each new stroke is sent to the plotter immediately.'
-                  : 'Connect the plotter — strokes drawn while disconnected are not replayed.'
-              }
-            >
-              <Chip
-                icon={<BoltIcon />}
-                label={connected ? 'Connected' : 'Disconnected'}
-                color={connected ? 'success' : 'error'}
-                size="small"
-              />
-            </Tooltip>
-          )}
-        </Box>
+
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+        <PlotterControls />
+
+        <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+        <SettingsMenu />
         <Tooltip title="View on GitHub">
           <IconButton
             size="small"
@@ -277,22 +341,6 @@ export const Toolbar = ({ onPrint }: Props) => {
         </DialogActions>
       </Dialog>
       {debugOpen && <DebugModal onClose={() => setDebugOpen(false)} />}
-      <Dialog open={emergencyStopped} onClose={acknowledgeStop}>
-        <DialogTitle sx={{ color: 'error.main' }}>Emergency stop triggered</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            The plotter received an emergency stop (M112) and its firmware is now halted. It will
-            not respond to any commands until you <strong>power cycle the 3D printer</strong> (turn
-            it off, wait a few seconds, then turn it back on).
-          </DialogContentText>
-          <DialogContentText sx={{ mt: 2 }}>
-            After power cycling, reconnect from the setup screen.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={acknowledgeStop}>Understood</Button>
-        </DialogActions>
-      </Dialog>
     </AppBar>
   );
 };

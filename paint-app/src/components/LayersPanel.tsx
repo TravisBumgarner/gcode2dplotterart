@@ -2,12 +2,22 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { Box, Button, IconButton, InputBase, TextField, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  InputBase,
+  TextField,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material';
 import { Reorder } from 'framer-motion';
 import { useStore } from '../store';
 import type { Layer } from '../types';
 
 export const LayersPanel = () => {
+  const theme = useTheme();
   const { state, addLayer, removeLayer, setActiveLayer, updateLayer, reorderLayers } = useStore();
   const { layers, activeLayerId } = state;
 
@@ -63,8 +73,10 @@ export const LayersPanel = () => {
               value={layer}
               style={{
                 padding: 10,
-                borderBottom: '1px solid #eee',
-                background: isActive ? '#eef6ff' : '#fff',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                background: isActive
+                  ? theme.palette.action.selected
+                  : theme.palette.background.paper,
                 cursor: 'grab',
               }}
               onPointerDown={() => setActiveLayer(layer.id)}

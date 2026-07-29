@@ -11,8 +11,8 @@ phone. One container, one port, no desktop app.
 
 ## Stack
 
-- Vite + React + TypeScript
-- Material UI (theme + dialogs + menus)
+- Vite + React + TypeScript, served in production by the plotter server
+- Material UI (theme + dialogs + menus), light and dark
 - Dexie (IndexedDB) for project persistence
 - Zod for runtime schemas
 - Framer Motion for layer drag-and-drop reordering
@@ -40,21 +40,32 @@ npm run lint          # biome check (no writes)
 npm run docker:build  # the arm64 appliance image, renderer and server together
 ```
 
+There is nothing to package. `npm run build` produces `dist/`, and the server
+serves it — `npm run docker:build` bakes both into the arm64 appliance image.
+An earlier version of this app shipped an Electron shell to get a stable
+storage origin and a serial port picker; the server provides both, over the
+network, to any browser, so the shell is gone.
+
 ## Plotters
 
 Plotters are first-class entities, separate from projects. Each plotter has a
 name, bed size, feed rates, and pen Z heights. Plotters are **immutable once
-created** — to change a parameter you must create a new plotter and switch the
-project over to it. This keeps documents reproducible: a project that
-references plotter `X` will always print exactly the way it did when you saved
-it.
+created** — to change a parameter you make a new plotter and print to that one
+instead.
 
-- A project picks its plotter at creation time and is bound to it for life.
-  This mirrors the immutability of plotters themselves — the (project, plotter)
-  pair is a fixed contract once you click Create.
-- Plotters are managed from the Settings menu (top-left ⚙ → "Plotters…") or
-  via the "Manage…" button in the home-screen New project form.
-- Deleting a plotter is blocked while any project references it.
+A plotter is a **print target, not a document property**: a document owns its
+page geometry and nothing else, exactly the way a document doesn't know which
+printer you'll send it to.
+
+- The active plotter is chosen in the top bar and applies to whatever you do
+  next, in any document. Switching machines mid-session is a menu click.
+- The serial port lives next to it, in the same top bar — the "Connect" button
+  opens the list of ports the *server* can see.
+- Because the page and the bed are chosen independently, a page can be larger
+  than the machine it's aimed at. `Print` refuses to start in that case until
+  you tick "clip to the bed and print what fits".
+- Plotters are managed from the top bar's plotter menu → "Manage…", or from the
+  Settings menu (⚙ → "Plotters…").
 - Two ways to define a new plotter:
   - **Manual** — type each field (bed size, feeds, pen Z heights).
   - **Calibrate** — connect the plotter and walk through six steps (left,
@@ -78,10 +89,9 @@ normal document, with two differences:
   (`G21 / G90 / G28`), and subsequent strokes are queued sequentially over
   the serial bus.
 
-A red "Interactive · live" chip appears in the AppBar while a session is
-active and connected. If the plotter is disconnected, the chip turns gray
-("offline") and strokes you draw are NOT replayed when you reconnect — only
-strokes drawn while connected get plotted.
+A "Live" chip appears in the top bar while a session is active and connected.
+If the plotter is disconnected the chip turns red, and strokes you draw are NOT
+replayed when you reconnect — only strokes drawn while connected get plotted.
 
 ## Saving and loading
 
@@ -93,8 +103,8 @@ strokes drawn while connected get plotted.
   the current project is `saved`, `saving…`, `saving soon`, or `unsaved`.
 - **Export / import JSON.** `Settings → Export JSON` downloads
   `<project>.json`. `Import JSON` validates with Zod and creates a new project.
-- **Beforeunload guard.** Closing the tab while changes are unsaved triggers
-  the browser's "leave this page?" prompt.
+- **Beforeunload guard.** Closing while changes are unsaved prompts first with
+  the browser's "leave this page?" dialog.
 
 ## Features
 
@@ -123,8 +133,9 @@ strokes drawn while connected get plotted.
   star (3–32 points). Polygon/star spawn a small `sides` / `pts` input under
   the palette when active; they're built as polylines so they emit clean
   G-code paths just like freehand strokes.
-- **Plotter output.** Home screen → pick the serial port the *server* can see
-  → Connect, then Print. The active page is turned into one job — a prologue,
+- **Plotter output.** Top bar → pick the plotter, then Connect (which lists the
+  serial ports the *server* can see), then Print. The active page is turned
+  into one job — a prologue,
   a block of G-code per visible layer (clipped to the page rectangle and
   translated to machine origin), an epilogue — uploaded in one request, and run
   by the server. Between layers the job parks in `awaiting_pen_swap`; every
@@ -168,12 +179,14 @@ src/
   types.ts                   # Zod schemas / TS types
   plotterClient.ts           # REST + WebSocket client for server/
   connection.tsx             # React context over it: status, session, job, log
+  plotters.tsx               # the plotter list and the active print target
   gcode.ts                   # stroke -> G-code generator
   svg-import.ts              # SVG -> sampled strokes
   clip.ts                    # Liang-Barsky polyline-vs-rect clipping
   components/
     Toolbar.tsx              # control lock, pause, emergency stop
-    SerialPortRow.tsx        # the server-side port picker
+    PlotterControls.tsx      # active plotter + the connection, in the top bar
+    SerialPortRow.tsx        # the server-side port picker it opens
     LayersPanel.tsx
     Canvas.tsx
     PrintModal.tsx           # uploads the job, renders the server's state

@@ -1,20 +1,21 @@
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useReducer } from 'react';
-import type { AppState, Layer, Page, Plotter, Point, Stroke } from './types';
+import type { PageSize } from './pageSizes';
+import type { AppState, Layer, Page, Point, Stroke } from './types';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 const HISTORY_LIMIT = 100;
 
 /**
- * Create a fresh AppState for a new project. The plotter governs both the
- * referenced id and the initial page dimensions (which match the bed so the
- * default canvas fills the printable area).
+ * Create a fresh AppState at the given page size. Documents are
+ * plotter-independent — the size is picked when the document is created, and
+ * which plotter it eventually prints to is decided separately.
  */
-export const createInitialState = (plotter: Plotter): AppState => {
+export const createInitialState = (size: PageSize): AppState => {
   const pageId = uid();
   const layerId = uid();
   return {
-    pages: [{ id: pageId, x: 0, y: 0, width: plotter.bedWidth, height: plotter.bedHeight }],
+    pages: [{ id: pageId, x: 0, y: 0, width: size.width, height: size.height }],
     layers: [
       {
         id: layerId,
@@ -27,7 +28,6 @@ export const createInitialState = (plotter: Plotter): AppState => {
     ],
     activePageId: pageId,
     activeLayerId: layerId,
-    plotterId: plotter.id,
   };
 };
 
@@ -45,7 +45,6 @@ const PLACEHOLDER_STATE: AppState = {
   ],
   activePageId: 'placeholder',
   activeLayerId: 'placeholder-layer',
-  plotterId: '',
 };
 
 export type AddDirection = 'top' | 'right' | 'bottom' | 'left';

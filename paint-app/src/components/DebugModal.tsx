@@ -35,8 +35,7 @@ const JOG_STEPS = [0.1, 1, 10];
 export const DebugModal = ({ onClose }: Props) => {
   const { client } = useConnection();
   const { state } = useStore();
-  const { getPlotter } = usePlotters();
-  const plotter = getPlotter(state.plotterId) ?? null;
+  const { activePlotter: plotter } = usePlotters();
   const activePage = state.pages.find((p) => p.id === state.activePageId) ?? state.pages[0];
 
   const [busy, setBusy] = useState(false);

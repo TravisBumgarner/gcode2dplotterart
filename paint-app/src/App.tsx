@@ -1,68 +1,102 @@
-import { CssBaseline, createTheme, ThemeProvider } from '@mui/material';
+import { Alert, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BottomBar } from './components/BottomBar';
 import { Canvas } from './components/Canvas';
 import { LayersPanel } from './components/LayersPanel';
+import { type PhotoResult, PhotoStudio } from './components/PhotoStudio';
 import { PrintModal } from './components/PrintModal';
 import { ProjectGate } from './components/ProjectGate';
 import { Toolbar } from './components/Toolbar';
+import { ConnectedDataProvider, useConnectedDataSync } from './connectedDataSession';
 import { ConnectionProvider, useConnection } from './connection';
 import { useInteractiveSync } from './interactive';
-import { PlottersProvider } from './plotters';
+import { createPhotoProject } from './photoProject';
+import { PlottersProvider, usePlotters } from './plotters';
 import { INTERACTIVE_PROJECT_ID, ProjectProvider, useProject } from './project';
 import { StoreProvider } from './store';
+import { AppThemeProvider } from './theme';
 import { UIProvider } from './ui';
-
-const theme = createTheme({
-  palette: { mode: 'light' },
-  shape: { borderRadius: 6 },
-});
 
 export const App = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AppThemeProvider>
       <ConnectionProvider>
         <StoreProvider>
           <PlottersProvider>
             <ProjectProvider>
               <UIProvider>
-                <Root />
+                <ConnectedDataProvider>
+                  <Root />
+                </ConnectedDataProvider>
               </UIProvider>
             </ProjectProvider>
           </PlottersProvider>
         </StoreProvider>
       </ConnectionProvider>
-    </ThemeProvider>
+    </AppThemeProvider>
   );
 };
 
 const Root = () => {
-  const { project } = useProject();
+  const { project, setProject } = useProject();
   const { log, showLog } = useConnection();
+  const [printing, setPrinting] = useState(false);
+  // Which full-page util has taken over the view, if any. Root owns this so
+  // the top bar can show its title and back button in the same row.
+  const [util, setUtil] = useState<'photo' | null>(null);
+  // Lives at Root, not in Shell: the poll loop has to keep running across
+  // anything that remounts the document view.
+  useConnectedDataSync();
+
+  const onCreatePhoto = async (result: PhotoResult) => {
+    const { project: created, state } = await createPhotoProject(result);
+    setUtil(null);
+    setProject({ id: created.id, name: created.name }, state);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ flex: 1, minHeight: 0 }}>{project ? <Shell /> : <ProjectGate />}</div>
+      {/* One bar for the whole app: plotter selection and the connection are
+          global, so they must outlive the document being open or closed. */}
+      <Toolbar
+        onPrint={() => setPrinting(true)}
+        utilTitle={util === 'photo' ? 'Photo processing' : null}
+        onExitUtil={() => setUtil(null)}
+      />
+      <div style={{ flex: 1, minHeight: 0 }}>
+        {util === 'photo' ? (
+          <PhotoStudio onCreate={onCreatePhoto} />
+        ) : project ? (
+          <Shell />
+        ) : (
+          <ProjectGate onOpenPhoto={() => setUtil('photo')} />
+        )}
+      </div>
       {showLog && <LogPanel lines={log} />}
+      {printing && project && <PrintModal onClose={() => setPrinting(false)} />}
     </div>
   );
 };
 
 const Shell = () => {
-  const [printing, setPrinting] = useState(false);
   const { project } = useProject();
+  const { activePlotter } = usePlotters();
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
   useInteractiveSync();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar onPrint={() => setPrinting(true)} />
+      {!activePlotter && (
+        <Alert severity="info" square>
+          No plotter configured — drawing works, but nothing can be sent. Choose{' '}
+          <strong>Add plotter</strong> in the top bar when you're ready to plot.
+        </Alert>
+      )}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {!isInteractive && <LayersPanel />}
         <Canvas />
       </div>
       <BottomBar />
-      {printing && <PrintModal onClose={() => setPrinting(false)} />}
     </div>
   );
 };
@@ -71,6 +105,7 @@ const LOG_HEIGHT_LS_KEY = 'paint-app:logHeight';
 const MIN_LOG_HEIGHT = 60;
 
 const LogPanel = ({ lines }: { lines: string[] }) => {
+  const theme = useTheme();
   const [height, setHeight] = useState(() => {
     const raw = Number(localStorage.getItem(LOG_HEIGHT_LS_KEY));
     return raw >= MIN_LOG_HEIGHT ? raw : 120;
@@ -110,7 +145,7 @@ const LogPanel = ({ lines }: { lines: string[] }) => {
     <div
       style={{
         height,
-        borderTop: '1px solid #e0e0e0',
+        borderTop: `1px solid ${theme.palette.divider}`,
         background: '#111',
         color: '#ddd',
         fontFamily: 'ui-monospace, Menlo, monospace',

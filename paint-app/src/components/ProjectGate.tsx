@@ -1,81 +1,46 @@
 import BoltIcon from '@mui/icons-material/Bolt';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import PhotoIcon from '@mui/icons-material/Photo';
 import {
-  AppBar,
   Box,
   Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Divider,
-  FormControl,
   IconButton,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  MenuItem,
-  Toolbar as MuiToolbar,
   Paper,
-  Select,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { useConnection } from '../connection';
+import type { ConnectedDataConfig } from '../connectedData';
+import { useConnectedData } from '../connectedDataSession';
 import { db, type Project } from '../db';
-import { type PlotterDraft, usePlotters } from '../plotters';
+import { loadLastPageSize, type PageSize, saveLastPageSize } from '../pageSizes';
 import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
-import { type AppState, AppStateSchema, LegacyAppStateSchema } from '../types';
-import { PlottersModal } from './PlottersModal';
-import { SerialPortRow } from './SerialPortRow';
-import { SettingsMenu } from './SettingsMenu';
+import { AppStateSchema } from '../types';
+import { ConnectedDataWizard } from './ConnectedDataWizard';
+import { PageSizePicker } from './PageSizePicker';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-/**
- * Bring a stored AppState onto the current schema. Returns `[migratedState, plotterToCreate?]`
- * where plotterToCreate is non-null if we had to fabricate a plotter from a
- * legacy project's inline `settings` block.
- */
-const migrateState = (raw: unknown): { state: AppState; plotterDraft?: PlotterDraft } | null => {
-  const direct = AppStateSchema.safeParse(raw);
-  if (direct.success) return { state: direct.data };
-  const legacy = LegacyAppStateSchema.safeParse(raw);
-  if (legacy.success) {
-    const tempPlotterId = uid();
-    return {
-      state: {
-        pages: legacy.data.pages,
-        layers: legacy.data.layers,
-        activePageId: legacy.data.activePageId,
-        activeLayerId: legacy.data.activeLayerId,
-        plotterId: tempPlotterId,
-      },
-      plotterDraft: {
-        name: 'Migrated plotter',
-        ...legacy.data.settings,
-      },
-    };
-  }
-  return null;
+type Props = {
+  onOpenPhoto: () => void;
 };
 
-export const ProjectGate = () => {
+export const ProjectGate = ({ onOpenPhoto }: Props) => {
   const { setProject } = useProject();
-  const { plotters, ready: plottersReady, createPlotter } = usePlotters();
-  const { connected, connectError, dismissConnectError } = useConnection();
+  const { start: startConnectedData } = useConnectedData();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [name, setName] = useState('');
-  const [pickedPlotterId, setPickedPlotterId] = useState<string>('');
-  const [plottersOpen, setPlottersOpen] = useState(false);
+
+  const [size, setSize] = useState<PageSize>(() => loadLastPageSize());
+  const [connectedDataOpen, setConnectedDataOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     const all = await db.projects.orderBy('updatedAt').reverse().toArray();
@@ -86,23 +51,15 @@ export const ProjectGate = () => {
     refresh();
   }, [refresh]);
 
-  // Default the new-project plotter selector to the most recent plotter.
-  useEffect(() => {
-    if (!pickedPlotterId && plotters.length > 0) {
-      setPickedPlotterId(plotters[plotters.length - 1].id);
-    }
-  }, [plotters, pickedPlotterId]);
-
   const onCreate = async () => {
     const trimmed = name.trim();
-    if (!trimmed || !pickedPlotterId) return;
-    const plotter = plotters.find((p) => p.id === pickedPlotterId);
-    if (!plotter) return;
+    if (!trimmed || size.width <= 0 || size.height <= 0) return;
+    saveLastPageSize(size);
     const now = Date.now();
     const project: Project = {
       id: uid(),
       name: trimmed,
-      state: createInitialState(plotter),
+      state: createInitialState(size),
       createdAt: now,
       updatedAt: now,
     };
@@ -113,32 +70,35 @@ export const ProjectGate = () => {
   const onOpen = async (id: string) => {
     const project = await db.projects.get(id);
     if (!project) return;
-    const migrated = migrateState(project.state);
-    if (!migrated) {
+    // Older documents carried plotter references (v1 `settings`, v2
+    // `plotterId`); the schema drops them and keeps the page geometry.
+    const parsed = AppStateSchema.safeParse(project.state);
+    if (!parsed.success) {
       alert('This project has an unrecognised state shape and cannot be opened.');
       return;
     }
-    let { state } = migrated;
-    if (migrated.plotterDraft) {
-      const newPlotter = await createPlotter(migrated.plotterDraft);
-      state = { ...state, plotterId: newPlotter.id };
-    }
-    if (state !== project.state) {
-      await db.projects.update(id, { state });
-    }
-    setProject({ id: project.id, name: project.name }, state);
+    setProject({ id: project.id, name: project.name }, parsed.data);
   };
 
-  const onStartInteractive = async () => {
-    const plotter = plotters[plotters.length - 1];
-    if (!plotter) return;
-    // Interactive sessions are ephemeral. Wipe any leftover persisted record
-    // (from earlier app versions or aborted runs) and start in memory only.
+  /** Ephemeral: wipe any leftover persisted record and start in memory only. */
+  const startLiveSession = async (name: string, pageSize: PageSize) => {
     await db.projects.delete(INTERACTIVE_PROJECT_ID).catch(() => {});
-    setProject(
-      { id: INTERACTIVE_PROJECT_ID, name: 'Interactive session' },
-      createInitialState(plotter),
-    );
+    setProject({ id: INTERACTIVE_PROJECT_ID, name }, createInitialState(pageSize));
+  };
+
+  const onStartInteractive = () => startLiveSession('Interactive session', loadLastPageSize());
+
+  // A Connected Data run is an interactive session whose strokes come from a
+  // poll loop rather than the pointer, so it reuses the same live document and
+  // streaming path — only the source of the geometry differs.
+  const onStartConnectedData = async (config: ConnectedDataConfig) => {
+    setConnectedDataOpen(false);
+    let host = config.url;
+    try {
+      host = new URL(config.url).host;
+    } catch {}
+    await startLiveSession(`Connected Data · ${host}`, config.pageSize);
+    startConnectedData(config);
   };
 
   const visibleProjects = (projects ?? []).filter((p) => p.id !== INTERACTIVE_PROJECT_ID);
@@ -150,183 +110,147 @@ export const ProjectGate = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <MuiToolbar variant="dense" sx={{ gap: 1 }}>
-          <SettingsMenu />
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, ml: 1 }}>
-            paint-app
-          </Typography>
-        </MuiToolbar>
-      </AppBar>
-      <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
-        <Paper variant="outlined" sx={{ width: '100%', maxWidth: 600, p: 3 }}>
-          <Stack spacing={3}>
-            <Box>
-              {!plottersReady ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} /> <span>Loading plotters…</span>
-                </Box>
-              ) : (
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    {plotters.length === 0 ? (
-                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                        No plotters configured — define one before starting.
-                      </Typography>
-                    ) : (
-                      <FormControl size="small" sx={{ flex: 1 }}>
-                        <InputLabel>Plotter</InputLabel>
-                        <Select
-                          label="Plotter"
-                          value={pickedPlotterId}
-                          onChange={(e) => setPickedPlotterId(e.target.value)}
-                        >
-                          {plotters.map((p) => (
-                            <MenuItem key={p.id} value={p.id}>
-                              {p.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    )}
-                    <Button
-                      size="small"
-                      variant={plotters.length === 0 ? 'contained' : 'text'}
-                      onClick={() => setPlottersOpen(true)}
-                    >
-                      {plotters.length === 0 ? 'Create plotter' : 'Manage…'}
-                    </Button>
-                  </Stack>
-
-                  <SerialPortRow />
-                </Stack>
-              )}
-            </Box>
-
-            <Divider />
-
-            <Tooltip
-              title={plotters.length === 0 ? 'Create a plotter first' : ''}
-              disableHoverListener={plotters.length > 0}
-              arrow
-            >
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  borderColor: 'primary.main',
-                }}
-              >
-                <BoltIcon color="primary" />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Interactive session
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    One live document — every stroke is sent to the plotter as soon as you draw it.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  onClick={onStartInteractive}
-                  disabled={plotters.length === 0 || !connected}
-                >
-                  Start
-                </Button>
-              </Paper>
-            </Tooltip>
-
-            <Divider />
-
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Projects
+    <Box sx={{ height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Paper variant="outlined" sx={{ width: '100%', maxWidth: 600, p: 3, height: 'fit-content' }}>
+        <Stack spacing={3}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              borderColor: 'primary.main',
+            }}
+          >
+            <BoltIcon color="primary" />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Interactive session
               </Typography>
-              {!plottersReady ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} /> <span>Loading plotters…</span>
-                </Box>
-              ) : plotters.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                One live document — every stroke is sent to the plotter as soon as you draw it.
+                Choose and connect a plotter from the top bar once you're in.
+              </Typography>
+            </Box>
+            <Button variant="contained" onClick={onStartInteractive}>
+              Start
+            </Button>
+          </Paper>
+
+          <Divider />
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Projects
+            </Typography>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="New project name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && onCreate()}
+                  autoFocus
+                />
+                <PageSizePicker value={size} onChange={setSize} minWidth={190} />
+                <Button variant="contained" onClick={onCreate} disabled={!name.trim()}>
+                  Create
+                </Button>
+              </Stack>
+
+              {projects === null ? (
                 <Typography variant="body2" color="text.secondary">
-                  Create a plotter above first.
+                  Loading…
+                </Typography>
+              ) : visibleProjects.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No saved projects yet.
                 </Typography>
               ) : (
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="New project name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && onCreate()}
-                      autoFocus
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={onCreate}
-                      disabled={!name.trim() || !pickedPlotterId || !connected}
-                    >
-                      Create
-                    </Button>
-                  </Stack>
-                  {projects === null ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Loading…
-                    </Typography>
-                  ) : visibleProjects.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
-                      No saved projects yet.
-                    </Typography>
-                  ) : (
-                    <List dense disablePadding>
-                      {visibleProjects.map((p) => (
-                        <ListItem
-                          key={p.id}
-                          disablePadding
-                          secondaryAction={
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              aria-label="delete"
-                              onClick={() => onDelete(p.id)}
-                            >
-                              <DeleteOutlineIcon fontSize="small" />
-                            </IconButton>
-                          }
+                <List dense disablePadding>
+                  {visibleProjects.map((p) => (
+                    <ListItem
+                      key={p.id}
+                      disablePadding
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          aria-label="delete"
+                          onClick={() => onDelete(p.id)}
                         >
-                          <ListItemButton onClick={() => onOpen(p.id)} disabled={!connected}>
-                            <ListItemText
-                              primary={p.name}
-                              secondary={`Updated ${new Date(p.updatedAt).toLocaleString()}`}
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    </List>
-                  )}
-                </Stack>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemButton onClick={() => onOpen(p.id)}>
+                        <ListItemText
+                          primary={p.name}
+                          secondary={`Updated ${new Date(p.updatedAt).toLocaleString()}`}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
               )}
-            </Box>
-          </Stack>
-        </Paper>
-      </Box>
+            </Stack>
+          </Box>
 
-      <PlottersModal open={plottersOpen} onClose={() => setPlottersOpen(false)} />
+          <Divider />
 
-      <Dialog open={connectError !== null} onClose={dismissConnectError}>
-        <DialogTitle sx={{ color: 'error.main' }}>Connection failed</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{connectError}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={dismissConnectError}>Close</Button>
-        </DialogActions>
-      </Dialog>
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Custom Utils
+            </Typography>
+            <Paper
+              variant="outlined"
+              sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}
+            >
+              <CloudDownloadIcon color="primary" />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Connected Data
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Poll a JSON endpoint and plot fields from it — numbers as a live series, arrays as
+                  a chart.
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={() => setConnectedDataOpen(true)}>
+                Configure
+              </Button>
+            </Paper>
+
+            <Paper
+              variant="outlined"
+              sx={{ p: 2, mt: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}
+            >
+              <PhotoIcon color="primary" />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Photo processing
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Turn a photo into a multi-pen plot — grayscale, split into tonal layers, then
+                  shade with lines, dots, or circles.
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={onOpenPhoto}>
+                Open
+              </Button>
+            </Paper>
+          </Box>
+        </Stack>
+      </Paper>
+
+      <ConnectedDataWizard
+        open={connectedDataOpen}
+        onClose={() => setConnectedDataOpen(false)}
+        onStart={onStartConnectedData}
+      />
     </Box>
   );
 };

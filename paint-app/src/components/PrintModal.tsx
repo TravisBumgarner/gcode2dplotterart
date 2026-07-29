@@ -1,17 +1,20 @@
 import {
   Alert,
+  AlertTitle,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   LinearProgress,
   Typography,
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { useConnection } from '../connection';
-import { buildLayerPrograms, EPILOGUE, PROLOGUE } from '../gcode';
+import { buildLayerPrograms, EPILOGUE, PROLOGUE, pageFitsBed } from '../gcode';
 import { usePlotters } from '../plotters';
 import { useProject } from '../project';
 import { useStore } from '../store';
@@ -27,7 +30,8 @@ const Swatch = ({ color }: { color: string }) => (
       height: 14,
       borderRadius: '50%',
       background: color,
-      border: '1px solid #ccc',
+      border: '1px solid',
+      borderColor: 'divider',
       flexShrink: 0,
     }}
   />
@@ -59,16 +63,28 @@ const playChime = () => {
  * and the page was orphaned half-drawn. Now the whole job is uploaded once, the
  * server runs it next to the cable, and this is a view of that job's state. Any
  * device in the session sees the same thing, including the swap prompt.
+ *
+ * The one decision still made here is what to do when the page does not fit the
+ * plotter. A document is sized independently of any machine, and the plotter is
+ * a print target picked in the top bar, so the mismatch is only knowable at
+ * this moment — and it has to be settled before the job is built and uploaded,
+ * because the server receives finished G-code and will not second-guess it.
  */
 export const PrintModal = ({ onClose }: Props) => {
   const { state } = useStore();
-  const { getPlotter } = usePlotters();
+  const { activePlotter: plotter } = usePlotters();
   const { project } = useProject();
   const { client, job, isController, controllerName, connected, paused } = useConnection();
-  const { pages, layers, activePageId, plotterId } = state;
+  const { pages, layers, activePageId } = state;
   const activePage = pages.find((p) => p.id === activePageId);
-  const plotter = getPlotter(plotterId) ?? null;
-  const programs = activePage && plotter ? buildLayerPrograms(layers, activePage, plotter) : [];
+
+  // Printing is blocked until the user decides what happens to the overflow.
+  const [clipToBed, setClipToBed] = useState(false);
+  const overflows = Boolean(activePage && plotter && !pageFitsBed(activePage, plotter));
+  const blockedByOverflow = overflows && !clipToBed;
+
+  const programs =
+    activePage && plotter ? buildLayerPrograms(layers, activePage, plotter, clipToBed) : [];
 
   const [jobId, setJobId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -101,7 +117,12 @@ export const PrintModal = ({ onClose }: Props) => {
 
   const start = () =>
     guard(async () => {
-      if (!plotter) throw new Error('No plotter selected for this project.');
+      if (!plotter) throw new Error('No plotter selected. Choose one from the top bar.');
+      if (blockedByOverflow) {
+        throw new Error(
+          'The page is larger than the bed. Clip it to the bed, or pick a plotter it fits on.',
+        );
+      }
       if (!activePage || programs.length === 0) {
         throw new Error('Nothing to print on the active page.');
       }
@@ -155,9 +176,33 @@ export const PrintModal = ({ onClose }: Props) => {
             <Typography variant="body2" sx={{ mb: 1 }}>
               Plotter: <strong>{plotter?.name ?? '— none —'}</strong>
             </Typography>
+            {overflows && activePage && plotter && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <AlertTitle>Page is larger than the bed</AlertTitle>
+                This page is {activePage.width}×{activePage.height}mm but {plotter.name} can only
+                reach {plotter.bedWidth}×{plotter.bedHeight}mm
+                {activePage.width > plotter.bedWidth && activePage.height > plotter.bedHeight
+                  ? ' — it overflows in both directions.'
+                  : activePage.width > plotter.bedWidth
+                    ? ' — it overflows horizontally.'
+                    : ' — it overflows vertically.'}
+                <FormControlLabel
+                  sx={{ mt: 1, display: 'block' }}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={clipToBed}
+                      onChange={(e) => setClipToBed(e.target.checked)}
+                    />
+                  }
+                  label="Clip to the bed and print what fits"
+                />
+              </Alert>
+            )}
             <Typography variant="body2" sx={{ mb: 2 }}>
               About to print <strong>{programs.length}</strong> visible layer
-              {programs.length === 1 ? '' : 's'} on the active page. The whole job is uploaded to
+              {programs.length === 1 ? '' : 's'} on the active page
+              {clipToBed && overflows ? ', clipped to the bed' : ''}. The whole job is uploaded to
               the plotter server, which runs it — you can close this tab once it starts.
             </Typography>
             {programs.map((p) => (
@@ -221,7 +266,14 @@ export const PrintModal = ({ onClose }: Props) => {
             <Button
               variant="contained"
               onClick={start}
-              disabled={programs.length === 0 || !plotter || !connected || !isController || busy}
+              disabled={
+                programs.length === 0 ||
+                !plotter ||
+                blockedByOverflow ||
+                !connected ||
+                !isController ||
+                busy
+              }
             >
               Start
             </Button>

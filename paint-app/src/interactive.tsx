@@ -15,6 +15,10 @@ import { useStore } from './store';
  * Strokes are sent through a serialized promise queue so concurrent draws
  * don't interleave G-code on the bus.
  *
+ * Geometry outside the target plotter's bed is clipped away silently — there's
+ * no point prompting per stroke the way the print flow does, and driving the
+ * machine past its limits is worse than dropping the overflow.
+ *
  * Each stroke crosses the network as one batch, not a line at a time; the
  * server's send loop still waits for Marlin's `ok` per line, over USB.
  */
@@ -22,16 +26,16 @@ export const useInteractiveSync = () => {
   const { state } = useStore();
   const { project } = useProject();
   const { client, connected, isController } = useConnection();
-  const { getPlotter } = usePlotters();
+  const { activePlotter } = usePlotters();
 
   const isInteractive = project?.id === INTERACTIVE_PROJECT_ID;
   const sentRef = useRef<Set<string>>(new Set());
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const sessionKeyRef = useRef<string | null>(null);
 
-  // (Re-)prime the "already sent" set whenever we enter the mode or the
-  // connection comes back. This is what stops the existing project history
-  // from being plotted on load.
+  // (Re-)prime the "already sent" set whenever we enter the mode, the
+  // connection comes back, or the target plotter changes. This is what stops
+  // the existing document from being replotted from the top.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only re-prime on session-boundary changes
   useEffect(() => {
     if (!isInteractive || !connected || !isController) {
@@ -45,13 +49,13 @@ export const useInteractiveSync = () => {
     }
     sentRef.current = ids;
     sessionKeyRef.current = null;
-  }, [isInteractive, connected, isController, project?.id]);
+  }, [isInteractive, connected, isController, project?.id, activePlotter?.id]);
 
   // Stream new strokes whenever the store changes. Read-only observers watch
   // the canvas without their strokes reaching the machine.
   useEffect(() => {
     if (!isInteractive || !connected || !isController || !project) return;
-    const plotter = getPlotter(state.plotterId);
+    const plotter = activePlotter;
     if (!plotter) return;
     const activePage = state.pages.find((p) => p.id === state.activePageId);
     if (!activePage) return;
@@ -64,7 +68,7 @@ export const useInteractiveSync = () => {
       for (const stroke of layer.strokes) {
         if (sentRef.current.has(stroke.id)) continue;
         sentRef.current.add(stroke.id);
-        const lines = buildStrokeLines(stroke.points, activePage, plotter);
+        const lines = buildStrokeLines(stroke.points, activePage, plotter, true);
         if (lines.length > 0) newPrograms.push(lines);
       }
     }
@@ -87,5 +91,5 @@ export const useInteractiveSync = () => {
         console.error('interactive stream failed', e);
       }
     });
-  }, [state, isInteractive, connected, isController, project, client, getPlotter]);
+  }, [state, isInteractive, connected, isController, project, client, activePlotter]);
 };
