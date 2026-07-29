@@ -1,3 +1,5 @@
+# One image: the renderer and the server it is served from.
+#
 # Debian, not Alpine, on purpose.
 #
 # `serialport` is a native addon. Its prebuilt binaries are glibc; on musl there
@@ -5,22 +7,37 @@
 # needs a whole toolchain — under QEMU that turns a 30-second build into a very
 # long one, for a runtime that then behaves subtly differently. bookworm-slim is
 # a few MB larger and just works.
-FROM node:22-bookworm-slim AS build
-WORKDIR /app
 
+# ---------------------------------------------------------------- renderer
+FROM node:22-bookworm-slim AS client
+WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY tsconfig.json tsconfig.build.json ./
+COPY tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.html ./
 COPY src ./src
+# The client imports the wire types straight out of the server rather than
+# keeping a copy of them, so the protocol cannot drift between the two halves
+# of an emergency stop. Types only — nothing here ends up in the bundle.
+COPY server/src/protocol.ts ./server/src/protocol.ts
+RUN npm run build
+
+# ------------------------------------------------------------------ server
+FROM node:22-bookworm-slim AS build
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./
+RUN npm ci
+COPY server/tsconfig.json server/tsconfig.build.json ./
+COPY server/src ./src
 RUN npm run build
 
 # Reinstall with dev dependencies pruned. `npm ci --omit=dev` from scratch is
 # what gets the right prebuild for the target arch into the runtime layer.
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY server/package.json server/package-lock.json ./
 RUN npm ci --omit=dev
 
+# ----------------------------------------------------------------- runtime
 FROM node:22-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
@@ -35,7 +52,12 @@ RUN apt-get update \
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY package.json ./
+COPY --from=client /app/dist ./client
+COPY server/package.json ./
+
+# The UI and the API come off the same port, from this process. There is no
+# second web server to run, and nothing to keep in sync between them.
+ENV CLIENT_DIR=/app/client
 
 # The node user needs to be in the group that owns the tty device, or opening
 # it fails with EACCES. On Raspberry Pi OS that group is `dialout` (GID 20).

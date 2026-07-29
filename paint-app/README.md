@@ -1,8 +1,13 @@
 # paint-app
 
-A browser-based paint app that draws on virtual pages with stacked, color-coded
-layers and emits G-code to a USB-connected pen plotter (a Creality Ender-3 V3
-SE running stock Marlin in this repo).
+A paint app that draws on virtual pages with stacked, color-coded layers and
+emits G-code to a pen plotter (a Creality Ender-3 V3 SE running stock Marlin in
+this repo).
+
+The plotter is a network appliance, not a USB peripheral: [`server/`](server/README.md)
+runs on a Raspberry Pi wired to the machine, owns the serial port, and serves
+this UI. Open it from a laptop, start a page, walk away, and swap pens from a
+phone. One container, one port, no desktop app.
 
 ## Stack
 
@@ -12,22 +17,27 @@ SE running stock Marlin in this repo).
 - Zod for runtime schemas
 - Framer Motion for layer drag-and-drop reordering
 - Biome for lint + format
-- [Web Serial API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API) for plotter I/O — Chrome / Edge only
+- A REST + WebSocket client (`src/plotterClient.ts`) against the plotter server
+  — any modern browser, no Web Serial, no desktop shell
 
 ## Develop
 
 ```sh
 npm install
-npm run dev
+npm run dev                             # http://localhost:5173
+PLOTTER_SERVER=http://plotter.local:8080 npm run dev   # against the Pi
 ```
 
-The dev server runs on `http://localhost:5173`. Web Serial requires a secure
-context, which `localhost` qualifies as.
+`vite dev` proxies `/api` and `/ws` to `http://localhost:8080` — run
+`npm --prefix server run dev` alongside it, or point `PLOTTER_SERVER` at a real
+Pi. In production none of this applies: the server serves the built page, so
+the API is same-origin.
 
 ```sh
-npm run build     # production build
-npm run check     # biome lint + format with --write
-npm run lint      # biome check (no writes)
+npm run build         # production build -> dist/
+npm run check         # biome lint + format with --write
+npm run lint          # biome check (no writes)
+npm run docker:build  # the arm64 appliance image, renderer and server together
 ```
 
 ## Plotters
@@ -113,22 +123,35 @@ strokes drawn while connected get plotted.
   star (3–32 points). Polygon/star spawn a small `sides` / `pts` input under
   the palette when active; they're built as polylines so they emit clean
   G-code paths just like freehand strokes.
-- **Plotter output.** Toolbar → Connect, pick the `wchusbserial*` port, then
-  Print. The active page is sent: each visible layer becomes a block of G-code
-  (clipped to the page rectangle and translated to machine origin), with a
-  pause + audio chime + on-screen prompt between layers so you can swap pens.
+- **Plotter output.** Home screen → pick the serial port the *server* can see
+  → Connect, then Print. The active page is turned into one job — a prologue,
+  a block of G-code per visible layer (clipped to the page rectangle and
+  translated to machine origin), an epilogue — uploaded in one request, and run
+  by the server. Between layers the job parks in `awaiting_pen_swap`; every
+  connected device shows the prompt and any of them can continue it. Closing
+  the tab does not orphan the print.
+- **One controller.** Several browsers can watch the same plotter; exactly one
+  may move it. The top bar always says which you are. Taking control is
+  allowed mid-print, so the dialog says so before you do it.
+- **Emergency stop.** Fixed bottom-right whenever the plotter is connected,
+  from any device, whether or not you hold control. It does not travel over the
+  command socket — see the emergency stop section of
+  [`server/README.md`](server/README.md), including what it does *not*
+  guarantee.
+
+## Persistence is per-browser
+
+Projects and plotters live in this browser's IndexedDB, not on the server. The
+page comes from the Pi but your work does not: open the app on your phone and
+you get an empty project list. Export/import JSON is the way to move a project
+between devices. This is a deliberate hole, not an oversight — moving
+persistence to the server is a separate decision.
 
 ## Network backend (`server/`)
 
-Web Serial means the browser has to be on the machine holding the USB cable —
-one laptop, tethered, for the whole print. [`server/`](server/README.md) is a
-Node backend that owns the port instead, so the plotter can live on a Raspberry
-Pi and be driven from anywhere on the network.
-
-It is not wired into this app yet. The client still talks Web Serial and is
-unchanged; swapping it over is a follow-up. See
-[`server/README.md`](server/README.md) for the protocol and the deployment
-notes.
+[`server/`](server/README.md) owns the serial port, runs the send loop next to
+the USB cable, holds the job state machine, and serves this UI. See its README
+for the protocol, the emergency-stop guarantees, and the Pi deployment notes.
 
 ## Hardware notes
 
@@ -143,13 +166,19 @@ src/
   App.tsx                    # shell + connection wiring
   store.tsx                  # Context + useReducer app state
   types.ts                   # Zod schemas / TS types
-  serial.ts                  # Web Serial wrapper (PlotterConnection)
+  plotterClient.ts           # REST + WebSocket client for server/
+  connection.tsx             # React context over it: status, session, job, log
   gcode.ts                   # stroke -> G-code generator
   svg-import.ts              # SVG -> sampled strokes
   clip.ts                    # Liang-Barsky polyline-vs-rect clipping
   components/
-    Toolbar.tsx
+    Toolbar.tsx              # control lock, pause, emergency stop
+    SerialPortRow.tsx        # the server-side port picker
     LayersPanel.tsx
     Canvas.tsx
-    PrintModal.tsx
+    PrintModal.tsx           # uploads the job, renders the server's state
+Dockerfile                   # one image: this build + server/, arm64
 ```
+
+`plotterClient.ts` is exercised end to end in `server/src/client.test.ts`,
+against the same scripted Marlin the server is tested with.

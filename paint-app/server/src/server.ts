@@ -1,4 +1,5 @@
 import type { Server } from 'node:http';
+import path from 'node:path';
 import express, { type Express } from 'express';
 import { WebSocket, WebSocketServer } from 'ws';
 import type { Config } from './config.js';
@@ -106,15 +107,50 @@ export function buildApp({ hub, config, version, ports = listPorts }: BuildOptio
     }
   });
 
-  if (config.CLIENT_DIR) {
-    app.use(express.static(config.CLIENT_DIR));
-    // SPA fallback, but never for the API.
-    app.get(/^(?!\/api\/).*/, (_req, res) => {
-      res.sendFile('index.html', { root: config.CLIENT_DIR });
-    });
-  }
+  // An unknown endpoint under /api answers as an API, not as Express's default
+  // HTML error page — otherwise a client parsing the reply as JSON reports a
+  // syntax error instead of a 404.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'No such endpoint' });
+  });
+
+  if (config.CLIENT_DIR) serveClient(app, config.CLIENT_DIR);
 
   return app;
+}
+
+/**
+ * Serve the built renderer from the same process and the same origin as the
+ * API. One container, one port, one thing to start on the Pi — and no CORS or
+ * mixed-origin WebSocket question to answer, because the page is served by the
+ * server it talks to.
+ */
+function serveClient(app: Express, dir: string) {
+  app.use(
+    express.static(dir, {
+      // Vite fingerprints everything it emits into `assets/`, so those may be
+      // cached forever. `index.html` must not be: it is the file that names the
+      // current fingerprints, and a Pi handing out a stale one serves a blank
+      // page after every deploy.
+      index: false,
+      setHeaders: (res, filePath) => {
+        const fingerprinted = filePath.includes(`${path.sep}assets${path.sep}`);
+        res.setHeader(
+          'Cache-Control',
+          fingerprinted ? 'public, max-age=31536000, immutable' : 'no-cache',
+        );
+      },
+    }),
+  );
+
+  // SPA fallback: client-side routes are not files on disk, so anything that
+  // isn't the API and isn't a static asset gets the shell. Scoped away from
+  // /api so a typo'd endpoint 404s as JSON-ish rather than silently returning
+  // an HTML page that the client then fails to parse.
+  app.get(/^(?!\/api(\/|$)).*/, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile('index.html', { root: dir });
+  });
 }
 
 /** Attach the session WebSocket to an already-listening HTTP server. */

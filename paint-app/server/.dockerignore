@@ -1,6 +1,0 @@
-node_modules
-dist
-*.log
-.DS_Store
-README.md
-docker-compose.example.yml

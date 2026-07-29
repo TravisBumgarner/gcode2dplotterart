@@ -1,8 +1,10 @@
 /**
  * The wire contract between the plotter backend and its clients.
  *
- * This file is deliberately dependency-free so the React client can import it
- * verbatim once it is ported off Web Serial.
+ * This file is deliberately dependency-free, and the React client imports it
+ * directly (`paint-app/src/plotterClient.ts`) rather than keeping a parallel
+ * copy — a protocol that can drift between the two halves of an emergency stop
+ * is not one worth having.
  */
 
 export type LogKind = 'tx' | 'rx' | 'info' | 'err';
@@ -123,7 +125,14 @@ export type ClientMessage =
   | { id?: string; type: 'job.pause' }
   | { id?: string; type: 'job.resume' }
   | { id?: string; type: 'job.cancel' }
+  /** Operator-driven moves. Bypasses the pause gate; acks with the reply lines. */
   | { id?: string; type: 'jog'; lines: string[] }
+  /**
+   * A batch of movement G-code from a live drawing session. Same allowlist as
+   * `jog` and the same one-controller rule, but it honours the pause gate and
+   * takes far more lines, because a single freehand stroke is hundreds of them.
+   */
+  | { id?: string; type: 'stream'; lines: string[] }
   | { id?: string; type: 'position' }
   /** Never gated on control, never queued behind a job. See `estop` in the README. */
   | { id?: string; type: 'estop' };

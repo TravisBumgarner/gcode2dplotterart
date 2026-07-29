@@ -1,5 +1,8 @@
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
 import { loadConfig } from './config.js';
@@ -190,5 +193,70 @@ describe('http + websocket', () => {
     expect(ack.ok).toBe(false);
     expect(ack.error).toMatch(/Unknown message type/);
     client.close();
+  });
+});
+
+/**
+ * The Pi hands out the UI and the API from one process. There is no second web
+ * server, no nginx, and nothing to keep in sync — which only holds if the SPA's
+ * client-side routes fall through to the shell without swallowing the API.
+ */
+describe('serving the renderer', () => {
+  let hub: Hub;
+  let server: Server;
+  let base: string;
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), 'plotter-client-'));
+    await mkdir(path.join(dir, 'assets'));
+    await writeFile(path.join(dir, 'index.html'), '<!doctype html><title>paint-app</title>');
+    await writeFile(path.join(dir, 'assets', 'index-abc123.js'), 'console.log(1)');
+
+    hub = new Hub({ connection: { transport: new FakeMarlin().transport, timing: FAST_TIMING } });
+    server = createServer(
+      buildApp({
+        hub,
+        config: loadConfig({ PORT: '0', CLIENT_DIR: dir } as NodeJS.ProcessEnv),
+        version: 'test',
+        ports: async () => [],
+      }),
+    );
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  afterEach(async () => {
+    hub.dispose();
+    await new Promise<void>((r) => server.close(() => r()));
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('serves the shell at the root', async () => {
+    const res = await fetch(`${base}/`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('paint-app');
+    // The file that names the current asset hashes must never be cached, or a
+    // deploy leaves the Pi handing out a blank page.
+    expect(res.headers.get('cache-control')).toBe('no-cache');
+  });
+
+  it('serves fingerprinted assets as immutable', async () => {
+    const res = await fetch(`${base}/assets/index-abc123.js`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('cache-control')).toMatch(/immutable/);
+  });
+
+  it('falls a deep link through to the shell', async () => {
+    const res = await fetch(`${base}/projects/some-id/page/2`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('paint-app');
+  });
+
+  it('still answers the API, and does not hand HTML to a bad endpoint', async () => {
+    expect((await fetch(`${base}/api/health`)).status).toBe(200);
+    const missing = await fetch(`${base}/api/nope`);
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get('content-type') ?? '').not.toMatch(/text\/html/);
   });
 });

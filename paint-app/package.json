@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "biome check src",
     "format": "biome format --write src",
-    "check": "biome check --write src"
+    "check": "biome check --write src",
+    "docker:build": "docker buildx build --platform linux/arm64 -t plotter-server:local ."
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
+    "@types/node": "^24.13.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

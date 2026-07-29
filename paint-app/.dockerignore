@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-electron
+release
+server/node_modules
+server/dist
+*.log
+*.tsbuildinfo
+.DS_Store
+.vite
+experiments
+deploy.sh
+README.md
+server/README.md
+server/docker-compose.example.yml

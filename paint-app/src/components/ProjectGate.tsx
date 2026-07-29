@@ -35,6 +35,7 @@ import { INTERACTIVE_PROJECT_ID, useProject } from './../project';
 import { createInitialState } from '../store';
 import { type AppState, AppStateSchema, LegacyAppStateSchema } from '../types';
 import { PlottersModal } from './PlottersModal';
+import { SerialPortRow } from './SerialPortRow';
 import { SettingsMenu } from './SettingsMenu';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -70,15 +71,7 @@ const migrateState = (raw: unknown): { state: AppState; plotterDraft?: PlotterDr
 export const ProjectGate = () => {
   const { setProject } = useProject();
   const { plotters, ready: plottersReady, createPlotter } = usePlotters();
-  const {
-    connected,
-    connecting,
-    connectPhase,
-    connect,
-    disconnect,
-    connectError,
-    dismissConnectError,
-  } = useConnection();
+  const { connected, connectError, dismissConnectError } = useConnection();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [name, setName] = useState('');
   const [pickedPlotterId, setPickedPlotterId] = useState<string>('');
@@ -204,33 +197,9 @@ export const ProjectGate = () => {
                     >
                       {plotters.length === 0 ? 'Create plotter' : 'Manage…'}
                     </Button>
-                    {connected ? (
-                      <Button size="small" color="error" onClick={disconnect}>
-                        Disconnect
-                      </Button>
-                    ) : (
-                      <Button
-                        size="small"
-                        variant={plotters.length === 0 ? 'outlined' : 'contained'}
-                        onClick={connect}
-                        disabled={connecting}
-                        startIcon={
-                          connecting ? <CircularProgress size={14} color="inherit" /> : null
-                        }
-                      >
-                        {connectPhase === 'homing'
-                          ? 'Homing…'
-                          : connectPhase === 'connecting'
-                            ? 'Connecting…'
-                            : 'Connect plotter'}
-                      </Button>
-                    )}
                   </Stack>
-                  {connected && (
-                    <Typography variant="caption" color="success.main">
-                      Connected — homed and ready.
-                    </Typography>
-                  )}
+
+                  <SerialPortRow />
                 </Stack>
               )}
             </Box>

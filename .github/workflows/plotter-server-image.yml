@@ -1,6 +1,7 @@
 name: plotter server image
 
-# Publishes the plotter backend container to GHCR.
+# Publishes the plotter appliance container to GHCR: the React renderer and the
+# Node server that serves it and owns the serial port, in one image.
 #
 # Tags are prefixed `plotter-server-` so image releases don't collide with the
 # Python package's versioning elsewhere in this repo. Push
@@ -11,11 +12,11 @@ on:
     branches: [main]
     tags: ["plotter-server-v*"]
     paths:
-      - "paint-app/server/**"
+      - "paint-app/**"
       - ".github/workflows/plotter-server-image.yml"
   pull_request:
     paths:
-      - "paint-app/server/**"
+      - "paint-app/**"
       - ".github/workflows/plotter-server-image.yml"
   workflow_dispatch:
 
@@ -23,7 +24,7 @@ env:
   IMAGE: ghcr.io/${{ github.repository_owner }}/plotter-server
 
 jobs:
-  test:
+  server:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,13 +36,32 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: paint-app/server/package-lock.json
+      # The renderer's API client is tested from here, against the same fake
+      # Marlin the server uses. It needs the client source on disk but not the
+      # renderer's dependencies — it imports nothing beyond the protocol types.
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
 
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: paint-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: paint-app/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
   build:
-    needs: test
+    needs: [server, client]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,8 +71,9 @@ jobs:
       - uses: actions/checkout@v4
 
       # The Pi is arm64 and these runners are amd64. Emulation is slow but the
-      # only compile step is `tsc`; the native serialport binding comes down as
-      # a prebuilt arm64 binary rather than being built here.
+      # only compile steps are `tsc` and `vite build`; the native serialport
+      # binding comes down as a prebuilt arm64 binary rather than being built
+      # here.
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
@@ -76,7 +97,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: paint-app/server
+          context: paint-app
           platforms: linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
