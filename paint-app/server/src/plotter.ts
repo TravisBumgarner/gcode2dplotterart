@@ -58,7 +58,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * A serial link to a Marlin board, ported from the browser's Web Serial
- * implementation (`paint-app/src/serial.ts`).
+ * implementation — `paint-app/src/serial.ts`, now deleted; see git history.
  *
  * Differences from the browser original, all forced by being a shared server
  * rather than a single page:

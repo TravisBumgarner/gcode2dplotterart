@@ -26,6 +26,12 @@ const RECENT_LOG_MAX = 200;
  */
 const JOG_ALLOWED = /^(G(0|1|4|21|28|90|91|92)|M(17|18|84|105|114|115|400))\b/i;
 const MAX_JOG_LINES = 32;
+/**
+ * A `stream` batch is one freehand stroke's worth of moves, which is a few
+ * hundred `G1`s. The cap is here to bound a single message, not to be a
+ * meaningful limit on drawing — anything larger belongs in a job.
+ */
+const MAX_STREAM_LINES = 2000;
 
 export type Client = {
   id: string;
@@ -224,6 +230,28 @@ export class Hub {
 
   // -------------------------------------------------------------- commands
 
+  /**
+   * The one hole through which a client can put arbitrary text on the wire.
+   * Every line has to be a single movement or status command from the
+   * allowlist; anything structural belongs in a job, where the line count is
+   * fixed up front and progress can be reported against it.
+   */
+  private validateGcode(raw: unknown, max: number): string[] {
+    const lines = Array.isArray(raw) ? raw : [];
+    if (lines.length === 0 || lines.length > max) {
+      throw new Error(`Send between 1 and ${max} lines.`);
+    }
+    for (const line of lines) {
+      if (typeof line !== 'string' || /[\r\n]/.test(line)) {
+        throw new Error('Invalid G-code line.');
+      }
+      if (!JOG_ALLOWED.test(line.trim())) {
+        throw new Error(`Not allowed outside a job: ${line}`);
+      }
+    }
+    return lines as string[];
+  }
+
   private requireControl(clientId: string) {
     if (this.controllerId !== clientId) {
       throw new Error('Read-only: another client is controlling this plotter. Take control first.');
@@ -349,19 +377,28 @@ export class Hub {
         if (this.runner.view?.state === 'running') {
           throw new Error('Cannot jog while a job is running. Pause it first.');
         }
-        const lines = Array.isArray(msg.lines) ? msg.lines : [];
-        if (lines.length === 0 || lines.length > MAX_JOG_LINES) {
-          throw new Error(`Send between 1 and ${MAX_JOG_LINES} lines.`);
-        }
+        const lines = this.validateGcode(msg.lines, MAX_JOG_LINES);
+        // The reply lines come back so the client can read an `M114` or an
+        // `M115` banner without a second round trip.
+        const replies: string[] = [];
         for (const line of lines) {
-          if (typeof line !== 'string' || /[\r\n]/.test(line)) {
-            throw new Error('Invalid G-code line.');
-          }
-          if (!JOG_ALLOWED.test(line.trim())) {
-            throw new Error(`Not allowed outside a job: ${line}`);
-          }
+          replies.push(...(await this.connection.send(line, { bypassPause: true })));
         }
-        await this.connection.sendMany(lines, { bypassPause: true });
+        return replies;
+      }
+
+      case 'stream': {
+        this.requireControl(client.id);
+        // Interactive strokes and a job are two things drawing on the same
+        // page at once. The job wins; the stroke is refused rather than
+        // interleaved.
+        if (this.runner.isActive) {
+          throw new Error('Cannot draw interactively while a job is loaded. Cancel it first.');
+        }
+        const lines = this.validateGcode(msg.lines, MAX_STREAM_LINES);
+        // No bypassPause: an interactive stroke is exactly the output that
+        // Pause exists to hold back.
+        await this.connection.sendMany(lines);
         return undefined;
       }
 
