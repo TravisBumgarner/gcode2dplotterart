@@ -1,0 +1,85 @@
+name: plotter server image
+
+# Publishes the plotter backend container to GHCR.
+#
+# Tags are prefixed `plotter-server-` so image releases don't collide with the
+# Python package's versioning elsewhere in this repo. Push
+# `plotter-server-v1.0.0` to cut a release; pushes to main refresh `edge` so
+# there's always something current to pull onto the Pi.
+on:
+  push:
+    branches: [main]
+    tags: ["plotter-server-v*"]
+    paths:
+      - "paint-app/server/**"
+      - ".github/workflows/plotter-server-image.yml"
+  pull_request:
+    paths:
+      - "paint-app/server/**"
+      - ".github/workflows/plotter-server-image.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/plotter-server
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: paint-app/server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: paint-app/server/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The Pi is arm64 and these runners are amd64. Emulation is slow but the
+      # only compile step is `tsc`; the native serialport binding comes down as
+      # a prebuilt arm64 binary rather than being built here.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      # Skipped on pull_request: forks have no write access, and a PR should
+      # verify the image builds without publishing it.
+      - if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=match,pattern=plotter-server-v(.*),group=1
+            type=raw,value=edge,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/plotter-server-v') }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: paint-app/server
+          platforms: linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
