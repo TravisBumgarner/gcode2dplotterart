@@ -17,7 +17,6 @@
     "lint": "biome check src scripts",
     "format": "biome format --write src scripts",
     "check": "biome check --write src scripts",
-    "docker:build": "docker buildx build --platform linux/arm64 -t plotter-server:local .",
     "release": "node scripts/release.mjs"
   },
   "dependencies": {

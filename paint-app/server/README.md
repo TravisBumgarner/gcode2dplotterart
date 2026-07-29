@@ -4,8 +4,9 @@ The serial backend for `paint-app`. It owns the USB link to the plotter so the
 UI can be served from a Raspberry Pi that is physically wired to the machine,
 instead of only from a laptop with the cable plugged into it.
 
-This is **backend and API only**. The React client still talks Web Serial and is
-unchanged; swapping it over is a follow-up.
+It also serves the built renderer, so the whole thing is one container on one
+port: `CLIENT_DIR` points at a `vite build` output and the SPA is handed out
+from the same origin as the API. See `../Dockerfile`.
 
 ## Why a backend at all
 
@@ -15,7 +16,7 @@ the plotter is a network appliance: start a page from anywhere, walk away, and
 swap pens from a phone.
 
 Almost all of the value is in `src/plotter.ts`, which is a port of
-`paint-app/src/serial.ts` — a pile of Marlin-specific behaviour that was
+`paint-app/src/serial.ts` (now deleted) — a pile of Marlin-specific behaviour that was
 expensive to discover and would have to be rediscovered from scratch in another
 language:
 
@@ -108,8 +109,9 @@ jog and e-stop want a socket that is already open. Not WebSocket-only either:
 uploading a job is a request with a response, and e-stop over plain HTTP is a
 useful thing to have when the socket is the broken part.
 
-Every type below is exported from `src/protocol.ts`, which is dependency-free so
-the client can import it verbatim.
+Every type below is exported from `src/protocol.ts`, which is dependency-free
+and imported directly by `paint-app/src/plotterClient.ts` — one definition, so
+the two halves of an emergency stop cannot drift apart.
 
 ### REST
 
@@ -165,8 +167,13 @@ with a matching `ack`.
 | `job.continue` | yes | Pen swapped, carry on |
 | `job.pause` / `job.resume` | yes | Gates before the next line |
 | `job.cancel` | yes | |
-| `jog` | yes | `{ lines }`, allowlisted, refused mid-layer |
+| `jog` | yes | `{ lines }`, allowlisted, refused mid-layer, acks with the reply lines |
+| `stream` | yes | `{ lines }`, same allowlist, honours pause, for interactive strokes |
 | `position` | yes | `M114`, parsed |
+
+`jog` bypasses the pause gate because operator moves are the point of having
+paused; `stream` does not, because an interactive stroke is exactly the output
+pause exists to hold back.
 
 Server to client:
 
@@ -209,8 +216,10 @@ control lock, the write queue, the pause gate, or the `ok` of whatever is in
 flight. It is reachable from any client, controller or not, over the socket or
 over `POST /api/estop`. Everything waiting on a reply is failed immediately
 rather than left to time out, and the running job is failed rather than drained.
-`src/plotter.test.ts` asserts this by ordering and by wall clock, and the tests
-fail if the bypass is removed.
+`src/plotter.test.ts` asserts this by ordering and by wall clock, and
+`src/client.test.ts` asserts the same of the browser client: it fires from a
+read-only observer that cannot send a single G-code line by the ordinary route,
+and it fires with the session socket shut. Both fail if the bypass is removed.
 
 Not guaranteed by this code: that the stop reaches the board. It travels over
 your network, through this process, over USB, and relies on Marlin's
@@ -233,6 +242,11 @@ src/
   server.ts      # express routes + websocket wiring
   config.ts
   index.ts       # entry, graceful shutdown
+  client.test.ts # the renderer's API client, end to end against this server
   test/
     fakeMarlin.ts  # a scripted board: ok, banners, echo:busy, unplug, M112
 ```
+
+`client.test.ts` tests code that lives in `../src/plotterClient.ts`. It sits here
+because this is where the fake board and the real HTTP server are, and a client
+tested only against a mock of its own server proves nothing.

@@ -16,6 +16,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    // The vite config reads PLOTTER_SERVER out of the environment to point the
+    // dev proxy at a Pi.
+    "types": ["node"],
+
     "skipLibCheck": true
   },
   "include": ["vite.config.ts"]
