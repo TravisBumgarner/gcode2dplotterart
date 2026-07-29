@@ -33,7 +33,7 @@ const JOG_STEPS = [0.1, 1, 10];
  * up and responding before committing to a full print.
  */
 export const DebugModal = ({ onClose }: Props) => {
-  const { connection } = useConnection();
+  const { client } = useConnection();
   const { state } = useStore();
   const { getPlotter } = usePlotters();
   const plotter = getPlotter(state.plotterId) ?? null;
@@ -47,12 +47,12 @@ export const DebugModal = ({ onClose }: Props) => {
 
   const refreshPosition = async () => {
     try {
-      const p = await connection.getPosition();
+      const p = await client.getPosition();
       if (p) setPosition(p);
     } catch {}
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: connection is stable; fetch once on open
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the client is stable; fetch once on open
   useEffect(() => {
     refreshPosition();
   }, []);
@@ -79,13 +79,13 @@ export const DebugModal = ({ onClose }: Props) => {
     }
   };
 
-  const send = (label: string, gcode: string) => run(label, () => connection.send(gcode));
+  const send = (label: string, gcode: string) => run(label, () => client.send(gcode));
 
   const jog = (axis: 'X' | 'Y', dir: 1 | -1) =>
     run(`Jog ${axis}${dir > 0 ? '+' : '-'}${step}`, async () => {
-      await connection.send('G91');
-      const out = await connection.send(`G0 ${axis}${dir * step}`);
-      await connection.send('G90');
+      await client.send('G91');
+      const out = await client.send(`G0 ${axis}${dir * step}`);
+      await client.send('G90');
       return out;
     });
 
@@ -95,8 +95,8 @@ export const DebugModal = ({ onClose }: Props) => {
       return;
     }
     run(label, async () => {
-      await connection.send('G90');
-      return connection.send(`G0 ${axis}${value} F${plotter.travelFeed}`);
+      await client.send('G90');
+      return client.send(`G0 ${axis}${value} F${plotter.travelFeed}`);
     });
   };
 
