@@ -118,6 +118,18 @@ strokes drawn while connected get plotted.
   (clipped to the page rectangle and translated to machine origin), with a
   pause + audio chime + on-screen prompt between layers so you can swap pens.
 
+## Network backend (`server/`)
+
+Web Serial means the browser has to be on the machine holding the USB cable —
+one laptop, tethered, for the whole print. [`server/`](server/README.md) is a
+Node backend that owns the port instead, so the plotter can live on a Raspberry
+Pi and be driven from anywhere on the network.
+
+It is not wired into this app yet. The client still talks Web Serial and is
+unchanged; swapping it over is a follow-up. See
+[`server/README.md`](server/README.md) for the protocol and the deployment
+notes.
+
 ## Hardware notes
 
 See [`experiments/README.md`](experiments/README.md) for the CH340 driver
