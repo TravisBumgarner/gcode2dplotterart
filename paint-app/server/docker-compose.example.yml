@@ -1,0 +1,33 @@
+# Copy to docker-compose.yml on the Pi and adjust the device path.
+#
+#   docker compose up -d
+#
+services:
+  plotter-server:
+    image: ghcr.io/travisbumgarner/plotter-server:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      # Point at a mounted renderer build to serve the UI from the same origin.
+      # CLIENT_DIR: /client
+      # CORS_ORIGIN: "http://plotter.local:5173"
+
+    # The container gets the device node itself...
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+
+    # ...and a read-only view of the by-id directory, so `GET /api/ports`
+    # returns the stable name rather than a ttyUSB number that moves on replug.
+    # Bind-mounting it does NOT create the device; `devices:` above does that.
+    volumes:
+      - /dev/serial/by-id:/dev/serial/by-id:ro
+      # - ../dist:/client:ro
+
+    # `devices:` grants the node, not permission to open it. The tty is owned by
+    # root:dialout, so the container's user has to be in that group. Check the
+    # host's GID with `getent group dialout` — 20 on Raspberry Pi OS, 18 on some
+    # others. Getting this wrong shows up as EACCES on connect, not at startup.
+    group_add:
+      - "20"
