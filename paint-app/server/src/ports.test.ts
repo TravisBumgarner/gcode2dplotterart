@@ -1,5 +1,8 @@
+import { mkdir, mkdtemp, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { describePorts, type RawPort } from './ports.js';
+import { describePorts, type RawPort, readSysfsIds } from './ports.js';
 
 const ch340: RawPort = {
   path: '/dev/ttyUSB0',
@@ -46,5 +49,54 @@ describe('describePorts', () => {
     const [port] = describePorts([{ ...ch340, vendorId: '0x1a86' }], new Map());
     expect(port.vendorId).toBe('1a86');
     expect(port.known).toBe(true);
+  });
+});
+
+/**
+ * A container gets /sys but not /run/udev, so `udevadm info -e` hands back
+ * paths with no descriptors at all. Lay out the same shape sysfs has — tty ->
+ * USB interface -> USB device — and check the ids are recovered from it.
+ */
+const fakeSysfs = async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'ports-'));
+  const usbDevice = path.join(root, 'devices/usb1/1-1');
+  const usbInterface = path.join(usbDevice, '1-1:1.0/ttyUSB0');
+  const sysClassTty = path.join(root, 'class/tty');
+
+  await mkdir(usbInterface, { recursive: true });
+  await mkdir(sysClassTty, { recursive: true });
+  await writeFile(path.join(usbDevice, 'idVendor'), '1a86\n');
+  await writeFile(path.join(usbDevice, 'idProduct'), '7523\n');
+  await writeFile(path.join(usbDevice, 'manufacturer'), 'QinHeng Electronics\n');
+  await mkdir(path.join(sysClassTty, 'ttyUSB0'));
+  await symlink(usbInterface, path.join(sysClassTty, 'ttyUSB0/device'));
+
+  return sysClassTty;
+};
+
+describe('readSysfsIds', () => {
+  it('recovers the descriptors udev would have supplied', async () => {
+    const sysClassTty = await fakeSysfs();
+    const ids = await readSysfsIds('/dev/ttyUSB0', sysClassTty);
+
+    expect(ids).toEqual({
+      vendorId: '1a86',
+      productId: '7523',
+      manufacturer: 'QinHeng Electronics',
+    });
+    // The point of the whole exercise: this is what the picker ranks on.
+    expect(describePorts([{ path: '/dev/ttyUSB0', ...ids }], new Map())[0].known).toBe(true);
+  });
+
+  it('says nothing rather than throwing when there is no sysfs', async () => {
+    expect(await readSysfsIds('/dev/ttyUSB0', '/nope/class/tty')).toEqual({});
+  });
+
+  it('says nothing for a tty with no USB device above it', async () => {
+    const sysClassTty = await fakeSysfs();
+    const bare = path.join(sysClassTty, 'ttyAMA10');
+    await mkdir(path.join(bare, 'device'), { recursive: true });
+
+    expect(await readSysfsIds('/dev/ttyAMA10', sysClassTty)).toEqual({});
   });
 });
