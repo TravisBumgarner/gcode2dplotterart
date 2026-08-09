@@ -97,6 +97,13 @@ See `docker-compose.example.yml`. Two things are easy to get wrong:
   Getting it wrong surfaces as `EACCES` at connect time, not at startup.
 - Bind-mount `/dev/serial/by-id` read-only as well, or the server can only offer
   `/dev/ttyUSB0` — the name that moves.
+- Bind-mount `/run/udev` read-only too. `SerialPort.list()` reads USB
+  descriptors from the udev *database*, not from `/sys`, and a container has the
+  latter but not the former. Without it the plotter still appears, but with no
+  vendor id — so it ranks below the Pi's onboard UART and the picker labels it
+  "Unrecognised device". `ports.ts` recovers the ids from sysfs as a fallback,
+  which is why this is cosmetic rather than fatal, but the mount also gets you
+  the manufacturer and serial number.
 
 `npm run release -- 0.2.0` tags `plotter-server-v0.2.0`; the workflow builds
 `linux/arm64` and publishes to GHCR.

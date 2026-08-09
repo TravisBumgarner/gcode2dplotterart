@@ -1,4 +1,4 @@
-import { readdir, readlink } from 'node:fs/promises';
+import { readdir, readFile, readlink, realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import type { PortInfo } from './protocol.js';
@@ -78,6 +78,57 @@ export async function readByIdLinks(dir = BY_ID_DIR): Promise<Map<string, string
   return map;
 }
 
+export const SYS_CLASS_TTY = '/sys/class/tty';
+
+const attr = async (dir: string, name: string) => {
+  try {
+    return (await readFile(path.join(dir, name), 'utf8')).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * `SerialPort.list()` reads its USB descriptors out of the udev *database*
+ * (`udevadm info -e`, backed by `/run/udev`), not out of sysfs. A container
+ * gets `/sys` for free but not `/run/udev`, so every port comes back as a bare
+ * path: the CH340 on the plotter ranks as an unrecognised device even though
+ * the by-id link bind-mounted beside it spells out `1a86`. sysfs carries the
+ * same descriptors and is always mounted, so it fills the gap.
+ */
+export async function readSysfsIds(
+  devPath: string,
+  sysClassTty = SYS_CLASS_TTY,
+): Promise<Partial<RawPort>> {
+  let dir: string;
+  try {
+    dir = await realpath(path.join(sysClassTty, path.basename(devPath), 'device'));
+  } catch {
+    // Not a Linux sysfs box, or the device went away mid-enumeration.
+    return {};
+  }
+  // `device` points at the USB *interface*; the ids live on the USB device one
+  // or two levels up. Bounded so a symlink loop cannot walk forever.
+  for (let depth = 0; depth < 6 && dir !== '/' && dir !== '.'; depth++) {
+    const [vendorId, productId] = await Promise.all([
+      attr(dir, 'idVendor'),
+      attr(dir, 'idProduct'),
+    ]);
+    if (vendorId && productId) {
+      const [manufacturer, serialNumber] = await Promise.all([
+        attr(dir, 'manufacturer'),
+        attr(dir, 'serial'),
+      ]);
+      const found: Partial<RawPort> = { vendorId, productId };
+      if (manufacturer) found.manufacturer = manufacturer;
+      if (serialNumber) found.serialNumber = serialNumber;
+      return found;
+    }
+    dir = path.dirname(dir);
+  }
+  return {};
+}
+
 const label = (p: RawPort, stablePath: string | undefined) => {
   const pretty = stablePath
     ? path
@@ -126,5 +177,8 @@ export async function listPorts(): Promise<PortInfo[]> {
   // biome-ignore lint/suspicious/noExplicitAny: CJS interop for a native module
   const { SerialPort } = requireCjs('serialport') as any;
   const [raw, byId] = await Promise.all([SerialPort.list() as Promise<RawPort[]>, readByIdLinks()]);
-  return describePorts(raw, byId);
+  const enriched = await Promise.all(
+    raw.map(async (p) => (p.vendorId ? p : { ...p, ...(await readSysfsIds(p.path)) })),
+  );
+  return describePorts(enriched, byId);
 }

@@ -28,6 +28,11 @@ services:
     # Bind-mounting it does NOT create the device; `devices:` above does that.
     volumes:
       - /dev/serial/by-id:/dev/serial/by-id:ro
+      # ...and the udev database, which is where `SerialPort.list()` actually
+      # reads USB descriptors from (`udevadm info -e`). /sys alone is not
+      # enough: without this the plotter's CH340 enumerates with no vendor id
+      # and the picker calls it "Unrecognised device".
+      - /run/udev:/run/udev:ro
       # - ./dist:/client:ro
 
     # `devices:` grants the node, not permission to open it. The tty is owned by
